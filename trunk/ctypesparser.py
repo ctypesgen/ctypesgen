@@ -246,15 +246,15 @@ class CtypesEnum(CtypesType):
         if not self.tag:
             self.tag = anonymous_enum_tag()
 
-        value = 1
+        value = 0
         context = EvaluationContext()
         self.enumerators = []
+        values = {}
+        context.evaluate_identifier = lambda x: values[x]
         for e in specifier.enumerators:
             if e.expression:
-                try:
-                    value = int(e.expression.evaluate(context))
-                except:
-                    pass
+                value = e.expression.evaluate(context)
+            values[e.name] = value
             self.enumerators.append((e.name, value))
             value += 1
 
