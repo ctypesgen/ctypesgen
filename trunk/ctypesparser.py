@@ -72,7 +72,7 @@ def get_ctypes_type(typ, declarator):
             t = CtypesType('c_char_p')
         elif type(t) == CtypesType and t.name == 'c_wchar':
             t = CtypesType('c_wchar_p')
-        else:
+        elif type(t) != CtypesFunction:
             t = CtypesPointer(t, declarator.qualifiers)
         declarator = declarator.pointer
     if declarator and declarator.parameters is not None:
