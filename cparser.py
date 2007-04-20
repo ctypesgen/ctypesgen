@@ -250,7 +250,7 @@ class ConstantExpressionNode(ExpressionNode):
         self.value = value
 
     def evaluate(self, context):
-        return self.value
+        return eval(self.value)
 
     def __str__(self):
         return str(self.value)
