@@ -14,12 +14,25 @@ __version__ = '$Id: wrap.py 738 2007-03-12 04:53:42Z Alex.Holkner $'
 
 from ctypesparser import *
 import textwrap
-import sys
+import sys, re
+from ctypes import CDLL, RTLD_LOCAL, RTLD_GLOBAL
+from ctypes.util import find_library
+
+def load_library(name, mode=RTLD_LOCAL):
+    if os.name == "nt":
+        return CDLL(name, mode=mode)
+    path = find_library(name)
+    if path is None:
+        # Maybe 'name' is not a library name in the linker style,
+        # give CDLL a last chance to find the library.
+        path = name
+    return CDLL(path, mode=mode)
 
 class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     file=None
     def begin_output(self, output_file, library, link_modules=(), 
-                     emit_filenames=(), all_headers=False):
+                     emit_filenames=(), all_headers=False,
+                     include_symbols=None, exclude_symbols=None):
         self.library = library
         self.file = output_file
         self.all_names = []
@@ -28,6 +41,12 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         self.enums = set()
         self.emit_filenames = emit_filenames
         self.all_headers = all_headers
+        self.include_symbols = None
+        self.exclude_symbols = None
+        if include_symbols:
+            self.include_symbols = re.compile(include_symbols)
+        if exclude_symbols:
+            self.exclude_symbols = re.compile(exclude_symbols)
 
         self.linked_symbols = {}
         for name in link_modules:
@@ -48,7 +67,17 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         self.print_epilogue()
         self.file = None
 
-    def does_emit(self, symbol, filename):
+    def does_emit(self, symbol, filename, restype=None, argtypes=[]):
+
+        # Skip any functions which mention excluded types
+        if self.exclude_symbols:
+            for a in [symbol, restype] + argtypes:
+                if a and self.exclude_symbols.match(str(a)):
+                    return
+
+        if self.include_symbols:
+            return re.match(self.include_symbols, symbol)
+
         return self.all_headers or filename in self.emit_filenames
 
     def print_preamble(self):
@@ -68,12 +97,6 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
             import ctypes
             from ctypes import *
-            from ctypes.util import find_library as _find_library
-
-            _libpath = _find_library(%(library)r)
-            if not _libpath:
-                raise ImportError('Could not locate %(library)s library')
-            _lib = cdll.LoadLibrary(_libpath)
 
             _int_types = (c_int16, c_int32)
             if hasattr(ctypes, 'c_int64'):
@@ -91,12 +114,22 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 # POINTER(c_void), so it can be treated as a real pointer.
                 _fields_ = [('dummy', c_int)]
 
+            _libs = {}
+
         """ % {
-            'library': self.library,
+            'library': str(self.library),
             'date': time.ctime(),
             'class': self.__class__.__name__,
             'argv': ' '.join(sys.argv),
         }).lstrip()
+        self.loaded_libraries = []
+        for library in self.library:
+            lib = load_library(library)
+            if lib:
+                self.loaded_libraries.append(lib)
+                print >>self.file, textwrap.dedent("""
+                    _libs[%r] = cdll.LoadLibrary(%r)
+                """ % (lib._name, lib._name))
 
     def print_link_modules_imports(self):
         for name in self.link_modules:
@@ -109,6 +142,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             '__all__ = [%s]' % ', '.join([repr(n) for n in self.all_names]),
             width=78,
             break_long_words=False))
+
 
     def handle_ctypes_constant(self, name, value, filename, lineno):
         if self.does_emit(name, filename):
@@ -184,20 +218,24 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             print >> self.file, '%s = %d' % (name, value)
 
     def handle_ctypes_function(self, name, restype, argtypes, filename, lineno):
-        if self.does_emit(name, filename):
+        if self.does_emit(name, filename, restype, argtypes):
+
             # Also emit any types this func requires that haven't yet been
             # written.
             self.emit_type(restype)
             for a in argtypes:
                 self.emit_type(a)
 
-            self.all_names.append(name)
-            print >> self.file, '# %s:%d' % (filename, lineno)
-            print >> self.file, '%s = _lib.%s' % (name, name)
-            print >> self.file, '%s.restype = %s' % (name, str(restype))
-            print >> self.file, '%s.argtypes = [%s]' % \
-                (name, ', '.join([str(a) for a in argtypes])) 
-            print >> self.file
+            for lib in self.loaded_libraries:
+                if hasattr(lib, name):
+                    self.all_names.append(name)
+                    print >> self.file, '# %s:%d' % (filename, lineno)
+                    print >> self.file, '%s = _libs[%r].%s' % (name, lib._name, name)
+                    print >> self.file, '%s.restype = %s' % (name, str(restype))
+                    print >> self.file, '%s.argtypes = [%s]' % \
+                        (name, ', '.join([str(a) for a in argtypes])) 
+                    print >> self.file
+                    break
 
     def handle_ctypes_variable(self, name, ctype, filename, lineno):
         # This doesn't work.
@@ -215,8 +253,8 @@ def main(*argv):
     op = optparse.OptionParser(usage=usage)
     op.add_option('-o', '--output', dest='output',
                   help='write wrapper to FILE', metavar='FILE')
-    op.add_option('-l', '--library', dest='library',
-                  help='link to LIBRARY', metavar='LIBRARY')
+    op.add_option('-l', '--library', dest='library', action='append',
+                  help='link to LIBRARY', metavar='LIBRARY', default=[])
     op.add_option('-I', '--include-dir', action='append', dest='include_dirs',
                   help='add DIR to include search path', metavar='DIR',
                   default=[])
@@ -226,6 +264,10 @@ def main(*argv):
     op.add_option('-a', '--all-headers', action='store_true',
                   dest='all_headers',
                   help='include symbols from all headers', default=False)
+    op.add_option('-i', '--include-symbols', dest='include_symbols',
+                  help='regular expression for symbols to include')
+    op.add_option('-x', '--exclude-symbols', dest='exclude_symbols',
+                  help='regular expression for symbols to exclude')
     
     (options, args) = op.parse_args(list(argv[1:]))
     if len(args) < 1:
@@ -233,17 +275,21 @@ def main(*argv):
         sys.exit(1)
     headers = args
 
-    if options.library is None:
-        options.library = os.path.splitext(headers[0])[0]
     if options.output is None:
-        options.output = '%s.py' % options.library
+        print >> sys.stderr, 'No output file specified.'
+        sys.exit(1)
+
+    if len(options.library) == 0:
+        print >> sys.stderr, 'No libraries specified.'
 
     wrapper = CtypesWrapper()
     wrapper.begin_output(open(options.output, 'w'), 
                          library=options.library, 
                          emit_filenames=headers,
                          link_modules=options.link_modules,
-                         all_headers=options.all_headers)
+                         all_headers=options.all_headers,
+                         include_symbols=options.include_symbols,
+                         exclude_symbols=options.exclude_symbols)
     wrapper.preprocessor_parser.include_path += options.include_dirs
     for header in headers:
         wrapper.wrap(header)
