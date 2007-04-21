@@ -256,6 +256,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         pass
 
 def main(*argv):
+    from tempfile import NamedTemporaryFile
     import optparse
     import sys
     import os.path
@@ -306,8 +307,12 @@ def main(*argv):
                          exclude_symbols=options.exclude_symbols)
     wrapper.preprocessor_parser.include_path += options.include_dirs
     wrapper.preprocessor_parser.defines += options.defines
+
+    f = NamedTemporaryFile(suffix=".h")
     for header in headers:
-        wrapper.wrap(header)
+        print >>f, '#include "%s"' % header
+    f.flush()
+    wrapper.wrap(f.name)
     wrapper.end_output()
 
     print 'Wrapped to %s' % options.output
