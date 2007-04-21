@@ -38,6 +38,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         self.all_names = []
         self.known_types = {}
         self.structs = set()
+        self.opaque_structs = set()
         self.enums = set()
         self.emit_filenames = emit_filenames
         self.all_headers = all_headers
@@ -180,32 +181,30 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 del self.known_types[s]
 
     def visit_struct(self, struct):
-        if struct.tag in self.structs:
-            return
-        self.structs.add(struct.tag)
-            
-        base = {True: 'Union', False: 'Structure'}[struct.is_union]
-        print >> self.file, 'class struct_%s(%s):' % (struct.tag, base)
-        print >> self.file, '    __slots__ = ['
-        if not struct.opaque:
-            for m in struct.members:
-                print >> self.file, "        '%s'," % m[0]
-        print >> self.file, '    ]'
+        
+        # Output struct definition
+        if struct.tag not in self.opaque_structs:
+            base = {True: 'Union', False: 'Structure'}[struct.is_union]
+            print >> self.file, 'class struct_%s(%s):' % (struct.tag, base)
+            print >> self.file, '   pass'
+            self.opaque_structs.add(struct.tag)
 
         # Set fields after completing class, so incomplete structs can be
         # referenced within struct.
         for name, typ in struct.members:
             self.emit_type(typ)
 
-        print >> self.file, 'struct_%s._fields_ = [' % struct.tag
-        if struct.opaque:
-            print >> self.file, "    ('_opaque_struct', c_int)"
-            self.structs.remove(struct.tag)
-        else:
+        if struct.tag not in self.structs and not struct.opaque:
+            self.structs.add(struct.tag)
+            print >> self.file, 'struct_%s.__slots__ = [' % struct.tag
+            for m in struct.members:
+                print >> self.file, "    '%s'," % m[0]
+            print >> self.file, ']'
+            print >> self.file, 'struct_%s._fields_ = [' % struct.tag
             for m in struct.members:
                 print >> self.file, "    ('%s', %s)," % (m[0], m[1])
-        print >> self.file, ']'
-        print >> self.file
+            print >> self.file, ']'
+            print >> self.file
 
     def visit_enum(self, enum):
         if enum.tag in self.enums:
