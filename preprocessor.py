@@ -276,8 +276,8 @@ def create_token(type, value, production=None):
 DEFINE = re.compile("#define\s+(\w+)(\([^)]+\))?\s+(.+)")
 
 # Extract variable names and/or strings from input data
-ADJACENT_STRINGS = re.compile(r'"(?:[^"]*(?:\\")*)*(?<!\\)"|'
-                              r'((?<=")|\w+) (\w+|(?="))')
+ADJACENT_STRINGS = re.compile(r'"(?:\\.|[^\\"])*"|'
+                              r'(?<=["\w])(\s+)(?=["\w])')
 
 class PreprocessorDefine(object):
     def __init__(self, name, code, vars):
@@ -389,10 +389,9 @@ class PreprocessorParser(object):
                 # that they're added together correctly.
                 while True:
                     for m in ADJACENT_STRINGS.finditer(code):
-                        (a, b) = m.groups()
-                        if a or b:
-                            code = "%s + %s" % (code[0:m.end(1)],
-                                                code[m.start(2):])
+                        if m.group(1):
+                            code = "%s + %s" % (code[0:m.start(1)],
+                                                code[m.end(1):])
 
                             # Restart the for loop
                             break
