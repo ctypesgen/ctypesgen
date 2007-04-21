@@ -189,8 +189,8 @@ class CtypesFunction(CtypesType):
             a.visit(visitor)
 
     def __str__(self):
-        return 'CFUNCTYPE(%s)' % ', '.join([str(self.restype)] + \
-            [str(a) for a in self.argtypes])
+        return 'CFUNCTYPE(UNCHECKED(%s), %s)' % (
+            str(self.restype), ', '.join([str(a) for a in self.argtypes]))
 
 last_tagnum = 0
 def anonymous_struct_tag():
