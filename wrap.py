@@ -115,6 +115,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 # POINTER(c_void), so it can be treated as a real pointer.
                 _fields_ = [('dummy', c_int)]
 
+            __builtin_va_list = c_void_p
             _libs = {}
 
             # As of ctypes 1.0, ctypes does not support custom error-checking
@@ -147,7 +148,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
     def print_link_modules_imports(self):
         for name in self.link_modules:
-            print >> self.file, 'import %s' % name
+            print >> self.file, 'from %s import *' % name
         print >> self.file
 
     def print_epilogue(self):
@@ -159,17 +160,15 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
     def handle_ctypes_constant(self, name, value, filename, lineno):
         if self.does_emit(name, filename):
-            print >> self.file, '%s = %r' % (name, value),
-            print >> self.file, '\t# %s:%d' % (filename, lineno)
+            if name not in self.linked_symbols:
+                print >> self.file, '%s = %r' % (name, value),
+                print >> self.file, '\t# %s:%d' % (filename, lineno)
             self.all_names.append(name)
 
     def handle_ctypes_type_definition(self, name, ctype, filename, lineno):
         if self.does_emit(name, filename):
             self.all_names.append(name)
-            if name in self.linked_symbols:
-                print >> self.file, '%s = %s' % \
-                    (name, self.linked_symbols[name])
-            else:
+            if name not in self.linked_symbols:
                 ctype.visit(self)
                 self.emit_type(ctype)
                 print >> self.file, '%s = %s' % (name, str(ctype)),
@@ -181,9 +180,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         t.visit(self)
         for s in t.get_required_type_names():
             if s in self.known_types:
-                if s in self.linked_symbols:
-                    print >> self.file, '%s = %s' % (s, self.linked_symbols[s])
-                else:
+                if s not in self.linked_symbols:
                     s_ctype, s_filename, s_lineno = self.known_types[s]
                     s_ctype.visit(self)
 
@@ -193,6 +190,8 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 del self.known_types[s]
 
     def visit_struct(self, struct):
+        if struct.tag in self.linked_symbols:
+            return
         
         # Output struct definition
         if struct.tag not in self.opaque_structs:
@@ -219,6 +218,8 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             print >> self.file
 
     def visit_enum(self, enum):
+        if struct.tag in self.linked_symbols:
+            return
         if enum.tag in self.enums:
             return
         self.enums.add(enum.tag)
@@ -229,7 +230,11 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             print >> self.file, '%s = %d' % (name, value)
 
     def handle_ctypes_function(self, name, restype, argtypes, filename, lineno):
+        if name in self.linked_symbols:
+            return
+
         if self.does_emit(name, filename, restype, argtypes):
+
 
             # Also emit any types this func requires that haven't yet been
             # written.
