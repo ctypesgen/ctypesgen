@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-'''Preprocess a C source file.
-
-Limitations:
-
-  * Whitespace is not preserved.
-  * # and ## operators not handled.
+'''Preprocess a C source file using gcc and convert the result into
+   a token stream
 
 Reference is C99:
   * http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1124.pdf
-  * Also understands Objective-C #import directive
-  * Also understands GNU #include_next
 
 '''
 
@@ -27,14 +21,9 @@ tokens = (
     'PTR_OP', 'INC_OP', 'DEC_OP', 'LEFT_OP', 'RIGHT_OP', 'LE_OP', 'GE_OP',
     'EQ_OP', 'NE_OP', 'AND_OP', 'OR_OP', 'MUL_ASSIGN', 'DIV_ASSIGN',
     'MOD_ASSIGN', 'ADD_ASSIGN', 'SUB_ASSIGN', 'LEFT_ASSIGN', 'RIGHT_ASSIGN',
-    'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'HASH_HASH', 'PERIOD',
-    'ELLIPSIS',
+    'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'PERIOD', 'ELLIPSIS',
 
-    'IF', 'IFDEF', 'IFNDEF', 'ELIF', 'ELSE', 'ENDIF', 'INCLUDE',
-    'INCLUDE_NEXT', 'DEFINE', 'UNDEF', 'LINE', 'ERROR', 'PRAGMA', 'DEFINED',
-    'IMPORT',
-
-    'NEWLINE', 'LPAREN'
+    'LPAREN'
 )
 
 subs = {
@@ -110,7 +99,6 @@ punctuators = {
     r':>': (r':>', ']'),
     r'<%': (r'<%', '{'),
     r'%>': (r'%>', '}'),
-    r'%:%:': (r'%:%:', 'HASH_HASH'),
     r';': (r';', ';'),
     r'{': (r'{', '{'),
     r'}': (r'}', '}'),
@@ -142,20 +130,6 @@ def punctuator_regex(punctuators):
     punctuator_regexes.sort(lambda a, b: -cmp(len(a), len(b)))
     return '(%s)' % '|'.join(punctuator_regexes)
 
-def t_clinecomment(t):
-    r'//[^\n]*'
-    t.lexer.lineno += 1
-
-def t_cr(t):
-    r'\r'
-    # Skip over CR characters.  Only necessary on urlopen'd files.
-
-# C /* comments */.  Copied from the ylex.py example in PLY: it's not 100%
-# correct for ANSI C, but close enough for anything that's not crazy.
-def t_ccomment(t):
-    r'/\*(.|\n)*?\*/'
-    t.lexer.lineno += t.value.count('\n')
-
 def t_header_name(t):
     r'<([\/]?[^\/\*\n>])*[\/]?>(?=[ \t\f\v\r\n])'
     # Should allow any character from charset, but that wreaks havok (skips
@@ -168,16 +142,6 @@ def t_header_name(t):
     # Is also r'"[^\n"]"', but handled in STRING_LITERAL instead.
     t.type = 'HEADER_NAME'
     t.value = SystemHeaderName(t.value)
-    return t
-
-def t_directive(t):
-    r'\#[ \t]*(ifdef|ifndef|if|elif|else|endif|define|undef|include_next|include|import|line|error|pragma)'
-    if t.lexer.lasttoken in ('NEWLINE', None):
-        t.type = t.value[1:].lstrip().upper()
-    else:
-        # TODO
-        t.type = '#'
-        t.lexer.nexttoken = ('IDENTIFIER', t.value[1:].lstrip())
     return t
 
 @TOKEN(punctuator_regex(punctuators))
@@ -218,22 +182,11 @@ def t_lparen(t):
         t.type = '('
     return t
 
-def t_continuation(t):
-    r'\\\n'
-    t.lexer.lineno += 1
-    return None
-
-def t_newline(t):
-    r'\n'
-    t.lexer.lineno += 1
-    t.type = 'NEWLINE'
-    return t
-
 def t_error(t):
     t.type = 'OTHER'
     return t
 
-t_ignore = ' \t\v\f'
+t_ignore = ' \t\v\f\n'
 
 # --------------------------------------------------------------------------
 # Lexers
@@ -403,8 +356,7 @@ class PreprocessorParser(object):
         while True:
             token = self.lexer.token()
             if token is not None:
-                if token.type != "NEWLINE":
-                    self.output.append(token)
+                self.output.append(token)
             else:
                 break
 
