@@ -23,7 +23,7 @@ tokens = (
     'MOD_ASSIGN', 'ADD_ASSIGN', 'SUB_ASSIGN', 'LEFT_ASSIGN', 'RIGHT_ASSIGN',
     'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'PERIOD', 'ELLIPSIS',
 
-    'LPAREN'
+    'LPAREN', 'NEWLINE'
 )
 
 subs = {
@@ -121,8 +121,7 @@ punctuators = {
     r'>': (r'>', '>'),
     r'^': (r'\^', '^'),
     r'|': (r'\|', '|'),
-    r'?': (r'\?', '?'),
-    r'#': (r'\#', '#'),
+    r'?': (r'\?', '?')
 }
 
 def punctuator_regex(punctuators):
@@ -130,19 +129,13 @@ def punctuator_regex(punctuators):
     punctuator_regexes.sort(lambda a, b: -cmp(len(a), len(b)))
     return '(%s)' % '|'.join(punctuator_regexes)
 
-def t_header_name(t):
-    r'<([\/]?[^\/\*\n>])*[\/]?>(?=[ \t\f\v\r\n])'
-    # Should allow any character from charset, but that wreaks havok (skips
-    #   comment delimiter, for instance), so also don't permit '*' or '//'
-    # The non-matching group at the end prevents false-positives with
-    #   operators like '>='.
-    # In the event of a false positive (e.g. "if (a < b || c > d)"), the
-    #  token will be split and rescanned if it appears in a text production;
-    #  see PreprocessorParser.write.
-    # Is also r'"[^\n"]"', but handled in STRING_LITERAL instead.
-    t.type = 'HEADER_NAME'
-    t.value = SystemHeaderName(t.value)
-    return t
+# Process line-number directives from the preprocessor
+# See http://docs.freebsd.org/info/cpp/cpp.info.Output.html
+def t_directive(t):
+    r'\#\s+(\d+)\s+"([^"]+)"[ \d]*\n'
+    t.lexer.filename = t.groups[2]
+    t.lexer.lineno = int(t.groups[1])
+    return None
 
 @TOKEN(punctuator_regex(punctuators))
 def t_punctuator(t):
@@ -182,11 +175,16 @@ def t_lparen(t):
         t.type = '('
     return t
 
+def t_newline(t):
+    r'\n'
+    t.lexer.lineno += 1
+    return None
+
 def t_error(t):
     t.type = 'OTHER'
     return t
 
-t_ignore = ' \t\v\f\n'
+t_ignore = ' \t\v\f\r'
 
 # --------------------------------------------------------------------------
 # Lexers
@@ -273,7 +271,7 @@ def create_token(type, value, production=None):
 # Grammars
 # --------------------------------------------------------------------------
 
-DEFINE = re.compile("#define\s+(\w+)(\([^)]+\))?\s+(.+)")
+DEFINE = re.compile("#define\s+(\w+)(\([^)]+\))?(?:\s+(.+))?")
 
 # Extract variable names and/or strings from input data
 ADJACENT_STRINGS = re.compile(r'"(?:\\.|[^\\"])*"|'
@@ -348,10 +346,15 @@ class PreprocessorParser(object):
             m = DEFINE.match(line)
             if m:
                 self.matches.append(m.groups())
-            elif not line.startswith("#"):
+
+            if line.startswith("#") and not line.startswith("# "):
+                # Replace any directives other than line numbers
+                # with placeholder empty lines
+                code.append("\n")
+            else:
                 code.append(line)
 
-        self.lexer.input("\n".join(code))
+        self.lexer.input("".join(code))
         self.output = []
         while True:
             token = self.lexer.token()
@@ -375,6 +378,10 @@ class PreprocessorParser(object):
         defines['NULL'] = PreprocessorDefine('NULL', 'None', defines)
 
         for (name, params, code) in self.matches:
+
+            # If not specified, define to "1"
+            if code is None:
+                code = "1"
 
             # Convert the value into a function if necessary
             if params:
