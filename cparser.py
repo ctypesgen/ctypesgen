@@ -17,7 +17,6 @@ Reference is C99:
 __docformat__ = 'restructuredtext'
 __version__ = '$Id: cparser.py 617 2007-02-07 16:15:11Z Alex.Holkner $'
 
-import cPickle
 import operator
 import os.path
 import re
@@ -1190,32 +1189,14 @@ class CLexer(object):
 # Parser
 # --------------------------------------------------------------------------
 
-class CPreprocessorParser(preprocessor.PreprocessorParser):
-    def __init__(self, cparser, **kwargs):
-        self.cparser = cparser
-        preprocessor.PreprocessorParser.__init__(self, **kwargs)
-
-    def push_file(self, filename, data=None):
-        if not self.cparser.handle_include(filename):
-            return
-
-        tokens = self.cparser.get_cached_tokens(filename)
-        if tokens is not None:
-            self.output += tokens
-            return
-
-        if not data:
-            data = open(filename).read()
-        self.lexer.push_input(data, filename)
-
 class CParser(object):
     '''Parse a C source file.
 
     Subclass and override the handle_* methods.  Call `parse` with a string
     to parse.
     '''
-    def __init__(self, stddef_types=True, gnu_types=True, cache_headers=True):
-        self.preprocessor_parser = CPreprocessorParser(self)
+    def __init__(self, stddef_types=True, gnu_types=True):
+        self.preprocessor_parser = preprocessor.PreprocessorParser()
         self.parser = yacc.Parser()
         yacc.yacc(method='LALR').init_parser(self.parser)
         self.parser.cparser = self
@@ -1230,84 +1211,17 @@ class CParser(object):
         if sys.platform == 'win32':
             self.lexer.type_names.add('__int64')
 
-        self.header_cache = {}
-        self.cache_headers = cache_headers
-        self.load_header_cache()
-    
     def parse(self, filename, data=None, debug=False):
         '''Parse a file.  Give filename or filename + data.
 
         If `debug` is True, parsing state is dumped to stdout.
         '''
-        if not data:
-            data = open(filename, 'r').read()
-        
+
         self.handle_status('Preprocessing %s' % filename)
-        self.preprocessor_parser.parse(filename, data, debug=debug)
+        self.preprocessor_parser.parse(filename)
         self.lexer.input(self.preprocessor_parser.output)
         self.handle_status('Parsing %s' % filename)
         self.parser.parse(lexer=self.lexer, debug=debug)
-
-    def load_header_cache(self, filename=None):
-        if not filename:
-            filename = '.header.cache'
-        try:
-            self.header_cache = cPickle.load(open(filename, 'rb'))
-            self.handle_status('Loaded header cache "%s".  Found:' % filename)
-            for header in self.header_cache.keys():
-                self.handle_status('  %s' % header)
-        except:
-            self.handle_status('Failed to load header cache "%s"' % filename)
-
-    def save_header_cache(self, filename=None):
-        if not filename:
-            filename = '.header.cache'
-        try:
-            cPickle.dump(self.header_cache, open(filename, 'wb'))
-            self.handle_status('Updated header cache "%s"' % filename)
-        except:
-            self.handle_status('Failed to update header cache "%s"' % filename)
-
-    def get_cached_tokens(self, header):
-        '''Return a list of tokens for `header`.
-
-        If there is no cached copy, return None.
-        '''
-        try:
-            now = os.stat(header).st_mtime
-        except OSError:
-            now = time.time()
-        current_memento = self.preprocessor_parser.get_memento()
-        if header in self.header_cache:
-            timestamp, memento, tokens, namespace = self.header_cache[header]
-            if self.preprocessor_parser.system_headers:
-                self.handle_status('Not using cached header "%s" because ' \
-                                   'of overridden system_headers.' % header)
-            elif now < timestamp:
-                self.handle_status('Not using cached header "%s" because ' \
-                                   'cached copy is stale.' % header)
-            elif memento != current_memento:
-                self.handle_status('Not using cached header "%s" because ' \
-                                   'memento differs.' % header)
-            else:
-                self.handle_status('Using cached header "%s"' % header)
-                self.preprocessor_parser.namespace = namespace
-                return tokens
-
-        if self.cache_headers and not self.preprocessor_parser.system_headers:
-            self.handle_status('Caching header "%s"' % header)
-            self.cache_headers = False
-            ppp = preprocessor.PreprocessorParser()
-            ppp.include_path = self.preprocessor_parser.include_path
-            ppp.parse(filename=header,
-                      namespace=self.preprocessor_parser.namespace)
-            self.header_cache[header] = (now, current_memento, 
-                                         ppp.output, ppp.namespace.copy())
-            self.save_header_cache()
-            self.cache_headers = True
-            return ppp.output
-
-        return None
 
     # ----------------------------------------------------------------------
     # Parser interface.  Override these methods in your subclass.
