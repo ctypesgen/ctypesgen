@@ -31,7 +31,7 @@ def load_library(name, mode=RTLD_LOCAL):
 class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     file=None
     def begin_output(self, output_file, library, link_modules=(), 
-                     emit_filenames=(), all_headers=False,
+                     emit_filenames=(), all_headers=False, defines=None,
                      include_symbols=None, exclude_symbols=None):
         self.library = library
         self.file = output_file
@@ -138,11 +138,10 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         print >> self.file
 
     def print_epilogue(self):
-        print >> self.file
-        print >> self.file,  '\n'.join(textwrap.wrap(
-            '__all__ = [%s]' % ', '.join([repr(n) for n in self.all_names]),
-            width=78,
-            break_long_words=False))
+
+        # Print out defines        
+        self.preprocessor_parser.emit(self.file, self.include_symbols,
+                                      self.all_names)
 
 
     def handle_ctypes_constant(self, name, value, filename, lineno):
@@ -267,6 +266,8 @@ def main(*argv):
                   help='regular expression for symbols to include')
     op.add_option('-x', '--exclude-symbols', dest='exclude_symbols',
                   help='regular expression for symbols to exclude')
+    op.add_option('-D', '--define', dest='defines', action='append',
+                  help='Predefine name as a macro, with the specified definition', metavar='LIBRARY', default=[])
     
     (options, args) = op.parse_args(list(argv[1:]))
     if len(args) < 1:
@@ -287,9 +288,11 @@ def main(*argv):
                          emit_filenames=headers,
                          link_modules=options.link_modules,
                          all_headers=options.all_headers,
+                         defines=options.defines,
                          include_symbols=options.include_symbols,
                          exclude_symbols=options.exclude_symbols)
     wrapper.preprocessor_parser.include_path += options.include_dirs
+    wrapper.preprocessor_parser.defines += options.defines
     for header in headers:
         wrapper.wrap(header)
     wrapper.end_output()
