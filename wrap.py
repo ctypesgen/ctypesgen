@@ -117,6 +117,19 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
             _libs = {}
 
+            # As of ctypes 1.0, ctypes does not support custom error-checking
+            # functions on callbacks, nor does it support custom datatypes on
+            # callbacks, so we must ensure that all callbacks return
+            # primitive datatypes.
+            #
+            # Non-primitive return values wrapped with UNCHECKED won't be
+            # typechecked, and will be converted to c_void_p.
+            def UNCHECKED(type):
+                if (hasattr(type, "_type_") and isinstance(type._type_, str)
+                    and type._type_ != "P"):
+                    return type
+                else:
+                    return c_void_p
         """ % {
             'library': str(self.library),
             'date': time.ctime(),
