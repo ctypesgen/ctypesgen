@@ -1179,7 +1179,9 @@ class CLexer(object):
             elif t.type == 'IDENTIFIER' and t.value in keywords:
                 t.type = t.value.upper()
             elif t.type == 'IDENTIFIER' and t.value in self.type_names:
-                t.type = 'TYPE_NAME'
+                if (self.pos < 2 or self.tokens[self.pos-2].type not in
+                    ('ENUM', 'STRUCT', 'UNION')):
+                    t.type = 'TYPE_NAME'
             t.lexer = self
             return t
         return None
