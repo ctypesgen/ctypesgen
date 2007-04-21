@@ -272,6 +272,7 @@ class Lexer:
                 # Create a token for return
                 tok = LexToken()
                 tok.value = m.group()
+                tok.groups = m.groups()
                 tok.lineno = self.lineno
                 tok.lexpos = lexpos
                 tok.lexer = self
