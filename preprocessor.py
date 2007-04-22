@@ -278,7 +278,8 @@ DEFINE = re.compile("#define\s+(\w+)(?:\(([^)]+)\))?(?:\s+(.+))?")
 
 # Extract variable names and/or strings from input data
 ADJACENT_STRINGS = re.compile(r'"(?:\\.|[^\\"])*"|'
-                              r'(?<=["\w])(\s+)(?=["\w])')
+                              r'\b(\w+)\s+(?=["\w])|'
+                              r'(?<=["\w])\s+(\w+)\b')
 
 class PreprocessorDefine(object):
     def __init__(self, name, code, vars):
@@ -411,18 +412,16 @@ class PreprocessorParser(object):
                 # variables which pop up adjacent to strings, and make sure
                 # that they're added together correctly.
                 if not params:
-                    while True:
-                        for m in ADJACENT_STRINGS.finditer(code):
-                            if m.group(1):
-                                code = "%s + %s" % (code[0:m.start(1)],
-                                                    code[m.end(1):])
-
-                                # Restart the for loop
-                                break
+                    def repl(m):
+                        (a,b) = m.groups()
+                        if (a and a in vars and isinstance(vars[a], str)):
+                            return r"%s + " % a
+                        elif (b and b in vars and isinstance(vars[b], str)):
+                            return r" + %s" % b
                         else:
-                            # Looks like we didn't find any more spots where we
-                            # can add plus signs. We're all done.
-                            break
+                            return m.group()
+
+                    code = ADJACENT_STRINGS.sub(repl, code)
 
                 code = code.replace(" || ", " or ")
                 code = code.replace(" && ", " and ")
