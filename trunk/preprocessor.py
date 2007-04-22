@@ -137,6 +137,8 @@ def t_directive(t):
     t.lexer.lineno = int(t.groups[1])
     return None
 
+DIRECTIVE = re.compile(t_directive.__doc__)
+
 @TOKEN(punctuator_regex(punctuators))
 def t_punctuator(t):
     t.type = punctuators[t.value][1]
@@ -328,7 +330,7 @@ class PreprocessorParser(object):
         self.output = []
         self.lexer = lex.lex(cls=PreprocessorLexer)
 
-    def parse(self, filename=None):
+    def parse(self, filename):
         """Parse a file and save its output"""
 
         for path in self.include_path:
@@ -345,7 +347,11 @@ class PreprocessorParser(object):
         for line in f:
             m = DEFINE.match(line)
             if m:
-                self.matches.append(m.groups())
+                self.matches.append((filename,) + m.groups())
+
+            m = DIRECTIVE.match(line)
+            if m:
+                filename = m.group(2)
 
             if line.startswith("#") and not line.startswith("# "):
                 # Replace any directives other than line numbers
@@ -363,7 +369,8 @@ class PreprocessorParser(object):
             else:
                 break
 
-    def emit(self, file, regex, all_names):
+    def emit(self, file, regex, all_names, all_headers, headers,
+             imported_symbols):
         """Emit all of the preprocessor symbols which match the
            specified REGEX, along with their dependencies"""
 
@@ -377,7 +384,7 @@ class PreprocessorParser(object):
         defines['None'] = None
         defines['NULL'] = PreprocessorDefine('NULL', 'None', defines)
 
-        for (name, params, code) in self.matches:
+        for (filename, name, params, code) in self.matches:
 
             # If not specified, define to "1"
             if code is None:
@@ -421,6 +428,8 @@ class PreprocessorParser(object):
             defines[name] = PreprocessorDefine(name, code, defines)
  
             # If this is a match, output it
-            if not regex or regex.match(name):
+            if (name not in imported_symbols and
+                (not regex or regex.match(name)) and
+                (all_headers or filename in headers)):
                 defines[name].emit(file)
 
