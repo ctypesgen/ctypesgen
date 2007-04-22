@@ -279,7 +279,7 @@ DEFINE = re.compile("#define\s+(\w+)(?:\(([^)]+)\))?(?:\s+(.+))?")
 # Extract variable names and/or strings from input data
 ADJACENT_STRINGS = re.compile(r'"(?:\\.|[^\\"])*"|'
                               r'\b(\w+)\s+(?=["\w])|'
-                              r'(?<=["\w])\s+(\w+)\b')
+                              r'(?<=["\w])\s+(\w+)\b((?= "))?')
 
 class PreprocessorDefine(object):
     def __init__(self, name, code, vars):
@@ -413,11 +413,14 @@ class PreprocessorParser(object):
                 # that they're added together correctly.
                 if not params:
                     def repl(m):
-                        (a,b) = m.groups()
+                        (a,b,c) = m.groups()
                         if (a and a in vars and isinstance(vars[a], str)):
                             return r"%s + " % a
                         elif (b and b in vars and isinstance(vars[b], str)):
-                            return r" + %s" % b
+                            if c is not None:
+                                return r" + %s +" % b
+                            else:
+                                return r" + %s" % b
                         else:
                             return m.group()
 
