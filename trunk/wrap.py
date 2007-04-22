@@ -15,7 +15,7 @@ __version__ = '$Id: wrap.py 738 2007-03-12 04:53:42Z Alex.Holkner $'
 from ctypesparser import *
 import textwrap
 import sys, re
-from ctypes import CDLL, RTLD_LOCAL, RTLD_GLOBAL
+from ctypes import CDLL, RTLD_LOCAL, RTLD_GLOBAL, c_byte
 from ctypes.util import find_library
 
 def load_library(name, mode=RTLD_LOCAL):
@@ -198,7 +198,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         if struct.tag not in self.opaque_structs:
             base = {True: 'Union', False: 'Structure'}[struct.is_union]
             print >> self.file, 'class struct_%s(%s):' % (struct.tag, base)
-            print >> self.file, '   pass'
+            print >> self.file, '    pass'
             self.opaque_structs.add(struct.tag)
 
         # Set fields after completing class, so incomplete structs can be
@@ -255,11 +255,21 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     break
 
     def handle_ctypes_variable(self, name, ctype, filename, lineno):
-        # This doesn't work.
-        #self.all_names.append(name)
-        #print >> self.file, '%s = %s.indll(_lib, %r)' % \
-        #    (name, str(ctype), name)
-        pass
+        if name in self.linked_symbols:
+            return
+
+        if self.does_emit(name, filename):
+            self.emit_type(ctype)
+            for lib in self.loaded_libraries:
+                try:
+                    c_byte.in_dll(lib, name)
+                except:
+                    pass
+                else:
+                    print >> self.file, '%s = (%s).in_dll(_libs[%r], %r)' % \
+                        (name, str(ctype), lib._name, name)
+                    self.all_names.append(name)
+                    break
 
 def main(*argv):
     from tempfile import NamedTemporaryFile
