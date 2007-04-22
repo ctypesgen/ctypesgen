@@ -76,8 +76,8 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 if a and self.exclude_symbols.match(str(a)):
                     return
 
-        if self.include_symbols:
-            return re.match(self.include_symbols, symbol)
+        if self.include_symbols and not re.match(self.include_symbols, symbol):
+            return False
 
         return self.all_headers or filename in self.emit_filenames
 
@@ -155,7 +155,9 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
         # Print out defines        
         self.preprocessor_parser.emit(self.file, self.include_symbols,
-                                      self.all_names)
+                                      self.all_names, self.all_headers,
+                                      self.emit_filenames,
+                                      self.linked_symbols)
 
 
     def handle_ctypes_constant(self, name, value, filename, lineno):
@@ -218,7 +220,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             print >> self.file
 
     def visit_enum(self, enum):
-        if struct.tag in self.linked_symbols:
+        if enum.tag in self.linked_symbols:
             return
         if enum.tag in self.enums:
             return
