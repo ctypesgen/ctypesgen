@@ -11,7 +11,8 @@ Reference is C99:
 __docformat__ = 'restructuredtext'
 __version__ = '$Id: preprocessor.py 663 2007-02-17 05:52:03Z Alex.Holkner $'
 
-import os, re, shlex, sys, compiler, errno, lex, yacc
+import os, re, shlex, sys, compiler, errno, lex, yacc, traceback
+import ctypes
 from lex import TOKEN
 
 tokens = (
@@ -273,7 +274,7 @@ def create_token(type, value, production=None):
 # Grammars
 # --------------------------------------------------------------------------
 
-DEFINE = re.compile("#define\s+(\w+)(\([^)]+\))?(?:\s+(.+))?")
+DEFINE = re.compile("#define\s+(\w+)(?:\(([^)]+)\))?(?:\s+(.+))?")
 
 # Extract variable names and/or strings from input data
 ADJACENT_STRINGS = re.compile(r'"(?:\\.|[^\\"])*"|'
@@ -292,7 +293,8 @@ class PreprocessorDefine(object):
         try:
             compiler.walk(self.node, self)
         except:
-            # print 'Could not parse: ', code
+            #print "Could not parse %s: %s" % (name, self.code)
+            #traceback.print_exc(limit=0, file=sys.stdout)
             self.emitted = True
 
     def visitName(self, node):
@@ -376,13 +378,20 @@ class PreprocessorParser(object):
 
         defines = {}
         vars = {}
-        for var in all_names:
-            vars[var] = None
-            defines[var] = None
         replacements = []
         value = None
+
+        # Anything defined in ctypes or imported_symbols is fair game
+        for container in ctypes.__dict__, imported_symbols, all_names:
+            for key in container:
+                defines[key] = None
+                vars[key] = None
+
+        # NULL in C is just 'None' in Python
         defines['None'] = None
         defines['NULL'] = PreprocessorDefine('NULL', 'None', defines)
+
+        QC_CONDITIONAL = re.compile(r" \? (.+?) : ")
 
         for (filename, name, params, code) in self.matches:
 
@@ -401,18 +410,23 @@ class PreprocessorParser(object):
                 # Looks like the code doesn't execute. Let's fix any string
                 # variables which pop up adjacent to strings, and make sure
                 # that they're added together correctly.
-                while True:
-                    for m in ADJACENT_STRINGS.finditer(code):
-                        if m.group(1):
-                            code = "%s + %s" % (code[0:m.start(1)],
-                                                code[m.end(1):])
+                if not params:
+                    while True:
+                        for m in ADJACENT_STRINGS.finditer(code):
+                            if m.group(1):
+                                code = "%s + %s" % (code[0:m.start(1)],
+                                                    code[m.end(1):])
 
-                            # Restart the for loop
+                                # Restart the for loop
+                                break
+                        else:
+                            # Looks like we didn't find any more spots where we
+                            # can add plus signs. We're all done.
                             break
-                    else:
-                        # Looks like we didn't find any more spots where we
-                        # can add plus signs. We're all done.
-                        break
+
+                code = code.replace(" || ", " or ")
+                code = code.replace(" && ", " and ")
+                code = QC_CONDITIONAL.sub(r" and \1 or ", code)
 
                 # Try to execute the modified code
                 try:
@@ -426,7 +440,7 @@ class PreprocessorParser(object):
 
             # Save this definition
             defines[name] = PreprocessorDefine(name, code, defines)
- 
+
             # If this is a match, output it
             if (name not in imported_symbols and
                 (not regex or regex.match(name)) and
