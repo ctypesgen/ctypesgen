@@ -34,6 +34,7 @@ ctypes_type_map = {
     ('uint64_t',True,   0): 'c_uint64',
     ('wchar_t', True,   0): 'c_wchar',
     ('ptrdiff_t',True,  0): 'c_ptrdiff_t',  # Requires definition in preamble
+    ('va_list', True,   0): 'c_void_p',
 }
 
 reserved_names = ['None']

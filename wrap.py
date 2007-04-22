@@ -115,7 +115,6 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 # POINTER(c_void), so it can be treated as a real pointer.
                 _fields_ = [('dummy', c_int)]
 
-            __builtin_va_list = c_void_p
             _libs = {}
 
             # As of ctypes 1.0, ctypes does not support custom error-checking
