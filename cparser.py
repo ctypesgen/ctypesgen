@@ -278,7 +278,10 @@ class UnaryExpressionNode(ExpressionNode):
 
 class SizeOfExpressionNode(ExpressionNode):
     def __init__(self, type):
-        self.type = type
+        declaration = Declaration()
+        from ctypesparser import get_ctypes_type
+        apply_specifiers(type, declaration)
+        self.type = get_ctypes_type(declaration.type, declaration.declarator)
 
     def evaluate(self, context):
         return context.evaluate_sizeof(self.type)
@@ -969,6 +972,7 @@ def p_type_name(p):
     '''type_name : specifier_qualifier_list
                  | specifier_qualifier_list abstract_declarator
     '''
+    p[0] = p[1]
 
 def p_abstract_declarator(p):
     '''abstract_declarator : pointer
