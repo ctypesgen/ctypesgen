@@ -280,6 +280,9 @@ class CtypesParser(CParser):
 
     def handle_declaration(self, declaration, filename, lineno):
         t = get_ctypes_type(declaration.type, declaration.declarator)
+        if type(t) in (CtypesStruct, CtypesEnum):
+            self.handle_ctypes_type_definition(
+                t.tag, remove_function_pointer(t), filename, lineno)
         declarator = declaration.declarator
         if declarator is None:
             # XXX TEMPORARY while struct with no typedef not filled in
