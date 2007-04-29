@@ -168,12 +168,13 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
     def handle_ctypes_type_definition(self, name, ctype, filename, lineno):
         if self.does_emit(name, filename):
-            self.all_names.append(name)
             if name not in self.linked_symbols:
                 ctype.visit(self)
                 self.emit_type(ctype)
-                print >> self.file, '%s = %s' % (name, str(ctype)),
-                print >> self.file, '\t# %s:%d' % (filename, lineno)
+                if name not in self.all_names:
+                    print >> self.file, '%s = %s' % (name, str(ctype)),
+                    print >> self.file, '\t# %s:%d' % (filename, lineno)
+            self.all_names.append(name)
         else:
             self.known_types[name] = (ctype, filename, lineno)
 
