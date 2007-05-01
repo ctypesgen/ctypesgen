@@ -31,7 +31,7 @@ def load_library(name, mode=RTLD_LOCAL):
 class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     file=None
     def begin_output(self, output_file, library, link_modules=(), 
-                     emit_filenames=(), all_headers=False, defines=None,
+                     emit_filenames=(), all_headers=False,
                      include_symbols=None, exclude_symbols=None):
         self.library = library
         self.file = output_file
@@ -284,9 +284,6 @@ def main(*argv):
                   help='write wrapper to FILE', metavar='FILE')
     op.add_option('-l', '--library', dest='library', action='append',
                   help='link to LIBRARY', metavar='LIBRARY', default=[])
-    op.add_option('-I', '--include-dir', action='append', dest='include_dirs',
-                  help='add DIR to include search path', metavar='DIR',
-                  default=[])
     op.add_option('-m', '--link-module', action='append', dest='link_modules',
                   help='use symbols from MODULE', metavar='MODULE',
                   default=[])
@@ -297,8 +294,9 @@ def main(*argv):
                   help='regular expression for symbols to include')
     op.add_option('-x', '--exclude-symbols', dest='exclude_symbols',
                   help='regular expression for symbols to exclude')
-    op.add_option('-D', '--define', dest='defines', action='append',
-                  help='Predefine name as a macro, with the specified definition', metavar='LIBRARY', default=[])
+    op.add_option('', '--cpp', dest='cpp',
+                  help='The command to invoke the c preprocessor, including any necessary options (default: gcc -E)',
+                  metavar='CPP', default='gcc -E')
     
     (options, args) = op.parse_args(list(argv[1:]))
     if len(args) < 1:
@@ -319,11 +317,9 @@ def main(*argv):
                          emit_filenames=headers,
                          link_modules=options.link_modules,
                          all_headers=options.all_headers,
-                         defines=options.defines,
                          include_symbols=options.include_symbols,
                          exclude_symbols=options.exclude_symbols)
-    wrapper.preprocessor_parser.include_path += options.include_dirs
-    wrapper.preprocessor_parser.defines += options.defines
+    wrapper.preprocessor_parser.cpp = options.cpp
 
     f = NamedTemporaryFile(suffix=".h")
     for header in headers:
