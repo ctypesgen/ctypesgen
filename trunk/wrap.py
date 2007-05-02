@@ -15,10 +15,10 @@ __version__ = '$Id: wrap.py 738 2007-03-12 04:53:42Z Alex.Holkner $'
 from ctypesparser import *
 import textwrap
 import sys, re
-from ctypes import CDLL, RTLD_LOCAL, RTLD_GLOBAL, c_byte
+from ctypes import CDLL, RTLD_GLOBAL, c_byte
 from ctypes.util import find_library
 
-def load_library(name, mode=RTLD_LOCAL):
+def load_library(name, mode=RTLD_GLOBAL):
     if os.name == "nt":
         return CDLL(name, mode=mode)
     path = find_library(name)
@@ -142,7 +142,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             if lib:
                 self.loaded_libraries.append(lib)
                 print >>self.file, textwrap.dedent("""
-                    _libs[%r] = cdll.LoadLibrary(%r)
+                    _libs[%r] = CDLL(%r, mode=RTLD_GLOBAL)
                 """ % (lib._name, lib._name))
 
     def print_link_modules_imports(self):
