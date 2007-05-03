@@ -39,7 +39,7 @@ ctypes_type_map = {
 
 reserved_names = ['None']
 
-def get_ctypes_type(typ, declarator):
+def get_ctypes_type(typ, declarator, check_qualifiers=False):
     signed = True
     typename = 'int'
     longs = 0
@@ -61,6 +61,8 @@ def get_ctypes_type(typ, declarator):
         ctypes_name = ctypes_type_map.get((typename, signed, longs), typename)
         t = CtypesType(ctypes_name)
 
+    qualifiers = []
+    qualifiers.extend(typ.qualifiers)
     while declarator and declarator.pointer:
         if declarator.parameters is not None:
             t = CtypesFunction(t, declarator.parameters)
@@ -69,9 +71,12 @@ def get_ctypes_type(typ, declarator):
             t = CtypesArray(t, a.size)
             a = a.array
 
-        if type(t) == CtypesType and t.name == 'c_char':
+        qualifiers.extend(declarator.qualifiers)
+        if (type(t) == CtypesType and t.name == 'c_char' and (qualifiers
+            or not check_qualifiers)):
             t = CtypesType('c_char_p')
-        elif type(t) == CtypesType and t.name == 'c_wchar':
+        elif (type(t) == CtypesType and t.name == 'c_wchar' and
+              (qualifiers or not check_qualifiers)):
             t = CtypesType('c_wchar_p')
         elif type(t) != CtypesFunction:
             t = CtypesPointer(t, declarator.qualifiers)
@@ -120,7 +125,7 @@ class CtypesType(object):
 class CtypesPointer(CtypesType):
     def __init__(self, destination, qualifiers):
         self.destination = destination
-        # ignore qualifiers, ctypes can't use them
+        self.qualifiers = qualifiers
 
     def get_required_type_names(self):
         if self.destination:
@@ -210,7 +215,8 @@ class CtypesStruct(CtypesType):
             self.opaque = False
             self.members = []
             for declaration in specifier.declarations:
-                t = get_ctypes_type(declaration.type, declaration.declarator)
+                t = get_ctypes_type(declaration.type, declaration.declarator,
+                                    check_qualifiers=True)
                 declarator = declaration.declarator
                 if declarator is None:
                     # XXX TEMPORARY while struct with no typedef not filled in
