@@ -115,6 +115,42 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 # POINTER(c_void), so it can be treated as a real pointer.
                 _fields_ = [('dummy', c_int)]
 
+            class String(Union):
+                _fields_ = [('ptr', POINTER(c_char)),
+                            ('string', c_char_p)]
+
+                def __str__(self):
+                    return self.string
+
+                def __nonzero__(self):
+                    return bool(self.ptr) and bool(self.string)
+
+                @classmethod
+                def from_param(cls, obj):
+
+                    # Convert from String
+                    if obj is None or isinstance(obj, cls):
+                        return obj
+
+                    # Convert from str
+                    elif isinstance(obj, str):
+                        cobj = cls()
+                        cobj.string = obj
+                        return cobj
+
+                    # Convert from raw pointer
+                    elif isinstance(obj, int):
+                        cobj = cls()
+                        cobj.ptr = cast(obj, POINTER(c_char))
+                        return cobj
+
+                    # Convert from object
+                    else:
+                        return String.from_param(obj._as_parameter_)
+
+            def ReturnString(obj):
+                return String.from_param(obj)
+
             _libs = {}
 
             # As of ctypes 1.0, ctypes does not support custom error-checking
