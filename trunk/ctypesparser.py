@@ -72,11 +72,11 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False):
             a = a.array
 
         qualifiers.extend(declarator.qualifiers)
-        if (type(t) == CtypesType and t.name == 'c_char' and (qualifiers
-            or not check_qualifiers)):
+        if type(t) == CtypesType and t.name == 'c_char':
             t = CtypesType('String')
         elif (type(t) == CtypesType and t.name == 'c_wchar' and
               (qualifiers or not check_qualifiers)):
+            # TODO: Implement WideString
             t = CtypesType('c_wchar_p')
         elif type(t) != CtypesFunction:
             t = CtypesPointer(t, declarator.qualifiers)
