@@ -141,7 +141,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     # Convert from raw pointer
                     elif isinstance(obj, int):
                         cobj = cls()
-                        cobj.ptr = cast(obj, POINTER(c_char))
+                        cobj.raw = cast(obj, POINTER(c_char))
                         return cobj
 
                     # Convert from object
