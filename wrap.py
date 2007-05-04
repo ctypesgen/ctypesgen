@@ -123,7 +123,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     return self.string
 
                 def __nonzero__(self):
-                    return bool(self.ptr) and bool(self.string)
+                    return bool(self.raw)
 
                 @classmethod
                 def from_param(cls, obj):
