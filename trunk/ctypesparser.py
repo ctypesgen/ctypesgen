@@ -74,7 +74,7 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False):
         qualifiers.extend(declarator.qualifiers)
         if (type(t) == CtypesType and t.name == 'c_char' and (qualifiers
             or not check_qualifiers)):
-            t = CtypesType('c_char_p')
+            t = CtypesType('String')
         elif (type(t) == CtypesType and t.name == 'c_wchar' and
               (qualifiers or not check_qualifiers)):
             t = CtypesType('c_wchar_p')
@@ -178,6 +178,11 @@ class CtypesFunction(CtypesType):
            type(self.restype.destination) == CtypesType and \
            self.restype.destination.name == 'None':
             self.restype = CtypesPointer(CtypesType('c_void'), ())
+
+        # Return 'ReturnString' instead of simply 'String'
+        if (type(self.restype) == CtypesType and
+            self.restype.name == 'String'):
+            self.restype = CtypesType('ReturnString')
 
         self.argtypes = [remove_function_pointer(
                             get_ctypes_type(p.type, p.declarator)) \
