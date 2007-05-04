@@ -116,7 +116,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 _fields_ = [('dummy', c_int)]
 
             class String(Union):
-                _fields_ = [('ptr', POINTER(c_char)),
+                _fields_ = [('raw', POINTER(c_char)),
                             ('string', c_char_p)]
 
                 def __str__(self):
