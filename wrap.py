@@ -98,6 +98,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
             import ctypes
             from ctypes import *
+            from UserString import UserString, MutableString
 
             _int_types = (c_int16, c_int32)
             if hasattr(ctypes, 'c_int64'):
@@ -115,34 +116,36 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 # POINTER(c_void), so it can be treated as a real pointer.
                 _fields_ = [('dummy', c_int)]
 
-            class String(Union):
+            class String(MutableString, Union):
+
                 _fields_ = [('raw', POINTER(c_char)),
-                            ('string', c_char_p)]
+                            ('data', c_char_p)]
 
-                def __str__(self):
-                    return self.string
+                def __init__(self, obj=""):
 
-                def __nonzero__(self):
-                    return bool(self.raw)
+                    if isinstance(obj, str) or isinstance(obj, UserString):
+                        self.data = str(obj)
+                    else:
+                        self.raw = obj
 
                 @classmethod
                 def from_param(cls, obj):
 
+                    # Convert None or 0
+                    if obj is None or obj == 0:
+                        return None
+
                     # Convert from String
-                    if obj is None or isinstance(obj, cls):
+                    elif isinstance(obj, String):
                         return obj
 
                     # Convert from str
                     elif isinstance(obj, str):
-                        cobj = cls()
-                        cobj.string = obj
-                        return cobj
+                        return cls(obj)
 
                     # Convert from raw pointer
                     elif isinstance(obj, int):
-                        cobj = cls()
-                        cobj.raw = cast(obj, POINTER(c_char))
-                        return cobj
+                        return cls(cast(obj, POINTER(c_char)))
 
                     # Convert from object
                     else:
