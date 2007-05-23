@@ -332,6 +332,7 @@ class PreprocessorParser(object):
         self.include_path = []
         self.matches = []
         self.output = []
+        self.save_preprocessed_headers = None
         self.lexer = lex.lex(cls=PreprocessorLexer)
 
     def parse(self, filename):
@@ -342,10 +343,13 @@ class PreprocessorParser(object):
  
         for define in self.defines:
             self.flags += " -D%s" % define
-    
-        print "%s -U __GNUC__ -dD %s %s" % (self.cpp, self.flags, filename)
 
-        f = os.popen("%s -U __GNUC__ -dD %s %s" % (self.cpp, self.flags, filename))
+        cmd = "%s -U __GNUC__ -dD %s %s" % (self.cpp, self.flags, filename)
+        if self.save_preprocessed_headers:
+            cmd = '%s | tee %s' % (cmd, self.save_preprocessed_headers)    
+
+        print cmd
+        f = os.popen(cmd)
 
         code = []
         for line in f:
