@@ -32,7 +32,8 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     file=None
     def begin_output(self, output_file, library, link_modules=(), 
                      emit_filenames=(), all_headers=False,
-                     include_symbols=None, exclude_symbols=None):
+                     include_symbols=None, exclude_symbols=None,
+                     save_preprocessed_headers=None):
         self.library = library
         self.file = output_file
         self.all_names = []
@@ -48,6 +49,8 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             self.include_symbols = re.compile(include_symbols)
         if exclude_symbols:
             self.exclude_symbols = re.compile(exclude_symbols)
+        self.preprocessor_parser.save_preprocessed_headers = \
+            save_preprocessed_headers
 
         self.linked_symbols = {}
         for name in link_modules:
@@ -334,8 +337,10 @@ def main(*argv):
     op.add_option('-x', '--exclude-symbols', dest='exclude_symbols',
                   help='regular expression for symbols to exclude')
     op.add_option('', '--cpp', dest='cpp',
-                  help='The command to invoke the c preprocessor, including any necessary options (default: gcc -E)',
-                  metavar='CPP', default='gcc -E')
+                  help='The command to invoke the c preprocessor, including any necessary options (default: gcc -E)')
+    op.add_option('', '--save-preprocessed-headers', dest='filename',
+                  help='Save the preprocessed headers to the specified '
+                       'FILENAME')
     
     (options, args) = op.parse_args(list(argv[1:]))
     if len(args) < 1:
@@ -357,7 +362,9 @@ def main(*argv):
                          link_modules=options.link_modules,
                          all_headers=options.all_headers,
                          include_symbols=options.include_symbols,
-                         exclude_symbols=options.exclude_symbols)
+                         exclude_symbols=options.exclude_symbols,
+                         save_preprocessed_headers=options.filename
+                         )
     wrapper.preprocessor_parser.cpp = options.cpp
 
     f = NamedTemporaryFile(suffix=".h")
