@@ -327,7 +327,8 @@ class PreprocessorParser(object):
     def __init__(self):
         self.cpp = "gcc -E"
         self.flags = ""
-        self.defines = []
+        self.defines = ["inline=", "__inline__=", "__extension__=",
+                        "_Bool=uint8_t"]
         self.include_path = []
         self.matches = []
         self.output = []
