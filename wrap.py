@@ -14,9 +14,31 @@ __version__ = '$Id: wrap.py 738 2007-03-12 04:53:42Z Alex.Holkner $'
 
 from ctypesparser import *
 import textwrap
-import sys, re
+import sys, re, os, tempfile
 from ctypes import CDLL, RTLD_GLOBAL, c_byte
-from ctypes.util import find_library
+
+if os.name == "nt":
+    from ctypes.util import find_library
+else:
+    # ctypes.util.find_library is buggy in Python 2.5, unfortunately,
+    # so we have to parse the output of gcc -Wl,-t manually
+    def find_library(name):
+        expr = r'[^\(\)\s]*lib%s\.[^\(\)\s:]*' % re.escape(name)
+        fdout, ccout = tempfile.mkstemp()
+        os.close(fdout)
+        cmd = 'if type gcc >/dev/null 2>&1; then CC=gcc; else CC=cc; fi;' \
+              '$CC -Wl,-t -o %s 2>&1 -l %s' % (ccout, name)
+        try:
+            f = os.popen(cmd)
+            trace = f.read()
+            f.close()
+        finally:
+            if os.path.exists(ccout):
+                os.unlink(ccout)
+        res = re.search(expr, trace)
+        if not res:
+            return None
+        return res.group(0)
 
 def load_library(name, mode=RTLD_GLOBAL):
     if os.name == "nt":
