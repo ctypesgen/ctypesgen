@@ -14,20 +14,27 @@ __version__ = '$Id: wrap.py 738 2007-03-12 04:53:42Z Alex.Holkner $'
 
 from ctypesparser import *
 import textwrap
-import sys, re, os, tempfile
+import optparse, os, re, sys, tempfile
+from errno import ENOENT
 from ctypes import CDLL, RTLD_GLOBAL, c_byte
+from ctypes.util import find_library
 
 if os.name == "nt":
-    from ctypes.util import find_library
+    def find_library_in_dirs(name, libdirs=None):
+        return find_library(name)
 else:
     # ctypes.util.find_library is buggy in Python 2.5, unfortunately,
     # so we have to parse the output of gcc -Wl,-t manually
-    def find_library(name):
+    def find_library_in_dirs(name, libdirs=None):
         expr = r'[^\(\)\s]*lib%s\.[^\(\)\s:]*' % re.escape(name)
         fdout, ccout = tempfile.mkstemp()
         os.close(fdout)
-        cmd = 'if type gcc >/dev/null 2>&1; then CC=gcc; else CC=cc; fi;' \
-              '$CC -Wl,-t -o %s 2>&1 -l %s' % (ccout, name)
+        cmd = ['if type gcc >/dev/null 2>&1; then CC=gcc; else CC=cc; fi;',
+               '$CC']
+        if libdirs is not None:
+            cmd.extend('-L' + x for x in libdirs)
+        cmd.append('-Wl,-t -o %s 2>&1 -l%s' % (ccout, name))
+        cmd = ' '.join(cmd)
         try:
             f = os.popen(cmd)
             trace = f.read()
@@ -40,10 +47,10 @@ else:
             return None
         return res.group(0)
 
-def load_library(name, mode=RTLD_GLOBAL):
+def load_library(name, mode=RTLD_GLOBAL, libdirs=None):
     if os.name == "nt":
         return CDLL(name, mode=mode)
-    path = find_library(name)
+    path = find_library_in_dirs(name, libdirs)
     if path is None:
         # Maybe 'name' is not a library name in the linker style,
         # give CDLL a last chance to find the library.
@@ -55,7 +62,8 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     def begin_output(self, output_file, library, link_modules=(), 
                      emit_filenames=(), all_headers=False,
                      include_symbols=None, exclude_symbols=None,
-                     save_preprocessed_headers=None):
+                     save_preprocessed_headers=None,
+                     libdirs=None):
         self.library = library
         self.file = output_file
         self.all_names = []
@@ -73,6 +81,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             self.exclude_symbols = re.compile(exclude_symbols)
         self.preprocessor_parser.save_preprocessed_headers = \
             save_preprocessed_headers
+        self.libdirs = libdirs
 
         self.linked_symbols = {}
         for name in link_modules:
@@ -202,7 +211,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
         }).lstrip()
         self.loaded_libraries = []
         for library in self.library:
-            lib = load_library(library)
+            lib = load_library(library, libdirs=self.libdirs)
             if lib:
                 self.loaded_libraries.append(lib)
                 print >>self.file, textwrap.dedent("""
@@ -336,11 +345,19 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     self.all_names.append(name)
                     break
 
+def option_W(option, opt, value, parser):
+    if len(value) < 4 or value[0:3] != 'l,-':
+        raise optparse.BadOptionError("not in '-Wl,<opt>' form: %s%s"
+                                      % (opt, value))
+    opt = value[2:]
+    if opt not in ['-L', '-R', '--rpath']:
+        raise optparse.BadOptionError("-Wl option must be -L, -R"
+                                      " or --rpath, not " + value[2:])
+    # Push the linker option onto the list for further parsing.
+    parser.rargs.insert(0, value)
+
 def main(*argv):
     from tempfile import NamedTemporaryFile
-    import optparse
-    import sys
-    import os.path
 
     usage = 'usage: %prog [options] <header.h>'
     op = optparse.OptionParser(usage=usage)
@@ -363,7 +380,12 @@ def main(*argv):
     op.add_option('', '--save-preprocessed-headers', dest='filename',
                   help='Save the preprocessed headers to the specified '
                        'FILENAME')
-    
+    op.add_option("-W", action="callback", callback=option_W, type='str',
+                  metavar="l,OPTION",
+                  help="where OPTION is -L, -R, or --rpath")
+    op.add_option("-L", "-R", "--rpath", action="append", dest="libdirs",
+                  metavar="LIBDIR", help="Add LIBDIR to the search path")
+
     (options, args) = op.parse_args(list(argv[1:]))
     if len(args) < 1:
         print >> sys.stderr, 'No header files specified.'
@@ -385,7 +407,8 @@ def main(*argv):
                          all_headers=options.all_headers,
                          include_symbols=options.include_symbols,
                          exclude_symbols=options.exclude_symbols,
-                         save_preprocessed_headers=options.filename
+                         save_preprocessed_headers=options.filename,
+                         libdirs=options.libdirs,
                          )
     wrapper.preprocessor_parser.cpp = options.cpp
 
