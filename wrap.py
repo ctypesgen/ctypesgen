@@ -148,7 +148,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
                 def __init__(self, obj=""):
 
-                    if isinstance(obj, str) or isinstance(obj, UserString):
+                    if isinstance(obj, (str, unicode, UserString)):
                         self.data = str(obj)
                     else:
                         self.raw = obj
