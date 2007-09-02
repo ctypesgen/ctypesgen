@@ -18,10 +18,18 @@ import optparse, os, re, sys, tempfile
 from errno import ENOENT
 from ctypes import CDLL, RTLD_GLOBAL, c_byte
 from ctypes.util import find_library
+from glob import glob
 
 if os.name == "nt":
     def find_library_in_dirs(name, libdirs=None):
         return find_library(name)
+elif sys.platform == "cygwin":
+    def find_library_in_dirs(name, libdirs=None):
+        libdirs = libdirs or []
+        for dir in libdirs + os.environ["PATH"].split(os.pathsep):
+            for f in (glob("%s/cyg%s*.dll" % (dir, name)) + 
+                      glob("%s/../bin/cyg%s*.dll" % (dir, name))):
+                return os.path.abspath(f)
 else:
     # ctypes.util.find_library is buggy in Python 2.5, unfortunately,
     # so we have to parse the output of gcc -Wl,-t manually
