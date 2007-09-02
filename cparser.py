@@ -762,15 +762,17 @@ def p_struct_declaration_list(p):
 
 def p_struct_declaration(p):
     '''struct_declaration : specifier_qualifier_list struct_declarator_list ';'
+                          | specifier_qualifier_list ';'
     '''
     # p[0] returned is a tuple, to handle multiple declarators in one
     # declaration.
     r = ()
-    for declarator in p[2]:
-        declaration = Declaration()
-        apply_specifiers(p[1], declaration)
-        declaration.declarator = declarator
-        r += (declaration,)
+    if len(p) >= 4:
+        for declarator in p[2]:
+            declaration = Declaration()
+            apply_specifiers(p[1], declaration)
+            declaration.declarator = declarator
+            r += (declaration,)
     p[0] = r
 
 def p_specifier_qualifier_list(p):

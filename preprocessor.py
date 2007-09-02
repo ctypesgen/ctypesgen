@@ -328,7 +328,7 @@ class PreprocessorParser(object):
         self.cpp = "gcc -E"
         self.flags = ""
         self.defines = ["inline=", "__inline__=", "__extension__=",
-                        "_Bool=uint8_t"]
+                        "_Bool=uint8_t", "__const=const", "__asm__(x)="]
         self.include_path = []
         self.matches = []
         self.output = []
@@ -342,7 +342,7 @@ class PreprocessorParser(object):
             self.flags += " -I%s" % path 
  
         for define in self.defines:
-            self.flags += " -D%s" % define
+            self.flags += ' "-D%s"' % define
 
         cmd = "%s -U __GNUC__ -dD %s %s" % (self.cpp, self.flags, filename)
         if self.save_preprocessed_headers:
