@@ -328,7 +328,8 @@ class PreprocessorParser(object):
         self.cpp = "gcc -E"
         self.flags = ""
         self.defines = ["inline=", "__inline__=", "__extension__=",
-                        "_Bool=uint8_t", "__const=const", "__asm__(x)="]
+                        "_Bool=uint8_t", "__const=const", "__asm__(x)=",
+                        "__asm(x)=", "with=with_"]
         self.include_path = []
         self.matches = []
         self.output = []
