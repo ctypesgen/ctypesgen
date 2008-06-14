@@ -136,7 +136,6 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             '''
 
             __docformat__ =  'restructuredtext'
-            __version__ = '$Id: wrap.py 738 2007-03-12 04:53:42Z Alex.Holkner $'
 
             import ctypes
             from ctypes import *
@@ -170,7 +169,6 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     else:
                         self.raw = obj
 
-                @classmethod
                 def from_param(cls, obj):
 
                     # Convert None or 0
@@ -192,6 +190,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     # Convert from object
                     else:
                         return String.from_param(obj._as_parameter_)
+                from_param = classmethod(from_param)
 
             def ReturnString(obj):
                 return String.from_param(obj)
@@ -218,13 +217,15 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             'argv': ' '.join(sys.argv),
         }).lstrip()
         self.loaded_libraries = []
+        self.short_library_name = {}
         for library in self.library:
             lib = load_library(library, libdirs=self.libdirs)
             if lib:
+                self.short_library_name[lib._name] = library
                 self.loaded_libraries.append(lib)
                 print >>self.file, textwrap.dedent("""
                     _libs[%r] = CDLL(%r, mode=RTLD_GLOBAL)
-                """ % (lib._name, lib._name))
+                """ % (library, lib._name))
 
     def print_link_modules_imports(self):
         for name in self.link_modules:
@@ -318,7 +319,6 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
         if self.does_emit(name, filename, restype, argtypes):
 
-
             # Also emit any types this func requires that haven't yet been
             # written.
             self.emit_type(restype)
@@ -328,10 +328,12 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
             for lib in self.loaded_libraries:
                 if hasattr(lib, name):
                     self.all_names.append(name)
+                    library = self.short_library_name[lib._name]
                     print >> self.file, '# %s:%d' % (filename, lineno)
-                    print >> self.file, '%s = _libs[%r].%s' % (name, lib._name, name)
-                    print >> self.file, '%s.restype = %s' % (name, str(restype))
-                    print >> self.file, '%s.argtypes = [%s]' % \
+                    print >> self.file, 'if hasattr(_libs[%r], %r):' % (library, name)
+                    print >> self.file, '  %s = _libs[%r].%s' % (name, library, name)
+                    print >> self.file, '  %s.restype = %s' % (name, str(restype))
+                    print >> self.file, '  %s.argtypes = [%s]' % \
                         (name, ', '.join([str(a) for a in argtypes])) 
                     print >> self.file
                     break
@@ -348,8 +350,11 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 except:
                     pass
                 else:
-                    print >> self.file, '%s = (%s).in_dll(_libs[%r], %r)' % \
+                    print >> self.file, 'try:'
+                    print >> self.file, '  %s = (%s).in_dll(_libs[%r], %r)' % \
                         (name, str(ctype), lib._name, name)
+                    print >> self.file, 'except:'
+                    print >> self.file, '  pass'
                     self.all_names.append(name)
                     break
 
