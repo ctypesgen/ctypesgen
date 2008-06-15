@@ -308,7 +308,10 @@ class PreprocessorDefine(object):
 
     def emit(self, file):
         if errno.__dict__.has_key(self.name):
-            print >>file, 'from errno import %s' % self.name
+            print >>file, 'try:'
+            print >>file, '  from errno import %s' % self.name
+            print >>file, 'except ImportError:'
+            print >>file, '  pass' 
             self.succeeded = True
         else:
             try:
