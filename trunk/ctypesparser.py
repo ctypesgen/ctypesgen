@@ -28,13 +28,16 @@ ctypes_type_map = {
     ('int16_t', True,   0): 'c_int16',
     ('int32_t', True,   0): 'c_int32',
     ('int64_t', True,   0): 'c_int64',
+    ('apr_int64_t',True,0): 'c_int64',
     ('off64_t', True,   0): 'c_int64',
     ('uint8_t', True,   0): 'c_uint8',
     ('uint16_t',True,   0): 'c_uint16',
     ('uint32_t',True,   0): 'c_uint32',
     ('uint64_t',True,   0): 'c_uint64',
+    ('apr_uint64_t',True,0): 'c_uint64',
     ('wchar_t', True,   0): 'c_wchar',
     ('ptrdiff_t',True,  0): 'c_ptrdiff_t',  # Requires definition in preamble
+    ('ssize_t', True,   0): 'c_ptrdiff_t',  # Requires definition in preamble
     ('va_list', True,   0): 'c_void_p',
 }
 
