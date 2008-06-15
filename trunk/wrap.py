@@ -322,7 +322,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                 else:
                     print >> self.file, 'try:'
                     print >> self.file, '  %s = (%s).in_dll(_libs[%r], %r)' % \
-                        (name, str(ctype), lib._name, name)
+                        (name, str(ctype), self.short_library_name[lib._name], name)
                     print >> self.file, 'except:'
                     print >> self.file, '  pass'
                     self.all_names.append(name)
