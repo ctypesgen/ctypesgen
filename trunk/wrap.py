@@ -19,51 +19,8 @@ from errno import ENOENT
 from ctypes import CDLL, RTLD_GLOBAL, c_byte
 from ctypes.util import find_library
 from glob import glob
-
-if os.name == "nt":
-    def find_library_in_dirs(name, libdirs=None):
-        return find_library(name)
-elif sys.platform == "cygwin":
-    def find_library_in_dirs(name, libdirs=None):
-        libdirs = libdirs or []
-        for dir in libdirs + os.environ["PATH"].split(os.pathsep):
-            for f in (glob("%s/cyg%s*.dll" % (dir, name)) + 
-                      glob("%s/../bin/cyg%s*.dll" % (dir, name))):
-                return os.path.abspath(f)
-else:
-    # ctypes.util.find_library is buggy in Python 2.5, unfortunately,
-    # so we have to parse the output of gcc -Wl,-t manually
-    def find_library_in_dirs(name, libdirs=None):
-        expr = r'[^\(\)\s]*lib%s\.[^\(\)\s:]*' % re.escape(name)
-        fdout, ccout = tempfile.mkstemp()
-        os.close(fdout)
-        cmd = ['if type gcc >/dev/null 2>&1; then CC=gcc; else CC=cc; fi;',
-               '$CC']
-        if libdirs is not None:
-            cmd.extend('-L' + x for x in libdirs)
-        cmd.append('-Wl,-t -o %s 2>&1 -l%s' % (ccout, name))
-        cmd = ' '.join(cmd)
-        try:
-            f = os.popen(cmd)
-            trace = f.read()
-            f.close()
-        finally:
-            if os.path.exists(ccout):
-                os.unlink(ccout)
-        res = re.search(expr, trace)
-        if not res:
-            return None
-        return res.group(0)
-
-def load_library(name, mode=RTLD_GLOBAL, libdirs=None):
-    if os.name == "nt":
-        return CDLL(name, mode=mode)
-    path = find_library_in_dirs(name, libdirs)
-    if path is None:
-        # Maybe 'name' is not a library name in the linker style,
-        # give CDLL a last chance to find the library.
-        path = name
-    return CDLL(path, mode=mode)
+import ctypestemplate
+from ctypestemplate import load_library
 
 class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     file=None
@@ -126,6 +83,9 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
     def print_preamble(self):
         import textwrap
         import time
+        path = os.environ.get('LD_LIBRARY_PATH',None)
+        if path:
+            self.libdirs += [path]
         print >> self.file, textwrap.dedent("""
             '''Wrapper for %(library)s
             
@@ -137,7 +97,7 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
 
             __docformat__ =  'restructuredtext'
 
-            import ctypes
+            import ctypes, os
             from ctypes import *
             from UserString import UserString, MutableString
 
@@ -210,22 +170,32 @@ class CtypesWrapper(CtypesParser, CtypesTypeVisitor):
                     return type
                 else:
                     return c_void_p
+
+            path = os.environ.get('LD_LIBRARY_PATH',None)
+            if path:
+                os.environ['LD_LIBRARY_PATH'] = %(libdirs)r + ':' + path
+            else:
+                os.environ['LD_LIBRARY_PATH'] = %(libdirs)r
         """ % {
             'library': str(self.library),
             'date': time.ctime(),
             'class': self.__class__.__name__,
             'argv': ' '.join(sys.argv),
+            'libdirs': ':'.join(self.libdirs) 
         }).lstrip()
+        template_file = os.path.join(os.path.dirname(ctypestemplate.__file__), "ctypestemplate.py")
+        print >> self.file, open(template_file, "r").read()
+        os.environ['LD_LIBRARY_PATH'] = ':'.join(self.libdirs)
         self.loaded_libraries = []
         self.short_library_name = {}
         for library in self.library:
-            lib = load_library(library, libdirs=self.libdirs)
+            lib = load_library(library)
             if lib:
                 self.short_library_name[lib._name] = library
                 self.loaded_libraries.append(lib)
                 print >>self.file, textwrap.dedent("""
-                    _libs[%r] = CDLL(%r, mode=RTLD_GLOBAL)
-                """ % (library, lib._name))
+                    _libs[%r] = load_library(%r)
+                """ % (library, library))
 
     def print_link_modules_imports(self):
         for name in self.link_modules:
