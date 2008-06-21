@@ -170,8 +170,9 @@ class MachOLibraryLoader(LibraryLoader):
         within a bundle (OS X .app).
         '''
 
-        libname = os.path.basename(path)
         search_path = []
+
+        libname = os.path.basename(path)
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
             search_path.append(os.path.join(
@@ -180,29 +181,23 @@ class MachOLibraryLoader(LibraryLoader):
                 'Frameworks',
                 libname))
 
-        if '/' in path:
-            search_path.extend(
-                [os.path.join(p, libname) \
-                    for p in self.dyld_library_path])
-            search_path.append(path)
-            search_path.extend(
-                [os.path.join(p, libname) \
-                    for p in self.dyld_fallback_library_path])
-        else:
+        if '/' not in path:
             search_path.extend(
                 [os.path.join(p, libname) \
                     for p in self.ld_library_path])
-            search_path.extend(
-                [os.path.join(p, libname) \
-                    for p in self.dyld_library_path])
-            search_path.append(path)
-            search_path.extend(
-                [os.path.join(p, libname) \
-                    for p in self.dyld_fallback_library_path])
+        search_path.extend(
+            [os.path.join(p, libname) \
+                for p in self.dyld_library_path])
+        search_path.append(path)
+        search_path.extend(
+            [os.path.join(p, libname) \
+                for p in self.dyld_fallback_library_path])
 
         for path in search_path:
-            if os.path.exists(path):
-                return path
+            for p in [path, os.path.join(os.path.dirname(path),
+                                         "lib%s.dylib" % libname)]:
+                if os.path.exists(p):
+                    return p
 
         return None
 
