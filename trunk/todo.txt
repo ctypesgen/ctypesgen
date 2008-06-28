@@ -1,0 +1,2 @@
+1. Convert defines from "errno.h" into imports from the Python errno module.
+2. Search through code for "XXX" and see what can be done.

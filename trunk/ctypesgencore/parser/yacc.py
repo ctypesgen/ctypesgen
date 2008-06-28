@@ -3,6 +3,7 @@
 #
 # Author(s): David M. Beazley (dave@dabeaz.com)
 # Modifications for pyglet by Alex Holkner (alex.holkner@gmail.com) (<ah>)
+# Modifications for ctypesgen by Tim Maxwell (timmaxw@gmail.com) (<tm>)
 #
 # Copyright (C) 2001-2006, David M. Beazley
 #
@@ -175,6 +176,7 @@ class Parser:
         del self.symstack[:]
         sym = YaccSymbol()
         sym.type = '$end'
+        sym.parser = self # <tm> 25 June 2008
         self.symstack.append(sym)
         self.statestack.append(0)
 
@@ -227,6 +229,7 @@ class Parser:
         statestack.append(0)
         sym = YaccSymbol()
         sym.type = '$end'
+        sym.parser = self # <tm> 25 June 2008
         symstack.append(sym)
         
         while 1:
@@ -243,6 +246,7 @@ class Parser:
                 if not lookahead:
                     lookahead = YaccSymbol()
                     lookahead.type = '$end'
+                    lookahead.parser = self # <tm> 25 June 2008
             if debug:
                 errorlead = ("%s . %s" % (" ".join([xx.type for xx in symstack][1:]), str(lookahead))).lstrip()
 
@@ -338,8 +342,11 @@ class Parser:
                 if not self.errorcount:
                     self.errorcount = error_count
                     errtoken = lookahead
-                    if errtoken.type == '$end':
-                        errtoken = None               # End of file!
+                    
+                    # <tm> 24 June 2008
+                    # Let EOF error token get through so errorfunc would have
+                    # access to the parser.
+                    
                     if self.errorfunc:
                         global errok,token,restart
                         errok = self.errok        # Set some special functions available in error recovery
