@@ -3,6 +3,7 @@
 #
 # Author: David M. Beazley (dave@dabeaz.com)
 # Modification for pyglet by Alex Holkner (alex.holkner@gmail.com)
+# Modification for ctypesgen by Tim Maxwell (timmaxw@gmail.com) <tm>
 #
 # Copyright (C) 2001-2006, David M. Beazley
 #
@@ -25,7 +26,7 @@
 
 __version__ = "2.2"
 
-import re, sys, types
+import re, sys, types, os.path
 
 # Regular expression used to match valid token names
 _is_identifier = re.compile(r'^[a-zA-Z0-9_]+$')
@@ -142,8 +143,9 @@ class Lexer:
     # ------------------------------------------------------------
     # writetab() - Write lexer information to a table file
     # ------------------------------------------------------------
-    def writetab(self,tabfile):
-        tf = open(tabfile+".py","w")
+    # <tm> 25 June 2008 added 'outputdir'
+    def writetab(self,tabfile,outputdir=''):
+        tf = open(os.path.join(outputdir,tabfile)+".py","w")
         tf.write("# %s.py. This file automatically created by PLY (version %s). Don't edit!\n" % (tabfile,__version__))
         tf.write("_lextokens    = %s\n" % repr(self.lextokens))
         tf.write("_lexreflags   = %s\n" % repr(self.lexreflags))
@@ -473,7 +475,7 @@ def _statetoken(s,names):
     nonstate = 1
     parts = s.split("_")
     for i in range(1,len(parts)):
-         if not names.has_key(parts[i]) and parts[i] != 'ANY': break
+        if not names.has_key(parts[i]) and parts[i] != 'ANY': break
     if i > 1:
        states = tuple(parts[1:i])
     else:
@@ -491,7 +493,8 @@ def _statetoken(s,names):
 # Build all of the regular expression rules from definitions in the supplied module
 # -----------------------------------------------------------------------------
 # cls added for pyglet/tools/wrapper/cparser.py by Alex Holkner on 22/Jan/2007 
-def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,nowarn=0,cls=Lexer):
+# <tm> 25 June 2008 added 'outputdir'
+def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,nowarn=0,outputdir='',cls=Lexer):
     global lexer
     ldict = None
     stateinfo  = { 'INITIAL' : 'inclusive'}
@@ -821,7 +824,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
 
     # If in optimize mode, we write the lextab   
     if lextab and optimize:
-        lexobj.writetab(lextab)
+        lexobj.writetab(lextab,outputdir)
 
     return lexobj
 

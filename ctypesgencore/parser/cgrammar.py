@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-'''Parse a C source file.
-
-To use, subclass CParser and override its handle_* methods.  Then instantiate
-the class with a string to parse.
+'''This is a yacc grammar for C.
 
 Derived from ANSI C grammar:
   * Lexicon: http://www.lysator.liu.se/c/ANSI-C-grammar-l.html
@@ -15,7 +12,6 @@ Reference is C99:
 '''
 
 __docformat__ = 'restructuredtext'
-__version__ = '$Id: cparser.py 617 2007-02-07 16:15:11Z Alex.Holkner $'
 
 import operator
 import os.path
@@ -26,19 +22,19 @@ import warnings
 
 import preprocessor
 import yacc
+import ctypesparser
+import ctypesgencore.expressions as expressions
+import cdeclarations
 
 tokens = (
-
-    'PP_IF', 'PP_IFDEF', 'PP_IFNDEF', 'PP_ELIF', 'PP_ELSE',
-    'PP_ENDIF', 'PP_INCLUDE', 'PP_DEFINE', 'PP_DEFINE_CONSTANT', 'PP_UNDEF',
-    'PP_LINE', 'PP_ERROR', 'PP_PRAGMA',
+    'PP_DEFINE', 'PP_DEFINE_NAME', 'PP_DEFINE_MACRO_NAME', 'PP_MACRO_PARAM',
+    'PP_STRINGIFY', 'PP_IDENTIFIER_PASTE', 'PP_END_DEFINE',
 
     'IDENTIFIER', 'CONSTANT', 'CHARACTER_CONSTANT', 'STRING_LITERAL', 'SIZEOF',
     'PTR_OP', 'INC_OP', 'DEC_OP', 'LEFT_OP', 'RIGHT_OP', 'LE_OP', 'GE_OP',
     'EQ_OP', 'NE_OP', 'AND_OP', 'OR_OP', 'MUL_ASSIGN', 'DIV_ASSIGN',
     'MOD_ASSIGN', 'ADD_ASSIGN', 'SUB_ASSIGN', 'LEFT_ASSIGN', 'RIGHT_ASSIGN',
-    'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'HASH_HASH', 'PERIOD',
-    'TYPE_NAME', 
+    'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'PERIOD', 'TYPE_NAME', 
     
     'TYPEDEF', 'EXTERN', 'STATIC', 'AUTO', 'REGISTER', 
     'CHAR', 'SHORT', 'INT', 'LONG', 'SIGNED', 'UNSIGNED', 'FLOAT', 'DOUBLE',
@@ -57,297 +53,10 @@ keywords = [
     'while', '__asm__'
 ]
 
-
-# --------------------------------------------------------------------------
-# C Object Model
-# --------------------------------------------------------------------------
-
-class Declaration(object):
-    def __init__(self):
-        self.declarator = None
-        self.type = Type()
-        self.storage = None
-
-    def __repr__(self):
-        d = {
-            'declarator': self.declarator,
-            'type': self.type,
-        }
-        if self.storage:
-            d['storage'] = self.storage
-        l = ['%s=%r' % (k, v) for k, v in d.items()]
-        return 'Declaration(%s)' % ', '.join(l)
-
-class Declarator(object):
-    pointer = None
-    def __init__(self):
-        self.identifier = None
-        self.initializer = None
-        self.array = None
-        self.parameters = None
-
-    # make pointer read-only to catch mistakes early
-    pointer = property(lambda self: None)
-
-    def __repr__(self):
-        s = self.identifier or ''
-        if self.array:
-            s += repr(self.array)
-        if self.initializer:
-            s += ' = %r' % self.initializer
-        if self.parameters is not None:
-            s += '(' + ', '.join([repr(p) for p in self.parameters]) + ')'
-        return s
-
-class Pointer(Declarator):
-    pointer = None
-    def __init__(self):
-        super(Pointer, self).__init__()
-        self.qualifiers = []
-
-    def __repr__(self):
-        q = ''
-        if self.qualifiers:
-            q = '<%s>' % ' '.join(self.qualifiers)
-        return 'POINTER%s(%r)' % (q, self.pointer) + \
-            super(Pointer, self).__repr__()
-
-class Array(object):
-    def __init__(self):
-        self.size = None
-        self.array = None
-
-    def __repr__(self):
-        if self.size:
-            a =  '[%r]' % self.size
-        else:
-            a = '[]'
-        if self.array:
-            return repr(self.array) + a
-        else:
-            return a
-
-class Parameter(object):
-    def __init__(self):
-        self.type = Type()
-        self.storage = None
-        self.declarator = None
-
-    def __repr__(self):
-        d = {
-            'type': self.type,
-        }
-        if self.declarator:
-            d['declarator'] = self.declarator
-        if self.storage:
-            d['storage'] = self.storage
-        l = ['%s=%r' % (k, v) for k, v in d.items()]
-        return 'Parameter(%s)' % ', '.join(l)
-
-
-class Type(object):
-    def __init__(self):
-        self.qualifiers = []
-        self.specifiers = []
-
-    def __repr__(self):
-        return ' '.join(self.qualifiers + [str(s) for s in self.specifiers])
-
-# These are used only internally.
-
-class StorageClassSpecifier(str):
-    pass
-
-class TypeSpecifier(str):
-    pass
-
-class StructTypeSpecifier(object):
-    def __init__(self, is_union, tag, declarations):
-        self.is_union = is_union
-        self.tag = tag
-        self.declarations = declarations
-
-    def __repr__(self):
-        if self.is_union:
-            s = 'union'
-        else:
-            s = 'struct'
-        if self.tag:
-            s += ' %s' % self.tag
-        if self.declarations:
-            s += ' {%s}' % '; '.join([repr(d) for d in self.declarations])
-        return s
-
-class EnumSpecifier(object):
-    def __init__(self, tag, enumerators):
-        self.tag = tag
-        self.enumerators = enumerators
-
-    def __repr__(self):
-        s = 'enum'
-        if self.tag:
-            s += ' %s' % self.tag
-        if self.enumerators:
-            s += ' {%s}' % ', '.join([repr(e) for e in self.enumerators])
-        return s
-
-class Enumerator(object):
-    def __init__(self, name, expression):
-        self.name = name
-        self.expression = expression
-
-    def __repr__(self):
-        s = self.name
-        if self.expression:
-            s += ' = %r' % self.expression
-        return s
-
-class TypeQualifier(str):
-    pass
-
-def apply_specifiers(specifiers, declaration):
-    '''Apply specifiers to the declaration (declaration may be
-    a Parameter instead).'''
-    for s in specifiers:
-        if type(s) == StorageClassSpecifier:
-            if declaration.storage:
-                p.parser.cparser.handle_error(
-                    'Declaration has more than one storage class', 
-                    '???', p.lineno(1))
-                return
-            declaration.storage = s
-        elif type(s) in (TypeSpecifier, StructTypeSpecifier, EnumSpecifier):
-            declaration.type.specifiers.append(s)
-        elif type(s) == TypeQualifier:
-            declaration.type.qualifiers.append(s)
-
-
-# --------------------------------------------------------------------------
-# Expression Object Model
-# --------------------------------------------------------------------------
-
-class EvaluationContext(object):
-    '''Interface for evaluating expression nodes.
-    '''
-    def evaluate_identifier(self, name):
-        warnings.warn('Attempt to evaluate identifier "%s" failed' % name)
-        return 0
-
-    def evaluate_sizeof(self, type):
-        warnings.warn('Attempt to evaluate sizeof "%s" failed' % str(type))
-        return 0
-
-class ExpressionNode(object):
-    def evaluate(self, context):
-        return 0
-
-    def __str__(self):
-        return ''
-
-class ConstantExpressionNode(ExpressionNode):
-    def __init__(self, value):
-        self.value = value
-
-    def evaluate(self, context):
-        return eval(self.value)
-
-    def __str__(self):
-        return str(self.value)
-
-class IdentifierExpressionNode(ExpressionNode):
-    def __init__(self, name):
-        self.name = name
-
-    def evaluate(self, context):
-        return context.evaluate_identifier(self.name)
-
-    def __str__(self):
-        return str(self.value)
-
-class UnaryExpressionNode(ExpressionNode):
-    def __init__(self, op, op_str, child):
-        self.op = op
-        self.op_str = op_str
-        self.child = child
-
-    def evaluate(self, context):
-        return self.op(self.child.evaluate(context))
-
-    def __str__(self):
-        return '(%s %s)' % (self.op_str, self.child)
-
-class SizeOfExpressionNode(ExpressionNode):
-    def __init__(self, type):
-        declaration = Declaration()
-        from ctypesparser import get_ctypes_type
-        apply_specifiers(type, declaration)
-        self.type = get_ctypes_type(declaration.type, declaration.declarator)
-
-    def evaluate(self, context):
-        return context.evaluate_sizeof(self.type)
-
-    def __str__(self):
-        return 'sizeof(%s)' % str(self.type)
-
-class BinaryExpressionNode(ExpressionNode):
-    def __init__(self, op, op_str, left, right):
-        self.op = op
-        self.op_str = op_str
-        self.left = left
-        self.right = right
-
-    def evaluate(self, context):
-        return self.op(self.left.evaluate(context), 
-                       self.right.evaluate(context))
-
-    def __str__(self):
-        return '(%s %s %s)' % (self.left, self.op_str, self.right)
-
-class LogicalAndExpressionNode(ExpressionNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def evaluate(self, context):
-        return self.left.evaluate(context) and self.right.evaluate(context)
-
-    def __str__(self):
-        return '(%s && %s)' % (self.left, self.right)
-
-class LogicalOrExpressionNode(ExpressionNode):
-    def __init__(self, left, right):
-        self.left = left
-        self.right = right
-
-    def evaluate(self, context):
-        return self.left.evaluate(context) or self.right.evaluate(context)
-
-    def __str__(self):
-        return '(%s || %s)' % (self.left, self.right)
-
-class ConditionalExpressionNode(ExpressionNode):
-    def __init__(self, condition, left, right):
-        self.condition = condition
-        self.left = left
-        self.right = right
-
-    def evaluate(self, context):
-        if self.condition.evaluate(context):
-            return self.left.evaluate(context)
-        else:
-            return self.right.evaluate(context)
-
-    def __str__(self):
-        return '(%s ? %s : %s)' % (self.condition, self.left, self.right)
-
-
-# --------------------------------------------------------------------------
-# Grammar
-# --------------------------------------------------------------------------
-
 def p_translation_unit(p):
     '''translation_unit : 
                         | translation_unit external_declaration
+                        | translation_unit define
     '''
     # Starting production.
     # Allow empty production so that files with no declarations are still
@@ -355,23 +64,78 @@ def p_translation_unit(p):
     # Intentionally empty
 
 def p_identifier(p):
-    '''identifier : IDENTIFIER'''
-    p[0] = IdentifierExpressionNode(p[1])
+    '''identifier : IDENTIFIER
+                  | IDENTIFIER PP_IDENTIFIER_PASTE identifier
+                  | PP_MACRO_PARAM PP_IDENTIFIER_PASTE identifier
+                  | IDENTIFIER PP_IDENTIFIER_PASTE PP_MACRO_PARAM
+                  | PP_MACRO_PARAM PP_IDENTIFIER_PASTE PP_MACRO_PARAM
+    '''
+    if len(p)==2:
+        p[0] = expressions.IdentifierExpressionNode(p[1])
+    else:
+        # Should it be supported? It wouldn't be very hard to add support.
+        # Basically, it would involve a new ExpressionNode called
+        # an IdentifierPasteExpressionNode that took a list of strings and
+        # ParameterExpressionNodes. Then it would generate code like
+        # "locals()['%s' + '%s' + ...]" where %s was substituted with the
+        # elements of the list. I haven't supported it yet because I think
+        # it's unnecessary and a little too powerful.
+        p[0] = expressions.UnsupportedExpressionNode("Identifier pasting is " \
+            "not supported by ctypesgen.")
 
 def p_constant(p):
     '''constant : CONSTANT
                 | CHARACTER_CONSTANT
     '''
-    p[0] = ConstantExpressionNode(p[1])
+    constant = p[1]
+    
+    if constant[0]=="'":
+        # Character constant
+        value = constant[1:-1]
+    else:
+        # This is a value formatted the way that the preprocessor formats
+        # numeric constants. It puts a prefix "l", "i", or "f" to indicate
+        # if it should be converted into an integer, long or float.
+        prefix = constant[0]
+        constant = constant[1:]
+        if prefix=="i":
+            value = int(constant)
+        elif prefix=="l":
+            value = long(constant)
+        else:
+            value = float(constant)
+    
+    p[0] = expressions.ConstantExpressionNode(value)
 
 def p_string_literal(p):
     '''string_literal : STRING_LITERAL'''
-    p[0] = ConstantExpressionNode(p[1])
+    p[0] = expressions.ConstantExpressionNode(p[1])
+
+def p_multi_string_literal(p):
+    '''multi_string_literal : string_literal
+                            | macro_param
+                            | multi_string_literal string_literal
+                            | multi_string_literal macro_param
+    '''
+    if len(p)==2:
+        p[0] = p[1]
+    else:
+        p[0] = expressions.BinaryExpressionNode("string concatenation",
+            (lambda x,y: x+y), "(%s + %s)", (False,False), p[1], p[2])
+
+def p_macro_param(p):
+    '''macro_param : PP_MACRO_PARAM
+                   | PP_STRINGIFY PP_MACRO_PARAM
+    '''
+    if len(p)==2:
+        p[0] = expressions.ParameterExpressionNode(p[1])
+    else:
+        p[0] = expressions.ParameterExpressionNode(p[2])
 
 def p_primary_expression(p):
     '''primary_expression : identifier
                           | constant
-                          | string_literal
+                          | multi_string_literal
                           | '(' expression ')'
     '''
     if p[1] == '(':
@@ -389,13 +153,45 @@ def p_postfix_expression(p):
                   | postfix_expression INC_OP
                   | postfix_expression DEC_OP
     '''
-    # XXX Largely unsupported
-    p[0] = p[1]
+    
+    if len(p)==2:
+        p[0] = p[1]
+    
+    elif p[2]=='[':
+        p[0] = expressions.BinaryExpressionNode("array access",
+            (lambda a,b: a[b]), "(%s [%s])", (True,False), p[1], p[3])
+    
+    elif p[2]=='(':
+        if p[3]==')':
+            p[0] = expressions.CallExpressionNode(p[1],[])
+        else:
+            p[0] = expressions.CallExpressionNode(p[1],p[3])
+    
+    elif p[2]=='.':
+        p[0] = expressions.AttributeExpressionNode( \
+            (lambda x,a: getattr(x,a)), "(%s.%s)", p[1],p[3])
+    
+    elif p[2]=='->':
+        p[0] = expressions.AttributeExpressionNode( \
+            (lambda x,a: getattr(x.contents,a)), "(%s.contents.%s)", p[1],p[3])
+    
+    elif p[2]=='++':
+        p[0] = expressions.UnaryExpressionNode("increment",(lambda x: x+1),
+                                               "(%s + 1)", False,p[1])
+    
+    elif p[2]=='--':
+        p[0] = expressions.UnaryExpressionNode("decrement",(lambda x: x-1),
+                                               "(%s - 1)", False,p[1])
 
 def p_argument_expression_list(p):
     '''argument_expression_list : assignment_expression
                         | argument_expression_list ',' assignment_expression
     '''
+    if len(p) == 4:
+        p[1].append(p[3])
+        p[0] = p[1]
+    else:
+        p[0] = [p[1]]
 
 def p_asm_expression(p):
     '''asm_expression : __ASM__ volatile_opt '(' string_literal ')'
@@ -410,8 +206,7 @@ def p_asm_expression(p):
     # they shouldn't be -- avoids shift/reduce conflict with
     # str_opt_expr_pair_list).
 
-    # XXX node not supported
-    p[0] = ExpressionNode()
+    p[0] = expressions.UnsupportedExpressionNode("This node is ASM assembler.")
 
 def p_str_opt_expr_pair_list(p):
     '''str_opt_expr_pair_list : 
@@ -429,6 +224,17 @@ def p_volatile_opt(p):
                     | VOLATILE
     '''
 
+prefix_ops_dict = {
+    "++": ("increment",(lambda x: x+1),"(%s + 1)",False),
+    "--": ("decrement",(lambda x: x-1),"(%s - 1)",False),
+    '&': ("reference ('&')",None,"pointer(%s)",True),
+    '*': ("dereference ('*')",None,"(%s[0])",True),
+    '+': ("unary '+'",(lambda x: x),"%s",True),
+    '-': ("negation",(lambda x: -x),"(-%s)",False),
+    '~': ("inversion",(lambda x: ~x),"(~%s)",False),
+    '!': ("logical not",(lambda x: not x),"(not %s)",True)
+}
+
 def p_unary_expression(p):
     '''unary_expression : postfix_expression
                         | INC_OP unary_expression
@@ -440,17 +246,17 @@ def p_unary_expression(p):
     '''
     if len(p) == 2:
         p[0] = p[1]
+    
     elif p[1] == 'sizeof':
-        if p[2] == '(':
-            p[0] = SizeOfExpressionNode(p[3])
+        if len(p)==5:
+            p[0] = expressions.SizeOfExpressionNode(p[3])
         else:
-            p[0] = SizeOfExpressionNode(p[2])
-    elif type(p[1]) == tuple:
-        # unary_operator reduces to (op, op_str)
-        p[0] = UnaryExpressionNode(p[1][0], p[1][1], p[2])
+            p[0] = expressions.SizeOfExpressionNode(p[2])
+    
     else:
-        # XXX INC_OP and DEC_OP expression nodes not supported
-        p[0] = p[2]
+        name,op,format,can_be_ctype = prefix_ops_dict[p[1]]
+        p[0] = expressions.UnaryExpressionNode(name, op, format, can_be_ctype,
+                                               p[2])
 
 def p_unary_operator(p):
     '''unary_operator : '&'
@@ -460,14 +266,7 @@ def p_unary_operator(p):
                       | '~'
                       | '!'
     '''
-    # reduces to (op, op_str)
-    p[0] = ({
-        '+': operator.pos,
-        '-': operator.neg,
-        '~': operator.inv,
-        '!': operator.not_,
-        '&': 'AddressOfUnaryOperator',
-        '*': 'DereferenceUnaryOperator'}[p[1]], p[1])
+    p[0] = p[1]
 
 def p_cast_expression(p):
     '''cast_expression : unary_expression
@@ -476,8 +275,13 @@ def p_cast_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        # XXX cast node not supported
-        p[0] = p[4]
+        p[0] = expressions.TypeCastExpressionNode(p[4],p[2])
+
+mult_ops_dict = {
+    '*': ("multiplication", (lambda x,y: x*y), "(%s * %s)"),
+    '/': ("division", (lambda x,y: x/y), "(%s / %s)"),
+    '%': ("modulo", (lambda x,y: x%y), "(%s %% %s)")
+}
 
 def p_multiplicative_expression(p):
     '''multiplicative_expression : cast_expression
@@ -487,11 +291,15 @@ def p_multiplicative_expression(p):
     '''
     if len(p) == 2:
         p[0] = p[1]
-    else:
-        p[0] = BinaryExpressionNode({
-            '*': operator.mul,
-            '/': operator.div,
-            '%': operator.mod}[p[2]], p[2], p[1], p[3])
+    else:        
+        name,op,format = mult_ops_dict[p[2]]
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False,False),
+            p[1], p[3])
+
+add_ops_dict = {
+    '+': ("addition", (lambda x,y: x+y), "(%s + %s)"),
+    '-': ("subtraction", (lambda x,y: x-y), "(%s - %s)")
+}
 
 def p_additive_expression(p):
     '''additive_expression : multiplicative_expression
@@ -501,9 +309,14 @@ def p_additive_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode({
-            '+': operator.add,
-            '-': operator.sub}[p[2]], p[2], p[1], p[3])
+        name,op,format = add_ops_dict[p[2]]
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False,False),
+            p[1], p[3])
+
+shift_ops_dict = {
+    '>>': ("right shift", (lambda x,y: x>>y), "(%s >> %s)"),
+    '<<': ("left shift", (lambda x,y: x<<y), "(%s << %s)")
+}
 
 def p_shift_expression(p):
     '''shift_expression : additive_expression
@@ -513,10 +326,17 @@ def p_shift_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode({
-            '<<': operator.lshift,
-            '>>': operator.rshift}[p[2]], p[2], p[1], p[3])
-        
+        name,op,format = shift_ops_dict[p[2]]
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False,False),
+            p[1], p[3])
+
+rel_ops_dict = {
+    '>': ("greater-than", (lambda x,y: x>y), "(%s > %s)"),
+    '<': ("less-than", (lambda x,y: x<y), "(%s < %s)"),
+    '>=': ("greater-than-equal", (lambda x,y: x>=y), "(%s >= %s)"),
+    '<=': ("less-than-equal", (lambda x,y: x<=y), "(%s <= %s)")
+}
+
 def p_relational_expression(p):
     '''relational_expression : shift_expression 
                              | relational_expression '<' shift_expression
@@ -527,11 +347,14 @@ def p_relational_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode({
-            '>': operator.gt,
-            '<': operator.lt,
-            '<=': operator.le,
-            '>=': operator.ge}[p[2]], p[2], p[1], p[3])
+        name,op,format = rel_ops_dict[p[2]]
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False,False),
+            p[1], p[3])
+
+equality_ops_dict = {
+    '==': ("equals", (lambda x,y: x==y), "(%s == %s)"),
+    '!=': ("not equals", (lambda x,y: x!=y), "(%s != %s)")
+}
 
 def p_equality_expression(p):
     '''equality_expression : relational_expression
@@ -541,9 +364,9 @@ def p_equality_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode({
-            '==': operator.eq,
-            '!=': operator.ne}[p[2]], p[2], p[1], p[3])
+        name,op,format = equality_ops_dict[p[2]]
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False,False),
+            p[1], p[3])
 
 def p_and_expression(p):
     '''and_expression : equality_expression
@@ -552,7 +375,8 @@ def p_and_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode(operator.and_, '&', p[1], p[3])
+        p[0] = expressions.BinaryExpressionNode("bitwise and",
+            (lambda x,y: x&y), "(%s & %s)", (False,False), p[1], p[3])
 
 def p_exclusive_or_expression(p):
     '''exclusive_or_expression : and_expression
@@ -561,7 +385,8 @@ def p_exclusive_or_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode(operator.xor, '^', p[1], p[3])
+        p[0] = expressions.BinaryExpressionNode("bitwise xor",
+            (lambda x,y: x^y), "(%s ^ %s)", (False,False), p[1], p[3])
 
 def p_inclusive_or_expression(p):
     '''inclusive_or_expression : exclusive_or_expression
@@ -570,7 +395,8 @@ def p_inclusive_or_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = BinaryExpressionNode(operator.or_, '|', p[1], p[3])
+        p[0] = expressions.BinaryExpressionNode("bitwise or",
+            (lambda x,y: x|y), "(%s | %s)", (False,False), p[1], p[3])
 
 def p_logical_and_expression(p):
     '''logical_and_expression : inclusive_or_expression
@@ -579,7 +405,8 @@ def p_logical_and_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = LogicalAndExpressionNode(p[1], p[3])
+        p[0] = expressions.BinaryExpressionNode("logical and",
+            (lambda x,y: x and y), "(%s and %s)", (True,True), p[1], p[3])
 
 def p_logical_or_expression(p):
     '''logical_or_expression : logical_and_expression
@@ -588,8 +415,8 @@ def p_logical_or_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = LogicalOrExpressionNode(p[1], p[3])
-
+        p[0] = expressions.BinaryExpressionNode("logical and",
+            (lambda x,y: x or y), "(%s or %s)", (True,True), p[1], p[3])
 
 def p_conditional_expression(p):
     '''conditional_expression : logical_or_expression
@@ -598,7 +425,20 @@ def p_conditional_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        p[0] = ConditionalExpressionNode(p[1], p[3], p[5])
+        p[0] = expressions.ConditionalExpressionNode(p[1], p[3], p[5])
+
+assign_ops_dict = {
+    '*=': ("multiply", (lambda x,y: x*y), "(%s * %s)"),
+    '/=': ("divide", (lambda x,y: x/y), "(%s / %s)"),
+    '%=': ("modulus", (lambda x,y: x%y), "(%s % %s)"),
+    '+=': ("addition", (lambda x,y: x+y), "(%s + %s)"),
+    '-=': ("subtraction", (lambda x,y: x-y), "(%s - %s)"),
+    '<<=': ("left shift", (lambda x,y: x<<y), "(%s << %s)"),
+    '>>=': ("right shift",(lambda x,y: x>>y),"(%s >> %s)"),
+    '&=': ("bitwise and", (lambda x,y: x&y), "(%s & %s)"),
+    '^=': ("bitwise xor", (lambda x,y: x^y), "(%s ^ %s)"),
+    '|=': ("bitwise or", (lambda x,y: x|y), "(%s | %s)")
+}
 
 def p_assignment_expression(p):
     '''assignment_expression : conditional_expression
@@ -607,8 +447,14 @@ def p_assignment_expression(p):
     if len(p) == 2:
         p[0] = p[1]
     else:
-        # XXX assignment expression node not supported
-        p[0] = p[3]
+        # In C, the value of (x*=3) is the same as (x*3). We support that here.
+        # However, we don't support the change in the value of x.
+        if p[2]=='=':
+            p[0] = p[3]
+        else:
+            name,op,format = assign_ops_dict[p[2]]
+            p[0] = expressions.BinaryExpressionNode(name,op,format,(True,True),
+                p[1],p[3])
 
 def p_assignment_operator(p):
     '''assignment_operator : '='
@@ -623,13 +469,14 @@ def p_assignment_operator(p):
                            | XOR_ASSIGN
                            | OR_ASSIGN
     '''
-
+    p[0] = p[1]
+    
 def p_expression(p):
     '''expression : assignment_expression
                   | expression ',' assignment_expression
     '''
     p[0] = p[1]
-    # XXX sequence expression node not supported 
+    # We don't need to support sequence expressions...
 
 def p_constant_expression(p):
     '''constant_expression : conditional_expression
@@ -647,8 +494,8 @@ def p_declaration_impl(p):
     '''declaration_impl : declaration_specifiers
                         | declaration_specifiers init_declarator_list
     '''
-    declaration = Declaration()
-    apply_specifiers(p[1], declaration)
+    declaration = cdeclarations.Declaration()
+    cdeclarations.apply_specifiers(p[1], declaration)
 
     if len(p) == 2:
         filename = p.slice[1].filename
@@ -662,12 +509,11 @@ def p_declaration_impl(p):
         declaration.declarator = declarator
         p.parser.cparser.impl_handle_declaration(declaration, filename, lineno)
 
-""" # shift/reduce conflict with p_statement_error.
-def p_declaration_error(p):
-    '''declaration : error ';'
-    '''
-    # Error resynchronisation catch-all
-"""
+# shift/reduce conflict with p_statement_error.
+#def p_declaration_error(p):
+#    '''declaration : error ';'
+#    '''
+#    # Error resynchronisation catch-all
 
 def p_declaration_specifiers(p):
     '''declaration_specifiers : storage_class_specifier
@@ -706,7 +552,7 @@ def p_storage_class_specifier(p):
                                | AUTO
                                | REGISTER
     '''
-    p[0] = StorageClassSpecifier(p[1])
+    p[0] = cdeclarations.StorageClassSpecifier(p[1])
 
 def p_type_specifier(p):
     '''type_specifier : VOID
@@ -722,11 +568,11 @@ def p_type_specifier(p):
                       | enum_specifier
                       | TYPE_NAME
     '''
-    if type(p[1]) in (StructTypeSpecifier, EnumSpecifier):
+    if type(p[1]) in (cdeclarations.StructTypeSpecifier,
+                      cdeclarations.EnumSpecifier):
         p[0] = p[1]
     else:
-        p[0] = TypeSpecifier(p[1])
-    # TODO enum
+        p[0] = cdeclarations.TypeSpecifier(p[1])
 
 def p_struct_or_union_specifier(p):
     '''struct_or_union_specifier : struct_or_union IDENTIFIER '{' struct_declaration_list '}'
@@ -739,11 +585,14 @@ def p_struct_or_union_specifier(p):
     # CoreServices.framework/Frameworks/CarbonCore.framework/Headers/Files.h.
     # CoreServices.framework/Frameworks/OSServices.framework/Headers/Power.h
     if len(p) == 3:
-        p[0] = StructTypeSpecifier(p[1], p[2], None)
+        p[0] = cdeclarations.StructTypeSpecifier(p[1], p[2], None)
     elif p[2] == '{':
-        p[0] = StructTypeSpecifier(p[1], '', p[3])
+        p[0] = cdeclarations.StructTypeSpecifier(p[1], '', p[3])
     else:
-        p[0] = StructTypeSpecifier(p[1], p[2], p[4])
+        p[0] = cdeclarations.StructTypeSpecifier(p[1], p[2], p[4])
+    
+    p[0].filename = p.slice[0].filename
+    p[0].lineno = p.slice[0].lineno
 
 def p_struct_or_union(p):
     '''struct_or_union : STRUCT
@@ -769,8 +618,8 @@ def p_struct_declaration(p):
     r = ()
     if len(p) >= 4:
         for declarator in p[2]:
-            declaration = Declaration()
-            apply_specifiers(p[1], declaration)
+            declaration = cdeclarations.Declaration()
+            cdeclarations.apply_specifiers(p[1], declaration)
             declaration.declarator = declarator
             r += (declaration,)
     p[0] = r
@@ -781,7 +630,7 @@ def p_specifier_qualifier_list(p):
                                 | type_qualifier specifier_qualifier_list
                                 | type_qualifier
     '''
-    # XXX Interesting.. why is this one right-recursion?
+    # Interesting.. why is this one right-recursion?
     if len(p) == 3:
         p[0] = (p[1],) + p[2]
     else:
@@ -801,11 +650,13 @@ def p_struct_declarator(p):
                          | ':' constant_expression
                          | declarator ':' constant_expression
     '''
-    # XXX ignoring bitfields.
-    if p[1] == ':':
-        p[0] = Declarator()
+    if p[1]==':':
+        p[0] = cdeclarations.Declarator()
     else:
         p[0] = p[1]
+        # Bitfield support
+        if len(p)==4:
+            p[0].bitfield = p[3]
 
 def p_enum_specifier(p):
     '''enum_specifier : ENUM '{' enumerator_list '}'
@@ -813,11 +664,14 @@ def p_enum_specifier(p):
                       | ENUM IDENTIFIER
     '''
     if len(p) == 5:
-        p[0] = EnumSpecifier(None, p[3])
+        p[0] = cdeclarations.EnumSpecifier(None, p[3])
     elif len(p) == 6:
-        p[0] = EnumSpecifier(p[2], p[4])
+        p[0] = cdeclarations.EnumSpecifier(p[2], p[4])
     else:
-        p[0] = EnumSpecifier(p[2], ())
+        p[0] = cdeclarations.EnumSpecifier(p[2], ())
+    
+    p[0].filename = p.slice[0].filename
+    p[0].lineno = p.slice[0].lineno
 
 def p_enumerator_list(p):
     '''enumerator_list : enumerator_list_iso
@@ -841,15 +695,15 @@ def p_enumerator(p):
                   | IDENTIFIER '=' constant_expression
     '''
     if len(p) == 2:
-        p[0] = Enumerator(p[1], None)
+        p[0] = cdeclarations.Enumerator(p[1], None)
     else:
-        p[0] = Enumerator(p[1], p[3])
+        p[0] = cdeclarations.Enumerator(p[1], p[3])
 
 def p_type_qualifier(p):
     '''type_qualifier : CONST
                       | VOLATILE
     '''
-    p[0] = TypeQualifier(p[1])
+    p[0] = cdeclarations.TypeQualifier(p[1])
 
 def p_declarator(p):
     '''declarator : pointer direct_declarator
@@ -873,10 +727,10 @@ def p_direct_declarator(p):
                          | direct_declarator '(' identifier_list ')'
                          | direct_declarator '(' ')'
     '''
-    if isinstance(p[1], Declarator):
+    if isinstance(p[1], cdeclarations.Declarator):
         p[0] = p[1] 
         if p[2] == '[':
-            a = Array()
+            a = cdeclarations.Array()
             a.array = p[0].array
             p[0].array = a
             if p[3] != ']':
@@ -889,7 +743,7 @@ def p_direct_declarator(p):
     elif p[1] == '(':
         p[0] = p[2]
     else:
-        p[0] = Declarator()
+        p[0] = cdeclarations.Declarator()
         p[0].identifier = p[1]
 
     # Check parameters for (void) and simplify to empty tuple.
@@ -906,16 +760,16 @@ def p_pointer(p):
                | '*' type_qualifier_list pointer
     '''
     if len(p) == 2:
-        p[0] = Pointer()
+        p[0] = cdeclarations.Pointer()
     elif len(p) == 3:
-        if type(p[2]) == Pointer:
-            p[0] = Pointer()
+        if type(p[2]) == cdeclarations.Pointer:
+            p[0] = cdeclarations.Pointer()
             p[0].pointer = p[2]
         else:
-            p[0] = Pointer()
+            p[0] = cdeclarations.Pointer()
             p[0].qualifiers = p[2]
     else:
-        p[0] = Pointer()
+        p[0] = cdeclarations.Pointer()
         p[0].qualifiers = p[2]
         p[0].pointer = p[3]
 
@@ -952,8 +806,8 @@ def p_parameter_declaration(p):
                              | declaration_specifiers abstract_declarator
                              | declaration_specifiers
     '''
-    p[0] = Parameter()
-    apply_specifiers(p[1], p[0])
+    p[0] = cdeclarations.Parameter()
+    cdeclarations.apply_specifiers(p[1], p[0])
     if len(p) > 2:
         p[0].declarator = p[2]
 
@@ -961,8 +815,8 @@ def p_identifier_list(p):
     '''identifier_list : IDENTIFIER
                        | identifier_list ',' IDENTIFIER
     '''
-    param = Parameter()
-    param.declarator = Declarator()
+    param = cdeclarations.Parameter()
+    param.declarator = cdeclarations.Declarator()
     if len(p) > 2:
         param.declarator.identifier = p[3]
         p[0] = p[1] + (param,)
@@ -974,7 +828,18 @@ def p_type_name(p):
     '''type_name : specifier_qualifier_list
                  | specifier_qualifier_list abstract_declarator
     '''
-    p[0] = p[1]
+    typ=p[1]
+    if len(p)==3:
+        declarator = p[2]
+    else:
+        declarator = None
+        
+    declaration = cdeclarations.Declaration()
+    declaration.declarator = declarator
+    cdeclarations.apply_specifiers(typ,declaration)
+    ctype = ctypesparser.get_ctypes_type(declaration.type,
+                                            declaration.declarator)
+    p[0] = ctype
 
 def p_abstract_declarator(p):
     '''abstract_declarator : pointer
@@ -983,13 +848,13 @@ def p_abstract_declarator(p):
     '''
     if len(p) == 2:
         p[0] = p[1]
-        if type(p[0]) == Pointer:
+        if type(p[0]) == cdeclarations.Pointer:
             ptr = p[0]
             while ptr.pointer:
                 ptr = ptr.pointer
             # Only if doesn't already terminate in a declarator
-            if type(ptr) == Pointer:
-                ptr.pointer = Declarator()
+            if type(ptr) == cdeclarations.Pointer:
+                ptr.pointer = cdeclarations.Declarator()
     else:
         p[0] = p[1]
         ptr = p[0]
@@ -1008,13 +873,13 @@ def p_direct_abstract_declarator(p):
                       | direct_abstract_declarator '(' ')'
                       | direct_abstract_declarator '(' parameter_type_list ')'
     '''
-    if p[1] == '(' and isinstance(p[2], Declarator):
+    if p[1] == '(' and isinstance(p[2], cdeclarations.Declarator):
         p[0] = p[2]
     else:
-        if isinstance(p[1], Declarator):
+        if isinstance(p[1], cdeclarations.Declarator):
             p[0] = p[1]
             if p[2] == '[':
-                a = Array()
+                a = cdeclarations.Array()
                 a.array = p[0].array
                 p[0].array = a
                 if p[3] != ']':
@@ -1025,9 +890,9 @@ def p_direct_abstract_declarator(p):
                 else:
                     p[0].parameters = p[3]
         else:
-            p[0] = Declarator()
+            p[0] = cdeclarations.Declarator()
             if p[1] == '[':
-                p[0].array = Array()
+                p[0].array = cdeclarations.Array()
                 if p[2] != ']':
                     p[0].array.size = p[2]
             elif p[1] == '(':
@@ -1035,6 +900,12 @@ def p_direct_abstract_declarator(p):
                     p[0].parameters = ()
                 else:
                     p[0].parameters = p[2]
+    
+    # Check parameters for (void) and simplify to empty tuple.
+    if p[0].parameters and len(p[0].parameters) == 1:
+        param = p[0].parameters[0]
+        if param.type.specifiers == ['void'] and not param.declarator:
+            p[0].parameters = ()
 
 def p_initializer(p):
     '''initializer : assignment_expression
@@ -1128,228 +999,86 @@ def p_function_definition(p):
                         | declarator compound_statement
     '''
 
-def p_error(t):
-    if not t:
-        # Crap, no way to get to CParser instance.  FIXME TODO
-        print >> sys.stderr, 'Syntax error at end of file.'
+def p_define(p):
+    '''define : PP_DEFINE PP_DEFINE_NAME PP_END_DEFINE
+              | PP_DEFINE PP_DEFINE_NAME type_name PP_END_DEFINE
+              | PP_DEFINE PP_DEFINE_NAME constant_expression PP_END_DEFINE
+              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' PP_END_DEFINE
+              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' constant_expression PP_END_DEFINE
+    '''
+    
+    filename = p.slice[1].filename
+    lineno = p.slice[1].lineno
+    
+    if p[3] != '(':
+        if len(p)==4:
+           p.parser.cparser.handle_define_constant(p[2], None, filename,
+                                                   lineno)
+        else:
+            p.parser.cparser.handle_define_constant(p[2], p[3], filename,
+                                                    lineno)
     else:
-        t.lexer.cparser.handle_error('Syntax error at %r' % t.value, 
-             t.filename, t.lineno)
+        params = p[4]
+        if len(p)==7:
+            expr = None
+        else:
+            expr = p[6]
+        
+        filename = p.slice[1].filename
+        lineno = p.slice[1].lineno
+        
+        p.parser.cparser.handle_define_macro(p[2], params, expr, filename, lineno)
+
+def p_define_error(p):
+    '''define : PP_DEFINE error PP_END_DEFINE'''
+    lexer = p[2].lexer
+    clexdata = lexer.tokens
+    start = end = p[2].clexpos
+    while clexdata[start].type != 'PP_DEFINE':
+        start -= 1
+    while clexdata[end].type != 'PP_END_DEFINE':
+        end += 1
+    
+    name = clexdata[start+1].value
+    if clexdata[start+1].type == 'PP_DEFINE_NAME':
+        params = None
+        contents = [t.value for t in clexdata[start+2:end]]
+    else:
+        end_of_param_list = start + 4
+        while clexdata[end_of_param_list].value != ')' and \
+            end_of_param_list<end:
+            end_of_param_list +=1
+        params = [t.value for t in clexdata[start+3:end_of_param_list] if \
+                    t.value != ',']
+        contents = [t.value for t in clexdata[end_of_param_list+1:end]]
+    
+    filename = p.slice[1].filename
+    lineno = p.slice[1].lineno
+    
+    p[2].lexer.cparser.handle_define_unparseable(name, params, contents, \
+                                                 filename, lineno)
+
+def p_macro_parameter_list(p):
+    '''macro_parameter_list : PP_MACRO_PARAM
+                            | macro_parameter_list ',' PP_MACRO_PARAM
+    '''
+    if len(p)==2:
+        p[0] = [p[1]]
+    else:
+        p[1].append(p[3])
+        p[0] = p[1]
+
+def p_error(t):
+    if t.lexer.in_define:
+        # p_define_error will generate an error message.
+        pass
+    else:
+        if t.type == '$end':
+            t.parser.cparser.handle_error('Syntax error at end of file.', 
+                 t.filename, 0)
+        else:
+            t.lexer.cparser.handle_error('Syntax error at %r' % t.value, 
+                 t.filename, t.lineno)
     # Don't alter lexer: default behaviour is to pass error production
     # up until it hits the catch-all at declaration, at which point
     # parsing continues (synchronisation).
-
-# --------------------------------------------------------------------------
-# Lexer
-# --------------------------------------------------------------------------
-
-class CLexer(object):
-    def __init__(self, cparser):
-        self.cparser = cparser
-        self.type_names = set()
-
-    def input(self, tokens):
-        self.tokens = tokens
-        self.pos = 0
-
-    def token(self):
-        while self.pos < len(self.tokens):
-            t = self.tokens[self.pos]
-            self.pos += 1
-
-            if not t:
-                break
-
-            # PP events
-            if t.type == 'PP_DEFINE':
-                name, value = t.value
-                self.cparser.handle_define(
-                    name, value, t.filename, t.lineno)
-                continue
-            elif t.type == 'PP_DEFINE_CONSTANT':
-                name, value = t.value
-                self.cparser.handle_define_constant(
-                    name, value, t.filename, t.lineno)
-                continue
-            elif t.type == 'PP_IFNDEF':
-                self.cparser.handle_ifndef(t.value, t.filename, t.lineno)
-                continue
-            # TODO: other PP tokens
-
-            # Transform PP tokens into C tokens
-            if t.type == 'LPAREN':
-                t.type = '('
-            elif t.type == 'PP_NUMBER':
-                t.type = 'CONSTANT'
-            elif t.type == 'IDENTIFIER' and t.value in keywords:
-                t.type = t.value.upper()
-            elif t.type == 'IDENTIFIER' and t.value in self.type_names:
-                if (self.pos < 2 or self.tokens[self.pos-2].type not in
-                    ('ENUM', 'STRUCT', 'UNION')):
-                    t.type = 'TYPE_NAME'
-            t.lexer = self
-            return t
-        return None
-        
-# --------------------------------------------------------------------------
-# Parser
-# --------------------------------------------------------------------------
-
-class CParser(object):
-    '''Parse a C source file.
-
-    Subclass and override the handle_* methods.  Call `parse` with a string
-    to parse.
-    '''
-    def __init__(self, stddef_types=True, gnu_types=True):
-        self.preprocessor_parser = preprocessor.PreprocessorParser()
-        self.parser = yacc.Parser()
-        yacc.yacc(method='LALR').init_parser(self.parser)
-        self.parser.cparser = self
-
-        self.lexer = CLexer(self)
-        if stddef_types:
-            self.lexer.type_names.add('wchar_t')
-            self.lexer.type_names.add('ptrdiff_t')
-            self.lexer.type_names.add('size_t')
-        if gnu_types:
-            self.lexer.type_names.add('__builtin_va_list')
-        if sys.platform == 'win32':
-            self.lexer.type_names.add('__int64')
-
-    def parse(self, filename, data=None, debug=False):
-        '''Parse a file.  Give filename or filename + data.
-
-        If `debug` is True, parsing state is dumped to stdout.
-        '''
-
-        self.handle_status('Preprocessing %s' % filename)
-        self.preprocessor_parser.parse(filename)
-        self.lexer.input(self.preprocessor_parser.output)
-        self.handle_status('Parsing %s' % filename)
-        self.parser.parse(lexer=self.lexer, debug=debug)
-
-    # ----------------------------------------------------------------------
-    # Parser interface.  Override these methods in your subclass.
-    # ----------------------------------------------------------------------
-
-    def handle_error(self, message, filename, lineno):
-        '''A parse error occured.  
-        
-        The default implementation prints `lineno` and `message` to stderr.
-        The parser will try to recover from errors by synchronising at the
-        next semicolon.
-        '''
-        print >> sys.stderr, '%s:%s %s' % (filename, lineno, message)
-
-    def handle_status(self, message):
-        '''Progress information.
-
-        The default implementationg prints message to stderr.
-        '''
-        print >> sys.stderr, message
-
-    def handle_include(self, header):
-        '''#include `header`
-        
-        Return True to proceed with including the header, otherwise return
-        False to skip it.  The default implementation returns True.
-        '''
-        return True
-
-    def handle_define(self, name, value, filename, lineno):
-        '''#define `name` `value` 
-
-        both are strings, value could not be parsed as an expression
-        '''
-
-    def handle_define_constant(self, name, value, filename, lineno):
-        '''#define `name` `value`
-
-        value is an int or float
-        '''
-
-    def handle_undef(self, name):
-        '''#undef `name`'''
-
-    def handle_if(self, expr):
-        '''#if `expr`'''
-
-    def handle_ifdef(self, name):
-        '''#ifdef `name`'''
-
-    def handle_ifndef(self, name, filename, lineno):
-        '''#ifndef `name`'''
-
-    def handle_elif(self, expr):
-        '''#elif `expr`'''
-
-    def handle_else(self):
-        '''#else'''
-
-    def handle_endif(self):
-        '''#endif'''
-
-    def impl_handle_declaration(self, declaration, filename, lineno):
-        '''Internal method that calls `handle_declaration`.  This method
-        also adds any new type definitions to the lexer's list of valid type
-        names, which affects the parsing of subsequent declarations.
-        '''
-        if declaration.storage == 'typedef':
-            declarator = declaration.declarator
-            if not declarator:
-                # XXX TEMPORARY while struct etc not filled
-                return
-            while declarator.pointer:
-                declarator = declarator.pointer
-            self.lexer.type_names.add(declarator.identifier)
-        self.handle_declaration(declaration, filename, lineno)
-
-    def handle_declaration(self, declaration, filename, lineno):
-        '''A declaration was encountered.  
-        
-        `declaration` is an instance of Declaration.  Where a declaration has
-        multiple initialisers, each is returned as a separate declaration.
-        '''
-        pass
-
-class DebugCParser(CParser):
-    '''A convenience class that prints each invocation of a handle_* method to
-    stdout.
-    '''
-    def handle_include(self, header):
-        print '#include header=%r' % header
-        return True
-
-    def handle_define(self, name, value, filename, lineno):
-        print '#define name=%r, value=%r' % (name, value)
-
-    def handle_define_constant(self, name, value, filename, lineno):
-        print '#define constant name=%r, value=%r' % (name, value)
-
-    def handle_undef(self, name):
-        print '#undef name=%r' % name
-
-    def handle_if(self, expr):
-        print '#if expr=%s' % expr
-
-    def handle_ifdef(self, name):
-        print '#ifdef name=%r' % name
-
-    def handle_ifndef(self, name, filename, lineno):
-        print '#ifndef name=%r' % name
-
-    def handle_elif(self, expr):
-        print '#elif expr=%s' % expr
-
-    def handle_else(self):
-        print '#else'
-
-    def handle_endif(self):
-        print '#endif'
-
-    def handle_declaration(self, declaration, filename, lineno):
-        print declaration
-        
-if __name__ == '__main__':
-    DebugCParser().parse(sys.argv[1], debug=True)
