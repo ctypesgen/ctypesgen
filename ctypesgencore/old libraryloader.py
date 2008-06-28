@@ -97,6 +97,7 @@ class LibraryLoader(object):
 
         Raises ImportError if library is not found.
         '''
+                
         if 'framework' in kwargs and self.platform == 'darwin':
             return self.load_framework(kwargs['framework'])
         
@@ -111,7 +112,10 @@ class LibraryLoader(object):
         elif self.platform == 'win32':
             platform_names.extend(['%s.dll' % n for n in names])
             platform_names.extend(['lib%s.dll' % n for n in names])
-
+        elif self.platform == 'darwin':
+            platform_names.extend(['%s.dylib' % n for n in names])
+            platform_names.extend(['lib%s.dylib' % n for n in names])
+        
         platform_names.extend(names)
         for name in platform_names:
             path = self.find_library(name)
@@ -126,7 +130,7 @@ class LibraryLoader(object):
                     if _debug_trace:
                         lib = _TraceLibrary(lib)
                     return lib
-                except OSError:
+                except OSError,e:
                     pass
         raise ImportError('Library "%s" not found.' % names[0])
 
@@ -159,7 +163,7 @@ class MachOLibraryLoader(LibraryLoader):
                 os.path.expanduser('~/lib'),
                 '/usr/local/lib',
                 '/usr/lib']
- 
+        
     def find_library(self, path):
         '''Implements the dylib search as specified in Apple documentation:
         
@@ -170,9 +174,8 @@ class MachOLibraryLoader(LibraryLoader):
         within a bundle (OS X .app).
         '''
 
-        search_path = []
-
         libname = os.path.basename(path)
+        search_path = []
 
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
             search_path.append(os.path.join(
@@ -180,24 +183,30 @@ class MachOLibraryLoader(LibraryLoader):
                 '..',
                 'Frameworks',
                 libname))
-
-        if '/' not in path:
+                
+        if '/' in path:
+            search_path.extend(
+                [os.path.join(p, libname) \
+                    for p in self.dyld_library_path])
+            search_path.append(path)
+            search_path.extend(
+                [os.path.join(p, libname) \
+                    for p in self.dyld_fallback_library_path])
+        else:
             search_path.extend(
                 [os.path.join(p, libname) \
                     for p in self.ld_library_path])
-        search_path.extend(
-            [os.path.join(p, libname) \
-                for p in self.dyld_library_path])
-        search_path.append(path)
-        search_path.extend(
-            [os.path.join(p, libname) \
-                for p in self.dyld_fallback_library_path])
-
+            search_path.extend(
+                [os.path.join(p, libname) \
+                    for p in self.dyld_library_path])
+            search_path.append(path)
+            search_path.extend(
+                [os.path.join(p, libname) \
+                    for p in self.dyld_fallback_library_path])
+                
         for path in search_path:
-            for p in [path, os.path.join(os.path.dirname(path),
-                                         "lib%s.dylib" % libname)]:
-                if os.path.exists(p):
-                    return p
+            if os.path.exists(path):
+                return path
 
         return None
 
