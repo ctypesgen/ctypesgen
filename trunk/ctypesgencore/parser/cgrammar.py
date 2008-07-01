@@ -1003,6 +1003,8 @@ def p_define(p):
     '''define : PP_DEFINE PP_DEFINE_NAME PP_END_DEFINE
               | PP_DEFINE PP_DEFINE_NAME type_name PP_END_DEFINE
               | PP_DEFINE PP_DEFINE_NAME constant_expression PP_END_DEFINE
+              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' ')' PP_END_DEFINE
+              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' ')' constant_expression PP_END_DEFINE
               | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' PP_END_DEFINE
               | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' constant_expression PP_END_DEFINE
     '''
@@ -1011,18 +1013,25 @@ def p_define(p):
     lineno = p.slice[1].lineno
     
     if p[3] != '(':
-        if len(p)==4:
+        if len(p) == 4:
            p.parser.cparser.handle_define_constant(p[2], None, filename,
                                                    lineno)
         else:
             p.parser.cparser.handle_define_constant(p[2], p[3], filename,
                                                     lineno)
     else:
-        params = p[4]
-        if len(p)==7:
-            expr = None
+        if p[4] == ')':
+            params = []
+            if len(p) == 6:
+                expr = None
+            elif len(p) == 7:
+                expr = p[5]
         else:
-            expr = p[6]
+            params = p[4]
+            if len(p) == 7:
+                expr = None
+            elif len(p) == 8:
+                expr = p[6]
         
         filename = p.slice[1].filename
         lineno = p.slice[1].lineno
@@ -1038,16 +1047,16 @@ def p_define_error(p):
         start -= 1
     while clexdata[end].type != 'PP_END_DEFINE':
         end += 1
-    
+        
     name = clexdata[start+1].value
     if clexdata[start+1].type == 'PP_DEFINE_NAME':
         params = None
         contents = [t.value for t in clexdata[start+2:end]]
     else:
-        end_of_param_list = start + 4
+        end_of_param_list = start
         while clexdata[end_of_param_list].value != ')' and \
-            end_of_param_list<end:
-            end_of_param_list +=1
+              end_of_param_list<end:
+            end_of_param_list += 1
         params = [t.value for t in clexdata[start+3:end_of_param_list] if \
                     t.value != ',']
         contents = [t.value for t in clexdata[end_of_param_list+1:end]]

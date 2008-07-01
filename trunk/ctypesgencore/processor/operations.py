@@ -27,6 +27,7 @@ def automatically_typedef_structs(data,options):
             
             data.typedefs.append(typedef)
             data.all.insert(data.all.index(struct)+1,typedef)
+            data.output_order.append(("typedef", typedef))
 
 def remove_descriptions_in_system_headers(data,opts):
     """remove_descriptions_in_system_headers() removes descriptions if they came
