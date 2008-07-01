@@ -79,6 +79,9 @@ class LibraryLoader(object):
             
             for path in self.getplatformpaths(libname):
                 yield path
+    
+    def getplatformpaths(self, libname):
+        return []
 
 # Darwin (Mac OS X)
 
@@ -145,7 +148,7 @@ class LinuxLibraryLoader(LibraryLoader):
         #
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
-        directories = self.other_paths.copy()
+        directories = self.other_dirs[:]
         directories.append(".")
         directories.extend(_environ_path('LD_LIBRARY_PATH'))
 
@@ -209,7 +212,7 @@ class WindowsLibraryLoader(LibraryLoader):
         return _WindowsLibrary(path)
     
     def getplatformpaths(self, libname):
-        if os.path.pathsep not in libname:
+        if os.path.sep not in libname:
             for name in self.name_formats:
                 path = ctypes.util.find_library(name % libname)
                 if path:
@@ -217,13 +220,17 @@ class WindowsLibraryLoader(LibraryLoader):
 
 # Platform switching
 
+# If your value of sys.platform does not appear in this dict, please contact
+# the Ctypesgen maintainers.
+
 loaderclass = {
     "darwin":   DarwinLibraryLoader,
     "cygwin":   WindowsLibraryLoader,
-    "linux":    LinuxLibraryLoader,
+    "linux2":   LinuxLibraryLoader,
     "win32":    WindowsLibraryLoader
 }
-loader = loaderclass[sys.platform]()
+
+loader = loaderclass.get(sys.platform, LibraryLoader)()
 
 def add_library_search_dirs(other_dirs):
     loader.other_dirs = other_dirs

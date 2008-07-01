@@ -1,4 +1,4 @@
-'''Wrapper for %(libraries)s
+'''Wrapper for %(name)s
 
 Generated with:
 %(argv)s

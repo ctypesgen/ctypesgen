@@ -77,13 +77,14 @@ class WrapperPrinter:
         template_subs={
             'date': time.ctime(),
             'argv': ' '.join(sys.argv),
+            'name': os.path.basename(self.options.headers[0])
         }
         
         for opt,value in self.options.__dict__.iteritems():
             if type(value)==str:
                 template_subs[opt]=value
             elif isinstance(value,(list,tuple)):
-                template_subs[opt]=":".join(value)
+                template_subs[opt]=(os.path.sep).join(value)
             else:
                 template_subs[opt]=repr(value)
         
