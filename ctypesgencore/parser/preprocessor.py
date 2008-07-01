@@ -10,7 +10,7 @@ Reference is C99:
 
 __docformat__ = 'restructuredtext'
 
-import os, re, shlex, sys, tokenize, lex, yacc, traceback, popen2
+import os, re, shlex, sys, tokenize, lex, yacc, traceback, subprocess
 import ctypes
 from lex import TOKEN
 import pplexer
@@ -103,7 +103,6 @@ def create_token(type, value, production=None):
 
 class PreprocessorParser(object):
     def __init__(self,options,cparser):
-        self.flags = ""
         self.defines = ["inline=", "__inline__=", "__extension__=",
                         "_Bool=uint8_t", "__const=const", "__asm__(x)=",
                         "__asm(x)=", "with=with_"]
@@ -121,27 +120,34 @@ class PreprocessorParser(object):
     def parse(self, filename):
         """Parse a file and save its output"""
         
+        cmd = self.options.cpp
+        cmd += " -U __GNUC__ -dD"
         for path in self.options.include_search_paths:
-            self.flags += " -I%s" % path 
- 
+            cmd += " -I%s" % path 
         for define in self.defines:
-            self.flags += ' "-D%s"' % define
-
-        cmd = "%s -U __GNUC__ -dD %s %s" % \
-              (self.options.cpp, self.flags, filename)
-        if self.options.save_preprocessed_headers:
-            cmd = '%s | tee %s' % (cmd, self.options.save_preprocessed_headers)    
+            cmd += ' "-D%s"' % define
+        cmd += " " + filename
 
         self.cparser.handle_status(cmd)
-        gccout, gccin, gccerr = popen2.popen3(cmd)
-                
-        # We separate lines that are #defines and lines that are lines of source
-        # code. We put all the source lines first, then all the #define lines.
+        
+        pp = subprocess.Popen(cmd,
+                              shell = True,
+                              stdout = subprocess.PIPE,
+                              stderr = subprocess.PIPE)
+        ppout, pperr = pp.communicate()
+        
+        for line in pperr.split("\n"):
+            if line:
+                self.cparser.handle_pp_error(line)
+        
+        # We separate lines that are #defines and lines that are source code
+        # We put all the source lines first, then all the #define lines.
         
         source_lines= []
         define_lines = []
         
-        for line in gccout:
+        for line in ppout.split("\n"):
+            line = line + "\n"
             if line.startswith("# "):
                 # Line number information has to go with both groups
                 source_lines.append(line)
@@ -160,10 +166,19 @@ class PreprocessorParser(object):
                 source_lines.append(line)
                 define_lines.append("\n")
         
-        for line in gccerr:
-            self.cparser.handle_pp_error(line.rstrip())
+        text = "".join(source_lines + define_lines)
         
-        self.lexer.input("".join(source_lines + define_lines))
+        if self.options.save_preprocessed_headers:
+            self.cparser.handle_status("Saving preprocessed headers to %s." % \
+                self.options.save_preprocessed_headers)
+            try:
+                f = file(self.options.save_preprocessed_headers, "w")
+                f.write(text)
+                f.close()
+            except IOError:
+                self.cparser.handle_error("Couldn't save headers.")
+        
+        self.lexer.input(text)
         self.output = []
         
         while True:

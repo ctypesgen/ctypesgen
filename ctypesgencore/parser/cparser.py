@@ -103,8 +103,8 @@ class CParser(object):
         if sys.platform == 'win32':
             self.lexer.type_names.add('__int64')
         
-    def parse(self, filename, data=None, debug=False):
-        '''Parse a file.  Give filename or filename + data.
+    def parse(self, filename, debug=False):
+        '''Parse a file.
 
         If `debug` is True, parsing state is dumped to stdout.
         '''

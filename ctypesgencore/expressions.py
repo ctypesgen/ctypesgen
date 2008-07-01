@@ -260,12 +260,15 @@ class CallExpressionNode(ExpressionNode):
             return '((%s (%s)).value)' % (function,", ".join(arguments))
 
 # There seems not to be any reasonable way to translate C typecasts
-# into Python. Ctypesgen doesn't try.
+# into Python. Ctypesgen doesn't try, except for the special case of NULL.
 class TypeCastExpressionNode(ExpressionNode):
     def __init__(self, base, ctype):
         ExpressionNode.__init__(self)
         self.base = base
         self.ctype = ctype
+        self.isnull = isinstance(ctype, CtypesPointer) and \
+                      isinstance(base, ConstantExpressionNode) and \
+                      base.value == 0
     
     def visit(self,visitor):
         # No need to visit ctype because it isn't actually used
@@ -273,10 +276,16 @@ class TypeCastExpressionNode(ExpressionNode):
         ExpressionNode.visit(self,visitor)
     
     def evaluate(self,context):
-        return self.base.evaluate(context)
+        if self.isnull:
+            return None
+        else:
+            return self.base.evaluate(context)
     
     def py_string(self, can_be_ctype):
-        return self.base.py_string(can_be_ctype)
+        if self.isnull:
+            return "None"
+        else:
+            return self.base.py_string(can_be_ctype)
 
 class UnsupportedExpressionNode(ExpressionNode):
     def __init__(self,message):

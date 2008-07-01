@@ -42,6 +42,7 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         nullmacro = ConstantDescription("NULL",null,("<built-in>",1))
         self.constants.append(nullmacro)
         self.all.append(nullmacro)
+        self.output_order.append(("constant", nullmacro))
         
         # A list of tuples describing macros; saved to be processed after
         # everything else has been parsed
@@ -81,7 +82,8 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         else:
             original_string = "#define %s %s" % \
                 (name, " ".join(value))
-        macro = MacroDescription(name, original_string, (filename,lineno))
+        macro = MacroDescription(name, params, original_string,
+                                 src = (filename,lineno))
         macro.error("Could not parse macro \"%s\"" % original_string,
                     cls = 'macro')
         self.macros.append(macro)

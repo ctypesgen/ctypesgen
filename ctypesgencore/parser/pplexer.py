@@ -158,10 +158,12 @@ def t_DEFINE_identifier(t):
             while lexdata[pos] not in '\n)':
                 pos+=1
             params = lexdata[t.lexpos+len(t.value)+1 : pos]
-            t.lexer.macro_params = [x.strip() for x in params.split(",")]
-            
+            paramlist = [x.strip() for x in params.split(",") if x.strip()]
+            t.lexer.macro_params = paramlist
+                    
         else:
             t.type = 'PP_DEFINE_NAME'
+        
         t.lexer.next_is_define_name = False
     elif t.value in t.lexer.macro_params:
         t.type = 'PP_MACRO_PARAM'
@@ -273,7 +275,6 @@ def t_DEFINE_pp_param_op(t):
     return t
 
 def t_INITIAL_error(t):
-    print "INITIAL error function called",t.value[0]
     t.type = 'OTHER'
     return t
 

@@ -69,7 +69,19 @@ default_lr  = 'LALR'           # Default LR table generation method
 
 error_count = 3                # Number of symbols that must be shifted to leave recovery mode
 
-import re, types, sys, cStringIO, md5, os.path
+import re, types, sys, cStringIO, os.path
+
+# <tm> 1 July 2008
+try:
+    import hashlib
+except ImportError:
+    # Preserve backwards compatibility with older versions of Python
+    import md5
+    class Dummy:
+        pass
+    hashlib = Dummy()
+    hashlib.md5 = md5.new
+    del Dummy, md5
 
 # Exception raised for yacc-related errors
 class YaccError(Exception):   pass
@@ -526,10 +538,11 @@ def initialize_vars():
                            # productions with the "dot" like E -> E . PLUS E
 
     Errorfunc    = None    # User defined error handler
-
-    Signature    = md5.new()   # Digital signature of the grammar rules, precedence
-                               # and other information.  Used to determined when a
-                               # parsing table needs to be regenerated.
+    
+    # <tm> 1 July 2008 changed to use hashlib
+    Signature    = hashlib.md5()   # Digital signature of the grammar rules, precedence
+                                   # and other information.  Used to determined when a
+                                   # parsing table needs to be regenerated.
 
     Requires     = { }     # Requires list
 
