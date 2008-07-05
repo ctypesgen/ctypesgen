@@ -45,11 +45,14 @@ class String(MutableString, Union):
             self.data = str(obj)
         else:
             self.raw = obj
+
+    def __len__(self):
+        return self.data and len(self.data) or 0
     
     def from_param(cls, obj):
         # Convert None or 0
         if obj is None or obj == 0:
-            return None
+            return cls(POINTER(c_char)())
 
         # Convert from String
         elif isinstance(obj, String):
