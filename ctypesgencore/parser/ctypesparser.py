@@ -110,7 +110,7 @@ def make_struct_from_specifier(specifier):
             while declarator.pointer:
                 declarator = declarator.pointer
             name = declarator.identifier
-            members.append((name, t))
+            members.append((name, remove_function_pointer(t)))
     else:
         members = None
     
