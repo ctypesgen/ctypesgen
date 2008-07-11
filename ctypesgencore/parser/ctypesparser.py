@@ -17,7 +17,8 @@ from ctypesgencore.ctypedescs import *
 from cdeclarations import *
 from ctypesgencore.expressions import *
 
-def get_ctypes_type(typ, declarator, check_qualifiers=False, can_use_from_param=False, can_use_c_char_p=True):       
+def get_ctypes_type(typ, declarator, check_qualifiers=False,
+                    can_use_from_param=False, can_use_c_char_p = True):       
     signed = True
     typename = 'int'
     longs = 0
@@ -86,8 +87,13 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False, can_use_from_param=
     
     if declarator and declarator.parameters is not None:
         variadic = "..." in declarator.parameters
-        params = [get_ctypes_type(p.type,p.declarator)
-                  for p in declarator.parameters if p!="..."]
+
+        params = []
+        for param in declarator.parameters:
+            if param=="...":
+                break
+            params.append(get_ctypes_type(param.type, param.declarator,
+                                          can_use_from_param = True))
         t = CtypesFunction(t, params, variadic)
     
     if declarator:
