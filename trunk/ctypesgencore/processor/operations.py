@@ -29,9 +29,20 @@ def automatically_typedef_structs(data,options):
             data.all.insert(data.all.index(struct)+1,typedef)
             data.output_order.append(("typedef", typedef))
 
+def remove_NULL(data, options):
+    """remove_NULL() removes any NULL definitions from the C headers because
+ctypesgen supplies its own NULL definition."""
+    
+    for macro in data.macros:
+        if macro.name=="NULL":
+            macro.include_rule = "never"
+
 def remove_descriptions_in_system_headers(data,opts):
     """remove_descriptions_in_system_headers() removes descriptions if they came
     from files outside of the header files specified from the command line."""
+    
+    known_headers = [os.path.basename(x) for x in opts.headers]
+    
     for description in data.all:
         if description.src!=None:
             if description.src[0] == "<command line>":
@@ -39,7 +50,7 @@ def remove_descriptions_in_system_headers(data,opts):
             elif description.src[0] == "<built-in>":
                 if not opts.builtin_symbols:
                     description.include_rule="if_needed"
-            elif description.src[0] not in opts.headers:
+            elif os.path.basename(description.src[0]) not in known_headers:
                 if not opts.all_headers:
                     # If something else requires this, include it even though
                     # it is in a system header file.

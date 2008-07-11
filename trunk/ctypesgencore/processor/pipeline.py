@@ -2,43 +2,49 @@
 
 import ctypes, re, os
 from ctypesgencore.processor.operations import *
+from ctypesgencore.processor.dependencies import find_dependencies
 from ctypesgencore.ctypedescs import *
 from ctypesgencore.messages import *
 
 """
 A brief explanation of the processing steps:
-1. Operation functions are called to perform various operations on the
-descriptions. The operation functions are found in operations.py
+1. The dependencies module builds a dependency graph for the descriptions.
 
-2. If an operation function decides to exclude a description from the output, it
+2. Operation functions are called to perform various operations on the
+descriptions. The operation functions are found in operations.py.
+
+3. If an operation function decides to exclude a description from the output, it
 sets 'description.include_rule' to "never"; if an operation function decides not
 to include a description by default, but to allow if required, it sets
 'description.include_rule' to "if_needed".
 
-3. If an operation function encounters an error that makes a description unfit
+4. If an operation function encounters an error that makes a description unfit
 for output, it appends a string error message to 'description.errors'.
 'description.warnings' is a list of warning messages that will be displayed but
 will not prevent the description from being output.
 
-4. Based on 'description.include_rule', calculate_final_inclusion() decides
+5. Based on 'description.include_rule', calculate_final_inclusion() decides
 which descriptions to include in the output. It sets 'description.included' to
 True or False.
 
-5. For each description, print_errors_encountered() checks if there are error
+6. For each description, print_errors_encountered() checks if there are error
 messages in 'description.errors'. If so, print_errors_encountered() prints the
 error messages, but only if 'description.included' is True - it doesn't bother
 the user with error messages regarding descriptions that would not be in the
 output anyway. It also prints 'description.warnings'.
 
-6. determine_final_inclusion() re-calculates 'description.included' to take into
-account the errors encountered.
+7. calculate_final_inclusion() is called again to recalculate based on
+the errors that print_errors_encountered() has flagged.
 
 """
 
 def process(data,options):
     status_message("Processing description list.")
     
+    find_dependencies(data,options)
+    
     automatically_typedef_structs(data,options)
+    remove_NULL(data, options)
     remove_descriptions_in_system_headers(data,options)
     filter_by_regexes_exclude(data,options)
     filter_by_regexes_include(data,options)
@@ -48,7 +54,7 @@ def process(data,options):
         
     calculate_final_inclusion(data,options)
     print_errors_encountered(data,options)
-    determine_final_inclusion(data,options)
+    calculate_final_inclusion(data,options)
 
 def calculate_final_inclusion(data,opts):
     """calculate_final_inclusion() calculates which descriptions will be included in the
@@ -118,47 +124,6 @@ def print_errors_encountered(data,opts):
                     warning_message("%d more errors for %s" % \
                         (len(desc.warnings)-1, desc.casual_name()))
         if desc.errors:
-            # determine_final_inclusion() will recalculate to take this into
-            # account.
+            # process() will recalculate to take this into account
             desc.include_rule = "never"
 
-def determine_final_inclusion(data,opts):
-    """determine_final_inclusion() re-calculates which descriptions will be
-    included to take into account descriptions that have been marked by
-    print_errors_encountered(). Then it reorders description.typedefs so that it
-    isdescription in the correct order."""
-    
-    calculate_final_inclusion(data,opts)
-    
-    for desc in data.structs + data.typedefs:
-        desc.already_listed=False
-    
-#    # Order typedefs
-#    
-#    typedef_list=[]
-#    not_included_typedef_list=[]
-#    
-#    def list_typedefs(desc):
-#        if desc.already_listed==True: return
-#        if desc.already_listed=="checking":
-#            # Should never happen
-#            raise Exception, "\"%s\" is requesting to be listed before a " \
-#                             "typedef that is requesting to be listed before " \
-#                             "\"%s\"." % (desc.casual_name(),desc.casual_name())
-#        desc.already_listed = "checking"
-#        for req in desc.requirements:
-#            if isinstance(req,TypedefDescription):
-#                list_typedefs(req)
-#        typedef_list.append(desc)
-#        desc.already_listed=True
-#    
-#    for desc in data.typedefs:
-#        if desc.included and desc.include_rule=="yes":
-#            list_typedefs(desc)
-#    for desc in data.typedefs:
-#        if not desc.already_listed:
-#            # For the sake of completeness, we leave the typedefs in the list
-#            # even if they are not going to be included
-#            typedef_list.append(desc)
-#    
-#    data.typedefs = typedef_list
