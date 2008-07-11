@@ -179,12 +179,7 @@ class CtypesPointer(CtypesType):
         CtypesType.visit(self,visitor)
 
     def py_string(self):
-        if type(self.destination) == CtypesSimple and \
-            self.destination.name == 'char' and \
-            self.destination.signed:
-            return 'String'
-        else:
-            return 'POINTER(%s)' % self.destination.py_string()
+        return 'POINTER(%s)' % self.destination.py_string()
 
 class CtypesArray(CtypesType):
     def __init__(self, base, count):
@@ -223,7 +218,7 @@ class CtypesFunction(CtypesType):
             self.restype = CtypesPointer(CtypesSpecial('c_void'), ())
 
         # Return 'ReturnString' instead of simply 'String'
-        if self.restype.py_string() == 'String':
+        if self.restype.py_string() == 'POINTER(c_char)':
             self.restype = CtypesSpecial('ReturnString')
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
