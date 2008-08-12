@@ -17,8 +17,7 @@ from ctypesgencore.ctypedescs import *
 from cdeclarations import *
 from ctypesgencore.expressions import *
 
-def get_ctypes_type(typ, declarator, check_qualifiers=False,
-                    can_use_from_param=False, can_use_c_char_p = True):       
+def get_ctypes_type(typ, declarator, check_qualifiers=False):       
     signed = True
     typename = 'int'
     longs = 0
@@ -70,8 +69,7 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False,
             for param in declarator.parameters:
                 if param=="...":
                     break
-                params.append(get_ctypes_type(param.type, param.declarator,
-                                              can_use_from_param=True))
+                params.append(get_ctypes_type(param.type, param.declarator))
             t = CtypesFunction(t, params, variadic)
         
         a = declarator.array
@@ -92,8 +90,7 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False,
         for param in declarator.parameters:
             if param=="...":
                 break
-            params.append(get_ctypes_type(param.type, param.declarator,
-                                          can_use_from_param = True))
+            params.append(get_ctypes_type(param.type, param.declarator))
         t = CtypesFunction(t, params, variadic)
     
     if declarator:
@@ -106,10 +103,7 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False,
        isinstance(t.destination, CtypesSimple) and \
        t.destination.name=="char" and \
        t.destination.signed:
-        if can_use_from_param:
-            t = CtypesSpecial("String")
-        elif can_use_c_char_p:
-            t = CtypesSpecial("c_char_p")
+       t = CtypesSpecial("String")
 
     return t
 
