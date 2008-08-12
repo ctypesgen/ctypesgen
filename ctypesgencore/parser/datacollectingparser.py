@@ -13,6 +13,7 @@ from ctypesgencore.ctypedescs import *
 from ctypesgencore.expressions import *
 from ctypesgencore.messages import *
 from tempfile import NamedTemporaryFile
+import os
 
 class DataCollectingParser(ctypesparser.CtypesParser,
                            ctypesparser.CtypesTypeVisitor):
@@ -61,7 +62,7 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         for header in self.options.other_headers:
             print >>f, '#include <%s>' % header
         for header in self.headers:
-            print >>f, '#include "%s"' % header
+            print >>f, '#include "%s"' % os.path.abspath(header)
         f.flush()
         ctypesparser.CtypesParser.parse(self,f.name,None)
         f.close()
