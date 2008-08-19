@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # The name wrap.py is obsolete - the main file for ctypesgen is now
 # ctypesgen.py. This wrapper exists only to pass its arguments
