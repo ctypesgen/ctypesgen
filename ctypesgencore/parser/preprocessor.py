@@ -106,6 +106,14 @@ class PreprocessorParser(object):
         self.defines = ["inline=", "__inline__=", "__extension__=",
                         "_Bool=uint8_t", "__const=const", "__asm__(x)=",
                         "__asm(x)=", "with=with_"]
+
+        # On OSX, explicitly add these defines to keep from getting syntax
+        # errors in the OSX standard headers.
+        if os.uname()[0] == 'Darwin':
+            self.defines += ["__uint16_t=uint16_t",
+                             "__uint32_t=uint32_t",
+                             "__uint64_t=uint64_t"]
+
         self.matches = []
         self.output = []
         self.lexer = lex.lex(cls=PreprocessorLexer,
