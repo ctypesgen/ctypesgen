@@ -56,11 +56,6 @@ ctypes_type_map = {
     ('va_list', True,   0): 'c_void_p',
 }
 
-# Some compilers define these built-in types with extra underscores in front as well --
-# make those work too
-for typename, signed, bits in ctypes_type_map.keys():
-    ctypes_type_map[("__%s" % typename, signed, bits)] = ctypes_type_map[(typename, signed, bits)]
-
 # This protocol is used for walking type trees.
 class CtypesTypeVisitor(object):
     def visit_struct(self, struct):
