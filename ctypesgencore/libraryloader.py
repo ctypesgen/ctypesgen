@@ -59,7 +59,14 @@ class LibraryLoader(object):
     def load(self,path):
         """Given a path to a library, load it."""
         try:
-            return ctypes.cdll.LoadLibrary(path)
+            # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
+            # of the default RTLD_LOCAL.  Without this, you end up with
+            # libraries not being loadable, resulting in "Symbol not found"
+            # errors
+            if sys.platform == 'darwin':
+                return ctypes.CDLL(path, ctypes.RTLD_GLOBAL)
+            else:
+                return ctypes.cdll.LoadLibrary(path)
         except OSError,e:
             raise ImportError,e
     
@@ -74,11 +81,11 @@ class LibraryLoader(object):
             
             yield os.path.join(".",libname)
             
-            path = ctypes.util.find_library(libname)
-            if path: yield path
-            
             for path in self.getplatformpaths(libname):
                 yield path
+            
+            path = ctypes.util.find_library(libname)
+            if path: yield path
     
     def getplatformpaths(self, libname):
         return []
@@ -116,6 +123,8 @@ class DarwinLibraryLoader(LibraryLoader):
                                           '/usr/local/lib', '/usr/lib']
         
         dirs = []
+        
+        dirs.extend(self.other_dirs)
         
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
             dirs.append(os.path.join(
