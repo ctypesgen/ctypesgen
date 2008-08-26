@@ -104,7 +104,9 @@ if __name__=="__main__":
     op.add_option('', "--show-long-errors", action="store_true", default=False,
         dest="show_long_errors", help="Display long error messages " \
             "instead of abbreviating error messages.")
-    
+    op.add_option('', "--no-macro-warnings", action="store_false", default=True,
+        dest="show_macro_warnings", help="Do not print macro warnings.")
+
     op.set_defaults(**ctypesgencore.options.default_values)
     
     (options, args) = op.parse_args(list(sys.argv[1:]))
