@@ -105,7 +105,7 @@ class PreprocessorParser(object):
     def __init__(self,options,cparser):
         self.defines = ["inline=", "__inline__=", "__extension__=",
                         "_Bool=uint8_t", "__const=const", "__asm__(x)=",
-                        "__asm(x)=", "with=with_"]
+                        "__asm(x)="]
 
         # On OSX, explicitly add these defines to keep from getting syntax
         # errors in the OSX standard headers.
