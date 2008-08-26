@@ -24,6 +24,7 @@ default_values={
     "exclude_symbols": None,
     "show_all_errors": False,
     "show_long_errors": False,
+    "show_macro_warnings": True,
     "header_template": None,
     "inserted_files": []
 }
