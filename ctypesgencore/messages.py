@@ -25,12 +25,7 @@ import sys
 __all__ = ["error_message","warning_message","status_message"]
 
 def error_message(msg,cls=None):
-    # Macro problems should be displayed as warnings but to keep the framework
-    # working properly, macros are still technically errors.
-    if cls == 'macro':
-        print "Warning: %s" % msg
-    else:
-        print "Error: %s" % msg
+    print "Error: %s" % msg
 
 def warning_message(msg,cls=None):
     print "Warning: %s" % msg
