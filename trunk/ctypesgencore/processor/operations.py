@@ -201,15 +201,3 @@ def find_source_libraries(data,opts):
             if symbol.source_library==None:
                 if hasattr(library,symbol.c_name()):
                     symbol.source_library=library_name
-        
-    for symbol in all_symbols:
-        if symbol.source_library==None:
-            if any_library_failed and not opts.show_long_errors:
-                # User will already get above message regarding library failure;
-                # we don't need to flood them with error messages
-                symbol.include_rule = "never"
-            else:
-                symbol.error("Could not find any library containing the " \
-                    "symbol \"%s\". %s will not be included in the wrapper." \
-                    % (symbol.c_name(),symbol.casual_name()),
-                    cls = 'missing-library')
