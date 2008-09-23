@@ -189,38 +189,69 @@ class WrapperPrinter:
     
     def print_fixed_function(self, function):
         self.srcinfo(function.src)
-        print >>self.file, "if hasattr(_libs[%r], %r):" % \
-            (function.source_library,function.c_name())
-        print >>self.file, "    %s = _libs[%r].%s" % \
-            (function.py_name(),function.source_library,function.c_name())
-        print >>self.file, "    %s.restype = %s" % \
-            (function.py_name(),function.restype.py_string())
-        print >>self.file, "    %s.argtypes = [%s]" % (function.py_name(),
-            ', '.join([a.py_string() for a in function.argtypes]))
+        if function.source_library:
+            print >>self.file, "if hasattr(_libs[%r], %r):" % \
+                (function.source_library,function.c_name())
+            print >>self.file, "    %s = _libs[%r].%s" % \
+                (function.py_name(),function.source_library,function.c_name())
+            print >>self.file, "    %s.restype = %s" % \
+                (function.py_name(),function.restype.py_string())
+            print >>self.file, "    %s.argtypes = [%s]" % (function.py_name(),
+                ', '.join([a.py_string() for a in function.argtypes]))
+        else:
+            print >>self.file, "for _lib in _libs.values():"
+            print >>self.file, "    if hasattr(_lib, %r):" % function.c_name()
+            print >>self.file, "        %s = _lib.%s" % (function.py_name(),function.c_name())
+            print >>self.file, "        %s.restype = %s" % (function.py_name(),function.restype.py_string())
+            print >>self.file, "        %s.argtypes = [%s]" % (function.py_name(),
+                ', '.join([a.py_string() for a in function.argtypes]))
+            print >>self.file, "        break"
     
     def print_variadic_function(self,function):
         self.srcinfo(function.src)
-        print >>self.file, "if hasattr(_libs[%r], %r):" % \
-            (function.source_library,function.c_name())
-        print >>self.file, "    func = _libs[%r].%s" % \
-            (function.source_library,function.c_name())
-        print >>self.file, "    restype = %s" % function.restype.py_string()
-        print >>self.file, "    argtypes = [%s]" % \
-            ', '.join([a.py_string() for a in function.argtypes])
-        print >>self.file, "    %s = _variadic_function(func,restype,argtypes)" % \
-            function.py_name()
-        print >>self.file, "    del func,restype,argtypes"
+        if function.source_library:
+            print >>self.file, "if hasattr(_libs[%r], %r):" % \
+                (function.source_library,function.c_name())
+            print >>self.file, "    _func = _libs[%r].%s" % \
+                (function.source_library,function.c_name())
+            print >>self.file, "    _restype = %s" % function.restype.py_string()
+            print >>self.file, "    _argtypes = [%s]" % \
+                ', '.join([a.py_string() for a in function.argtypes])
+            print >>self.file, "    %s = _variadic_function(_func,_restype,_argtypes)" % \
+                function.py_name()
+        else:
+            print >>self.file, "for _lib in _libs.values():"
+            print >>self.file, "    if hasattr(_lib, %r):" % function.c_name()
+            print >>self.file, "        _func = _lib.%s" % \
+                (function.c_name())
+            print >>self.file, "        _restype = %s" % function.restype.py_string()
+            print >>self.file, "        _argtypes = [%s]" % \
+                ', '.join([a.py_string() for a in function.argtypes])
+            print >>self.file, "        %s = _variadic_function(_func,_restype,_argtypes)" % \
+                function.py_name()
+
     
     def print_variable(self, variable):
         self.srcinfo(variable.src)
-        print >>self.file, 'try:'
-        print >>self.file, '    %s = (%s).in_dll(_libs[%r], %r)' % \
-            (variable.py_name(),
-             variable.ctype.py_string(),
-             variable.source_library,
-             variable.c_name())
-        print >>self.file, 'except:'
-        print >>self.file, '    pass'
+        if variable.source_library:
+            print >>self.file, 'try:'
+            print >>self.file, '    %s = (%s).in_dll(_libs[%r], %r)' % \
+                (variable.py_name(),
+                 variable.ctype.py_string(),
+                 variable.source_library,
+                 variable.c_name())
+            print >>self.file, 'except:'
+            print >>self.file, '    pass'
+        else:
+            print >>self.file, "for _lib in _libs.values():"
+            print >>self.file, '    try:'
+            print >>self.file, '        %s = (%s).in_dll(_lib, %r)' % \
+                (variable.py_name(),
+                 variable.ctype.py_string(),
+                 variable.c_name())
+            print >>self.file, "        break"
+            print >>self.file, '    except:'
+            print >>self.file, '        pass'
     
     def print_macro(self, macro):
         if macro.params:
