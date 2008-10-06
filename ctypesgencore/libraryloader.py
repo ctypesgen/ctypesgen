@@ -121,21 +121,20 @@ class DarwinLibraryLoader(LibraryLoader):
         
         if '/' in libname:
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
-            dirs.append(".")
-            dirs.extend(dyld_fallback_library_path)
         else:
             dirs.extend(_environ_path("LD_LIBRARY_PATH"))
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
-            dirs.append(".")
-            dirs.extend(dyld_fallback_library_path)
 
         dirs.extend(self.other_dirs)
+        dirs.append(".")
         
         if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
             dirs.append(os.path.join(
                 os.environ['RESOURCEPATH'],
                 '..',
                 'Frameworks'))
+
+        dirs.extend(dyld_fallback_library_path)
         
         return dirs
 
