@@ -32,7 +32,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 # ----------------------------------------------------------------------------
 
-import os.path, re, sys
+import os.path, re, sys, glob
 import ctypes
 import ctypes.util
 
@@ -76,11 +76,6 @@ class LibraryLoader(object):
             yield libname
         
         else:
-            for p in self.other_dirs:
-                yield os.path.join(p,libname)
-            
-            yield os.path.join(".",libname)
-            
             for path in self.getplatformpaths(libname):
                 yield path
             
@@ -124,14 +119,6 @@ class DarwinLibraryLoader(LibraryLoader):
         
         dirs = []
         
-        dirs.extend(self.other_dirs)
-        
-        if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
-            dirs.append(os.path.join(
-                os.environ['RESOURCEPATH'],
-                '..',
-                'Frameworks'))
-        
         if '/' in libname:
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
             dirs.append(".")
@@ -141,12 +128,20 @@ class DarwinLibraryLoader(LibraryLoader):
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
             dirs.append(".")
             dirs.extend(dyld_fallback_library_path)
+
+        dirs.extend(self.other_dirs)
+        
+        if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
+            dirs.append(os.path.join(
+                os.environ['RESOURCEPATH'],
+                '..',
+                'Frameworks'))
         
         return dirs
 
-# Linux
+# Posix
 
-class LinuxLibraryLoader(LibraryLoader):
+class PosixLibraryLoader(LibraryLoader):
     _ld_so_cache = None
     
     def _create_ld_so_cache(self):
@@ -157,9 +152,16 @@ class LinuxLibraryLoader(LibraryLoader):
         #
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
-        directories = self.other_dirs[:]
+        directories = []
+        for name in ("LD_LIBRARY_PATH",
+                     "SHLIB_PATH", # HPUX
+                     "LIBPATH", # OS/2, AIX
+                     "LIBRARY_PATH", # BE/OS
+                    ):
+            if name in os.environ:
+                directories.extend(os.environ[name])
+        directories.extend(self.other_dirs)
         directories.append(".")
-        directories.extend(_environ_path('LD_LIBRARY_PATH'))
 
         try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
         except IOError: pass
@@ -167,15 +169,13 @@ class LinuxLibraryLoader(LibraryLoader):
         directories.extend(['/lib', '/usr/lib'])
 
         cache = {}
-        lib_re = re.compile(r'lib(.*)\.so$')
+        lib_re = re.compile(r'lib(.*)\.s[ol]$')
         for dir in directories:
             try:
-                for file in os.listdir(dir):
-                    if '.so' not in file:
-                        continue
-                    
+                for path in glob.glob("%s/*.s[ol]" % dir):
+                    file = os.path.basename(path)
+
                     # Index by filename
-                    path = os.path.join(dir, file)
                     if file not in cache:
                         cache[file] = path
                     
@@ -191,14 +191,14 @@ class LinuxLibraryLoader(LibraryLoader):
         self._ld_so_cache = cache
     
     def getplatformpaths(self, libname):
-        path = ctypes.util.find_library(libname)
-        if path: yield os.path.join("/lib",path)
-
         if self._ld_so_cache is None:
             self._create_ld_so_cache()
 
         result = self._ld_so_cache.get(libname)
         if result: yield result
+
+        path = ctypes.util.find_library(libname)
+        if path: yield os.path.join("/lib",path)
 
 # Windows
 
@@ -235,11 +235,10 @@ class WindowsLibraryLoader(LibraryLoader):
 loaderclass = {
     "darwin":   DarwinLibraryLoader,
     "cygwin":   WindowsLibraryLoader,
-    "linux2":   LinuxLibraryLoader,
     "win32":    WindowsLibraryLoader
 }
 
-loader = loaderclass.get(sys.platform, LibraryLoader)()
+loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
 
 def add_library_search_dirs(other_dirs):
     loader.other_dirs = other_dirs
