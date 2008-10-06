@@ -159,20 +159,21 @@ class PosixLibraryLoader(LibraryLoader):
                      "LIBRARY_PATH", # BE/OS
                     ):
             if name in os.environ:
-                directories.extend(os.environ[name])
+                directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
         directories.append(".")
 
         try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
         except IOError: pass
 
-        directories.extend(['/lib', '/usr/lib'])
+        directories.extend(['/lib', '/usr/lib', '/lib64', '/usr/lib64'])
 
         cache = {}
-        lib_re = re.compile(r'lib(.*)\.s[ol]$')
+        lib_re = re.compile(r'lib(.*)\.s[ol]')
+        ext_re = re.compile(r'\.s[ol]$')
         for dir in directories:
             try:
-                for path in glob.glob("%s/*.s[ol]" % dir):
+                for path in glob.glob("%s/*.s[ol]*" % dir):
                     file = os.path.basename(path)
 
                     # Index by filename
