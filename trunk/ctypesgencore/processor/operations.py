@@ -183,7 +183,6 @@ def find_source_libraries(data,opts):
     
     for symbol in all_symbols:
         symbol.source_library=None
-    any_library_failed = False
     
     ctypesgencore.libraryloader.add_library_search_dirs(opts.compile_libdirs)
     
@@ -191,11 +190,9 @@ def find_source_libraries(data,opts):
         try:
             library=ctypesgencore.libraryloader.load_library(library_name)
         except ImportError,e:
-            error_message("Could not load library \"%s\". Any symbols " \
-                "defined in \"%s\" will not be included in the wrapper. " \
-                "Problem was: %s" % (library_name,library_name,e),
+            warning_message("Could not load library \"%s\". Okay, I'll " \
+                "try to load it at runtime instead. " % (library_name),
                 cls = 'missing-library')
-            any_library_failed = True
             continue
         for symbol in all_symbols:
             if symbol.source_library==None:
