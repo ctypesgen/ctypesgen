@@ -18,6 +18,10 @@ class WrapperPrinter:
         
         self.file=file(outpath,"w")
         self.options=options
+
+        if self.options.strip_build_path and \
+          self.options.strip_build_path[-1] != os.path.sep:
+            self.options.strip_build_path += os.path.sep
         
         self.print_header()
         print >>self.file
@@ -71,12 +75,15 @@ class WrapperPrinter:
             if filename in ("<built-in>","<command line>"):
                 print >>self.file, "# %s" % filename
             else:
+                if self.options.strip_build_path and \
+                  filename.startswith(self.options.strip_build_path):
+                    filename = filename[len(self.options.strip_build_path):]
                 print >>self.file, "# %s: %s" % (filename, lineno)
     
     def template_subs(self):
         template_subs={
             'date': time.ctime(),
-            'argv': ' '.join(sys.argv),
+            'argv': ' '.join([x for x in sys.argv if not x.startswith("--strip-build-path")]),
             'name': os.path.basename(self.options.headers[0])
         }
         

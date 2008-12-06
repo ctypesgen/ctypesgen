@@ -93,6 +93,9 @@ if __name__=="__main__":
     op.add_option('', '--header-template', dest='header_template', default=None,
         metavar='TEMPLATE',
         help='Use TEMPLATE as the header template in the output file.')
+    op.add_option('', '--strip-build-path', dest='strip_build_path',
+        default=None, metavar='BUILD_PATH',
+        help='Strip build path from header paths in the wrapper file.')
     op.add_option('', '--insert-file', dest='inserted_files', default=[],
         action='append', metavar='FILENAME',
         help='Add the contents of FILENAME to the end of the wrapper file.')
