@@ -10,10 +10,9 @@ struct foo
 };
 """
 
-module = ctypesgentest.test(header)
+module, output = ctypesgentest.test(header)
 
 struct_foo = module.struct_foo
 assert struct_foo._fields_ == [("a", c_int), ("b", c_int), ("c", c_int)]
 
-print
 print "Tests OK."
