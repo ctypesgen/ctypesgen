@@ -1,4 +1,4 @@
-import ctypes, os
+import ctypes, os, sys
 from ctypes import *
 
 _int_types = (c_int16, c_int32)
