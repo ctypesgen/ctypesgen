@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import ctypesgentest
 from ctypes import *
 
