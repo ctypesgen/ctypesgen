@@ -154,9 +154,9 @@ class YaccProduction:
 
     def pushback(self,n):
         if n <= 0:
-            raise ValueError, "Expected a positive value"
+            raise ValueError("Expected a positive value")
         if n > (len(self.slice)-1):
-            raise ValueError, "Can't push %d tokens. Only %d are available." % (n,len(self.slice)-1)
+            raise ValueError("Can't push %d tokens. Only %d are available." % (n,len(self.slice)-1))
         for i in range(0,n):
             self.pbstack.append(self.slice[-i-1])
 
@@ -429,7 +429,7 @@ class Parser:
                 continue
 
             # Call an error function here
-            raise RuntimeError, "yacc: internal parser error!!!\n"
+            raise RuntimeError("yacc: internal parser error!!!\n")
 
 # -----------------------------------------------------------------------------
 #                          === Parser Construction ===
@@ -1786,7 +1786,7 @@ def lr_parse_table(method):
                                 actionp[st,a] = p
                                 
             except StandardError,e:
-                raise YaccError, "Hosed in lr_parse_table", e
+                raise YaccError("Hosed in lr_parse_table").with_traceback(e)
 
         # Print the actions associated with each terminal
         if yaccdebug:
@@ -2012,7 +2012,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             for i in _items:
                 ldict[i[0]] = i[1]
         else:
-            raise ValueError,"Expected a module"
+            raise ValueError("Expected a module")
         
     else:
         # No module given.  We might be able to get information from the caller.
@@ -2058,15 +2058,15 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             tokens = ldict.get("tokens",None)
     
         if not tokens:
-            raise YaccError,"module does not define a list 'tokens'"
+            raise YaccError("module does not define a list 'tokens'")
         if not (isinstance(tokens,types.ListType) or isinstance(tokens,types.TupleType)):
-            raise YaccError,"tokens must be a list or tuple."
+            raise YaccError("tokens must be a list or tuple.")
 
         # Check to see if a requires dictionary is defined.
         requires = ldict.get("require",None)
         if requires:
             if not (isinstance(requires,types.DictType)):
-                raise YaccError,"require must be a dictionary."
+                raise YaccError("require must be a dictionary.")
 
             for r,v in requires.items():
                 try:
@@ -2084,7 +2084,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
 
         if 'error' in tokens:
             print "yacc: Illegal token 'error'.  Is a reserved word."
-            raise YaccError,"Illegal token name"
+            raise YaccError("Illegal token name")
 
         for n in tokens:
             if n in Terminals:
@@ -2097,7 +2097,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
         prec = ldict.get("precedence",None)
         if prec:
             if not (isinstance(prec,types.ListType) or isinstance(prec,types.TupleType)):
-                raise YaccError,"precedence must be a list or tuple."
+                raise YaccError("precedence must be a list or tuple.")
             add_precedence(prec)
             Signature.update(repr(prec))
 
@@ -2113,13 +2113,13 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             elif isinstance(ef, types.MethodType):
                 ismethod = 1
             else:
-                raise YaccError,"'p_error' defined, but is not a function or method."                
+                raise YaccError("'p_error' defined, but is not a function or method.")                
             eline = ef.func_code.co_firstlineno
             efile = ef.func_code.co_filename
             files[efile] = None
 
             if (ef.func_code.co_argcount != 1+ismethod):
-                raise YaccError,"%s:%d: p_error() requires 1 argument." % (efile,eline)
+                raise YaccError("%s:%d: p_error() requires 1 argument." % (efile,eline))
             global Errorfunc
             Errorfunc = ef
         else:
@@ -2132,7 +2132,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
 
         # Check for non-empty symbols
         if len(symbols) == 0:
-            raise YaccError,"no rules of the form p_rulename are defined."
+            raise YaccError("no rules of the form p_rulename are defined.")
     
         # Sort the symbols by line number
         symbols.sort(lambda x,y: cmp(x.func_code.co_firstlineno,y.func_code.co_firstlineno))
@@ -2152,7 +2152,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
         lr_init_vars()
 
         if error:
-            raise YaccError,"Unable to construct parser."
+            raise YaccError("Unable to construct parser.")
 
         if not lr_read_tables(tabmodule):
 
@@ -2165,7 +2165,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             validate_dict(ldict)
 
             if start and start not in Prodnames:
-                raise YaccError,"Bad starting symbol '%s'" % start
+                raise YaccError("Bad starting symbol '%s'" % start)
         
             augment_grammar(start)    
             error = verify_productions(cycle_check=check_recursion)
@@ -2173,7 +2173,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
                if (type(f) in (types.FunctionType,types.MethodType) and ldict[f].__name__[:2] != 'p_')]
 
             if error:
-                raise YaccError,"Unable to construct parser."
+                raise YaccError("Unable to construct parser.")
             
             build_lritems()
             compute_first1()
@@ -2182,7 +2182,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             if method in ['SLR','LALR']:
                 lr_parse_table(method)
             else:
-                raise YaccError, "Unknown parsing method '%s'" % method
+                raise YaccError("Unknown parsing method '%s'" % method)
 
             if write_tables:
                 lr_write_tables(tabmodule,outputdir)        
@@ -2223,7 +2223,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
 class ParserPrototype(object):
     def __init__(self, magic=None):
         if magic != "xyzzy":
-            raise YaccError, 'Use yacc()'
+            raise YaccError('Use yacc()')
 
     def init_parser(self, parser=None):
         if not parser:
@@ -2257,5 +2257,5 @@ def yacc_cleanup():
     
 # Stub that raises an error if parsing is attempted without first calling yacc()
 def parse(*args,**kwargs):
-    raise YaccError, "yacc: No parser built with yacc()"
+    raise YaccError("yacc: No parser built with yacc()")
 
