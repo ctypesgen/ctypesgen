@@ -21,6 +21,6 @@ try:
 except ArgumentError:
 	pass
 else:
-	raise Exception, "ctypesgen thinks that it is reasonable to take the sin of a string."
+	raise Exception("ctypesgen thinks that it is reasonable to take the sin of a string.")
 
 print "Tests OK."

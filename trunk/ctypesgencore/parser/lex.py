@@ -201,7 +201,7 @@ class Lexer:
     # ------------------------------------------------------------
     def input(self,s):
         if not (isinstance(s,types.StringType) or isinstance(s,types.UnicodeType)):
-            raise ValueError, "Expected a string"
+            raise ValueError("Expected a string")
         self.lexdata = s
         self.lexpos = 0
         self.lexlen = len(s)
@@ -211,7 +211,7 @@ class Lexer:
     # ------------------------------------------------------------
     def begin(self,state):
         if state not in self.lexstatere:
-            raise ValueError, "Undefined state"
+            raise ValueError("Undefined state")
         self.lexre = self.lexstatere[state]
         self.lexretext = self.lexstateretext[state]
         self.lexignore = self.lexstateignore.get(state,"")
@@ -311,7 +311,7 @@ class Lexer:
                     # pyglet/tools/wrapper/cparser.py by Alex Holkner on
                     # 20/Jan/2007 
                     if newtok.type not in self.lextokens and len(newtok.type) > 1:
-                        raise LexError, ("%s:%d: Rule '%s' returned an unknown token type '%s'" % (
+                        raise LexError("%s:%d: Rule '%s' returned an unknown token type '%s'" % (
                             func.func_code.co_filename, func.func_code.co_firstlineno,
                             func.__name__, newtok.type),lexdata[lexpos:])
 
@@ -340,17 +340,17 @@ class Lexer:
                     newtok = self.lexerrorf(tok)
                     if lexpos == self.lexpos:
                         # Error method didn't change text position at all. This is an error.
-                        raise LexError, ("Scanning error. Illegal character '%s'" % (lexdata[lexpos]), lexdata[lexpos:])
+                        raise LexError("Scanning error. Illegal character '%s'" % (lexdata[lexpos]), lexdata[lexpos:])
                     lexpos = self.lexpos
                     if not newtok: continue
                     return newtok
 
                 self.lexpos = lexpos
-                raise LexError, ("Illegal character '%s' at index %d" % (lexdata[lexpos],lexpos), lexdata[lexpos:])
+                raise LexError("Illegal character '%s' at index %d" % (lexdata[lexpos],lexpos), lexdata[lexpos:])
 
         self.lexpos = lexpos + 1
         if self.lexdata is None:
-             raise RuntimeError, "No input string given with input()"
+             raise RuntimeError("No input string given with input()")
         return None
         
 # -----------------------------------------------------------------------------
@@ -520,7 +520,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
             for (i,v) in _items:
                 ldict[i] = v
         else:
-            raise ValueError,"Expected a module or instance"
+            raise ValueError("Expected a module or instance")
         lexobj.lexmodule = module
         
     else:
@@ -555,9 +555,9 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
         literals = ldict.get("literals","")
         
     if not tokens:
-        raise SyntaxError,"lex: module does not define 'tokens'"
+        raise SyntaxError("lex: module does not define 'tokens'")
     if not (isinstance(tokens,types.ListType) or isinstance(tokens,types.TupleType)):
-        raise SyntaxError,"lex: tokens must be a list or tuple."
+        raise SyntaxError("lex: tokens must be a list or tuple.")
 
     # Build a dictionary of valid token names
     lexobj.lextokens = { }
@@ -631,7 +631,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
     errorf   = { }        # Error functions by state
 
     if len(tsymbols) == 0:
-        raise SyntaxError,"lex: no rules of the form t_rulename are defined."
+        raise SyntaxError("lex: no rules of the form t_rulename are defined.")
 
     for f in tsymbols:
         t = ldict[f]
@@ -729,7 +729,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
 
             if not optimize:
                 if tokname == 'error':
-                    raise SyntaxError,"lex: Rule '%s' must be defined as a function" % name
+                    raise SyntaxError("lex: Rule '%s' must be defined as a function" % name)
                     error = 1
                     continue
         
@@ -768,7 +768,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
                 error = 1
 
     if error:
-        raise SyntaxError,"lex: Unable to build lexer."
+        raise SyntaxError("lex: Unable to build lexer.")
 
     # From this point forward, we're reasonably confident that we can build the lexer.
     # No more errors will be generated, but there might be some warning messages.
