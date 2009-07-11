@@ -210,7 +210,7 @@ class Lexer:
     # begin() - Changes the lexing state
     # ------------------------------------------------------------
     def begin(self,state):
-        if not self.lexstatere.has_key(state):
+        if state not in self.lexstatere:
             raise ValueError, "Undefined state"
         self.lexre = self.lexstatere[state]
         self.lexretext = self.lexstateretext[state]
@@ -310,7 +310,7 @@ class Lexer:
                     # Allow any single-character literal also for
                     # pyglet/tools/wrapper/cparser.py by Alex Holkner on
                     # 20/Jan/2007 
-                    if not self.lextokens.has_key(newtok.type) and len(newtok.type) > 1:
+                    if newtok.type not in self.lextokens and len(newtok.type) > 1:
                         raise LexError, ("%s:%d: Rule '%s' returned an unknown token type '%s'" % (
                             func.func_code.co_filename, func.func_code.co_firstlineno,
                             func.__name__, newtok.type),lexdata[lexpos:])
@@ -475,7 +475,7 @@ def _statetoken(s,names):
     nonstate = 1
     parts = s.split("_")
     for i in range(1,len(parts)):
-        if not names.has_key(parts[i]) and parts[i] != 'ANY': break
+        if parts[i] not in names and parts[i] != 'ANY': break
     if i > 1:
        states = tuple(parts[1:i])
     else:
@@ -566,7 +566,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
             if not _is_identifier.match(n):
                 print "lex: Bad token name '%s'" % n
                 error = 1
-            if warn and lexobj.lextokens.has_key(n):
+            if warn and n in lexobj.lextokens:
                 print "lex: Warning. Token '%s' multiply defined." % n
             lexobj.lextokens[n] = None
     else:
@@ -608,7 +608,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
                            print "lex: state type for state %s must be 'inclusive' or 'exclusive'" % name
                            error = 1
                            continue
-                    if stateinfo.has_key(name):
+                    if name in stateinfo:
                            print "lex: state '%s' already defined." % name
                            error = 1
                            continue
@@ -733,7 +733,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
                     error = 1
                     continue
         
-                if not lexobj.lextokens.has_key(tokname) and tokname.find("ignore_") < 0:
+                if tokname not in lexobj.lextokens and tokname.find("ignore_") < 0:
                     print "lex: Rule '%s' defined for an unspecified token %s." % (name,tokname)
                     error = 1
                     continue
@@ -806,14 +806,14 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
     # Check state information for ignore and error rules
     for s,stype in stateinfo.items():
         if stype == 'exclusive':
-              if warn and not errorf.has_key(s):
+              if warn and s not in errorf:
                    print "lex: Warning. no error rule is defined for exclusive state '%s'" % s
-              if warn and not ignore.has_key(s) and lexobj.lexignore:
+              if warn and s not in ignore and lexobj.lexignore:
                    print "lex: Warning. no ignore rule is defined for exclusive state '%s'" % s
         elif stype == 'inclusive':
-              if not errorf.has_key(s):
+              if s not in errorf:
                    errorf[s] = errorf.get("INITIAL",None)
-              if not ignore.has_key(s):
+              if s not in ignore:
                    ignore[s] = ignore.get("INITIAL","")
    
 

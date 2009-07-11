@@ -649,7 +649,7 @@ _is_identifier = re.compile(r'^[a-zA-Z0-9_-]+$')
 
 def add_production(f,file,line,prodname,syms):
     
-    if Terminals.has_key(prodname):
+    if prodname in Terminals:
         sys.stderr.write("%s:%d: Illegal rule name '%s'. Already defined as a token.\n" % (file,line,prodname))
         return -1
     if prodname == 'error':
@@ -668,7 +668,7 @@ def add_production(f,file,line,prodname,syms):
                  if (len(c) > 1):
                       sys.stderr.write("%s:%d: Literal token %s in rule '%s' may only be a single character\n" % (file,line,s, prodname)) 
                       return -1
-                 if not Terminals.has_key(c):
+                 if c not in Terminals:
                       Terminals[c] = []
                  syms[x] = c
                  continue
@@ -680,7 +680,7 @@ def add_production(f,file,line,prodname,syms):
 
     # See if the rule is already in the rulemap
     map = "%s -> %s" % (prodname,syms)
-    if Prodmap.has_key(map):
+    if map in Prodmap:
         m = Prodmap[map]
         sys.stderr.write("%s:%d: Duplicate rule %s.\n" % (file,line, m))
         sys.stderr.write("%s:%d: Previous definition at %s:%d\n" % (file,line, m.file, m.line))
@@ -697,7 +697,7 @@ def add_production(f,file,line,prodname,syms):
             
     Productions.append(p)
     Prodmap[map] = p
-    if not Nonterminals.has_key(prodname):
+    if prodname not in Nonterminals:
         Nonterminals[prodname] = [ ]
     
     # Add all terminals to Terminals
@@ -721,13 +721,13 @@ def add_production(f,file,line,prodname,syms):
             del p.prod[i]
             continue
 
-        if Terminals.has_key(t):
+        if t in Terminals:
             Terminals[t].append(p.number)
             # Is a terminal.  We'll assign a precedence to p based on this
             if not hasattr(p,"prec"):
                 p.prec = Precedence.get(t,('right',0))
         else:
-            if not Nonterminals.has_key(t):
+            if t not in Nonterminals:
                 Nonterminals[t] = [ ]
             Nonterminals[t].append(p.number)
         i += 1
@@ -906,7 +906,7 @@ def compute_terminates():
     some_error = 0
     for (s,terminates) in Terminates.items():
         if not terminates:
-            if not Prodnames.has_key(s) and not Terminals.has_key(s) and s != 'error':
+            if s not in Prodnames and s not in Terminals and s != 'error':
                 # s is used-but-not-defined, and we've already warned of that,
                 # so it would be overkill to say that it's also non-terminating.
                 pass
@@ -927,7 +927,7 @@ def verify_productions(cycle_check=1):
         if not p: continue
 
         for s in p.prod:
-            if not Prodnames.has_key(s) and not Terminals.has_key(s) and s != 'error':
+            if s not in Prodnames and s not in Terminals and s != 'error':
                 sys.stderr.write("%s:%d: Symbol '%s' used, but not defined as a token or a rule.\n" % (p.file,p.line,s))
                 error = 1
                 continue
@@ -1037,7 +1037,7 @@ def add_precedence(plist):
                 sys.stderr.write("yacc: Invalid precedence '%s'\n" % prec)
                 return -1
             for t in terms:
-                if Precedence.has_key(t):
+                if t in Precedence:
                     sys.stderr.write("yacc: Precedence already specified for terminal '%s'\n" % t)
                     error += 1
                     continue
@@ -1121,7 +1121,7 @@ def compute_follow(start=None):
             # Here is the production set
             for i in range(len(p.prod)):
                 B = p.prod[i]
-                if Nonterminals.has_key(B):
+                if B in Nonterminals:
                     # Okay. We got a non-terminal in a production
                     fst = first(p.prod[i+1:])
                     hasempty = 0
@@ -1293,7 +1293,7 @@ def lr0_items():
         for x in asyms.keys():
             g = lr0_goto(I,x)
             if not g:  continue
-            if _lr0_cidhash.has_key(id(g)): continue
+            if id(g) in _lr0_cidhash: continue
             _lr0_cidhash[id(g)] = len(C)            
             C.append(g)
             
@@ -1339,7 +1339,7 @@ def compute_nullable_nonterminals():
                 nullable[p.name] = 1
                 continue
            for t in p.prod:
-                if not nullable.has_key(t): break
+                if t not in nullable: break
            else:
                 nullable[p.name] = 1
        if len(nullable) == num_nullable: break
@@ -1363,7 +1363,7 @@ def find_nonterminal_transitions(C):
          for p in C[state]:
              if p.lr_index < p.len - 1:
                   t = (state,p.prod[p.lr_index+1])
-                  if Nonterminals.has_key(t[1]):
+                  if t[1] in Nonterminals:
                         if t not in trans: trans.append(t)
          state = state + 1
      return trans
@@ -1386,7 +1386,7 @@ def dr_relation(C,trans,nullable):
     for p in g:
        if p.lr_index < p.len - 1:
            a = p.prod[p.lr_index+1]
-           if Terminals.has_key(a):
+           if a in Terminals:
                if a not in terms: terms.append(a)
 
     # This extra bit is to handle the start state
@@ -1411,7 +1411,7 @@ def reads_relation(C, trans, empty):
     for p in g:
         if p.lr_index < p.len - 1:
              a = p.prod[p.lr_index + 1]
-             if empty.has_key(a):
+             if a in empty:
                   rel.append((j,a))
 
     return rel
@@ -1471,15 +1471,15 @@ def compute_lookback_includes(C,trans,nullable):
                  t = p.prod[lr_index]
 
                  # Check to see if this symbol and state are a non-terminal transition
-                 if dtrans.has_key((j,t)):
+                 if (j,t) in dtrans:
                        # Yes.  Okay, there is some chance that this is an includes relation
                        # the only way to know for certain is whether the rest of the 
                        # production derives empty
 
                        li = lr_index + 1
                        while li < p.len:
-                            if Terminals.has_key(p.prod[li]): break      # No forget it
-                            if not nullable.has_key(p.prod[li]): break
+                            if p.prod[li] in Terminals: break      # No forget it
+                            if p.prod[li] not in nullable: break
                             li = li + 1
                        else:
                             # Appears to be a relation between (j,t) and (state,N)
@@ -1500,7 +1500,7 @@ def compute_lookback_includes(C,trans,nullable):
                  else:
                       lookb.append((j,r))
         for i in includes:
-             if not includedict.has_key(i): includedict[i] = []
+             if i not in includedict: includedict[i] = []
              includedict[i].append((state,N))
         lookdict[(state,N)] = lookb
 
@@ -1611,7 +1611,7 @@ def add_lookaheads(lookbacks,followset):
     for trans,lb in lookbacks.items():
         # Loop over productions in lookback
         for state,p in lb:
-             if not p.lookaheads.has_key(state):
+             if state not in p.lookaheads:
                   p.lookaheads[state] = []
              f = followset.get(trans,[])
              for a in f:
@@ -1743,7 +1743,7 @@ def lr_parse_table(method):
                 else:
                     i = p.lr_index
                     a = p.prod[i+1]       # Get symbol right after the "."
-                    if Terminals.has_key(a):
+                    if a in Terminals:
                         g = lr0_goto(I,a)
                         j = _lr0_cidhash.get(id(g),-1)
                         if j >= 0:
@@ -1792,15 +1792,15 @@ def lr_parse_table(method):
         if yaccdebug:
           _actprint = { }
           for a,p,m in actlist:
-            if action.has_key((st,a)):
+            if (st,a) in action:
                 if p is actionp[st,a]:
                     _vf.write("    %-15s %s\n" % (a,m))
                     _actprint[(a,m)] = 1
           _vf.write("\n")
           for a,p,m in actlist:
-            if action.has_key((st,a)):
+            if (st,a) in action:
                 if p is not actionp[st,a]:
-                    if not _actprint.has_key((a,m)):
+                    if (a,m) not in _actprint:
                         _vf.write("  ! %-15s [ %s ]\n" % (a,m))
                         _actprint[(a,m)] = 1
             
@@ -1810,7 +1810,7 @@ def lr_parse_table(method):
         nkeys = { }
         for ii in I:
             for s in ii.usyms:
-                if Nonterminals.has_key(s):
+                if s in Nonterminals:
                     nkeys[s] = None
         for n in nkeys.keys():
             g = lr0_goto(I,n)
@@ -2087,7 +2087,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             raise YaccError,"Illegal token name"
 
         for n in tokens:
-            if Terminals.has_key(n):
+            if n in Terminals:
                 print "yacc: Warning. Token '%s' multiply defined." % n
             Terminals[n] = [ ]
 
@@ -2102,7 +2102,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             Signature.update(repr(prec))
 
         for n in tokens:
-            if not Precedence.has_key(n):
+            if n not in Precedence:
                 Precedence[n] = ('right',0)         # Default, right associative, 0 precedence
 
         # Look for error handler
@@ -2164,7 +2164,7 @@ def yacc(method=default_lr, debug=yaccdebug, module=None, tabmodule=tab_module, 
             # Validate dictionary
             validate_dict(ldict)
 
-            if start and not Prodnames.has_key(start):
+            if start and start not in Prodnames:
                 raise YaccError,"Bad starting symbol '%s'" % start
         
             augment_grammar(start)    
