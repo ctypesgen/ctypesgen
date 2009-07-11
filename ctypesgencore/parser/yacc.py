@@ -244,7 +244,7 @@ class Parser:
         sym.parser = self # <tm> 25 June 2008
         symstack.append(sym)
         
-        while 1:
+        while True:
             # Get the next symbol on the input.  If a lookahead symbol
             # is already set, we just use that. Otherwise, we'll pull
             # the next token off of the lookaheadstack or from the lexer
@@ -874,7 +874,7 @@ def compute_terminates():
         Terminates[n] = 0
 
     # Then propagate termination until no change:
-    while 1:
+    while True:
         some_change = 0
         for (n,pl) in Prodnames.items():
             # Nonterminal n terminates iff any of its productions terminates.
@@ -1005,7 +1005,7 @@ def build_lritems():
         lastlri = p
         lri = p.lr_item(0)
         i = 0
-        while 1:
+        while True:
             lri = p.lr_item(i)
             lastlri.lr_next = lri
             if not lri: break
@@ -1115,7 +1115,7 @@ def compute_follow(start=None):
         
     Follow[start] = [ '$end' ]
         
-    while 1:
+    while True:
         didadd = 0
         for p in Productions[1:]:
             # Here is the production set
@@ -1165,7 +1165,7 @@ def compute_first1():
         First[n] = []
 
     # Then propagate symbols until no change:
-    while 1:
+    while True:
         some_change = 0
         for n in Nonterminals.keys():
             for p in Prodnames[n]:
@@ -1333,7 +1333,7 @@ def lr0_items():
 def compute_nullable_nonterminals():
     nullable = {}
     num_nullable = 0
-    while 1:
+    while True:
        for p in Productions[1:]:
            if p.len == 0:
                 nullable[p.name] = 1
