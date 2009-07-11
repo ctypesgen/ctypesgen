@@ -290,7 +290,7 @@ class Lexer:
                    break
 
                 # if func not callable, it means it's an ignored token                
-                if not callable(func):
+                if not hasattr(func, '__call__'):
                    break 
 
                 # If token is processed by a function, call it
@@ -638,7 +638,7 @@ def lex(module=None,object=None,debug=0,optimize=0,lextab="lextab",reflags=0,now
         states, tokname = _statetoken(f,stateinfo)
         toknames[f] = tokname
 
-        if callable(t):
+        if hasattr(t, '__call__'):
             for s in states: funcsym[s].append((f,t))
         elif (isinstance(t, types.StringType) or isinstance(t,types.UnicodeType)):
             for s in states: strsym[s].append((f,t))
