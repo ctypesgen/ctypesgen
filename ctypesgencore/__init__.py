@@ -49,7 +49,7 @@ __all__ = ["parser","processor","printer",
 
 # Workhorse modules
 import parser
-from . import processor
+import processor
 import printer
 
 # Modules describing internal format
