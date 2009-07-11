@@ -130,7 +130,7 @@ class LibraryLoader(object):
                     if _debug_trace:
                         lib = _TraceLibrary(lib)
                     return lib
-                except OSError,e:
+                except OSError as e:
                     pass
         raise ImportError('Library "%s" not found.' % names[0])
 
