@@ -6,7 +6,7 @@ class is ExpressionNode. ExpressionNode's most useful method is py_string(),
 which returns a Python string representing that expression.
 '''
 
-from ctypedescs import *
+from .ctypedescs import *
 import keyword
 
 # Right now, the objects in this module are all oriented toward evaluation.

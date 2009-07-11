@@ -10,9 +10,10 @@ Reference is C99:
 
 __docformat__ = 'restructuredtext'
 
-import os, re, shlex, sys, tokenize, lex, yacc, traceback
+import os, re, shlex, sys, tokenize, traceback
 import ctypes
-from lex import TOKEN
+from . import lex, yacc
+from .lex import TOKEN
 
 tokens = (
     'HEADER_NAME', 'IDENTIFIER', 'PP_NUMBER', 'CHARACTER_CONSTANT',

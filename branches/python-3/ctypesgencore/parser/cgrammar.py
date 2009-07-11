@@ -20,11 +20,10 @@ import sys
 import time
 import warnings
 
-import preprocessor
-import yacc
-import ctypesparser
+from . import preprocessor
+from . import yacc
 import ctypesgencore.expressions as expressions
-import cdeclarations
+from . import cdeclarations
 
 tokens = (
     'PP_DEFINE', 'PP_DEFINE_NAME', 'PP_DEFINE_MACRO_NAME', 'PP_MACRO_PARAM',
@@ -837,8 +836,9 @@ def p_type_name(p):
     declaration = cdeclarations.Declaration()
     declaration.declarator = declarator
     cdeclarations.apply_specifiers(typ,declaration)
-    ctype = ctypesparser.get_ctypes_type(declaration.type,
-                                            declaration.declarator)
+    from .ctypesparser import get_ctypes_type
+    ctype = get_ctypes_type(declaration.type,
+                            declaration.declarator)
     p[0] = ctype
 
 def p_abstract_declarator(p):

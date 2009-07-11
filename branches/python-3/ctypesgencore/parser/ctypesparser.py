@@ -12,9 +12,9 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["CtypesParser"]
 
-from cparser import *
+from .cparser import CParser
 from ctypesgencore.ctypedescs import *
-from cdeclarations import *
+from .cdeclarations import *
 from ctypesgencore.expressions import *
 
 def get_ctypes_type(typ, declarator, check_qualifiers=False):       
