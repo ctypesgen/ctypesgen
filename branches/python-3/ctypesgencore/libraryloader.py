@@ -54,7 +54,7 @@ class LibraryLoader(object):
             if os.path.exists(path):
                 return self.load(path)
         
-        raise ImportError,"%s not found." % libname
+        raise ImportError("%s not found." % libname)
     
     def load(self,path):
         """Given a path to a library, load it."""
@@ -68,7 +68,7 @@ class LibraryLoader(object):
             else:
                 return ctypes.cdll.LoadLibrary(path)
         except OSError as e:
-            raise ImportError,e
+            raise ImportError(e)
     
     def getpaths(self,libname):
         """Return a list of paths where the library might be found."""
