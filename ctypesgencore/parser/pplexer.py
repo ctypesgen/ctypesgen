@@ -259,6 +259,7 @@ def t_INITIAL_pp_define(t):
 def t_DEFINE_newline(t):
     t.type = 'PP_END_DEFINE'
     t.lexer.begin("INITIAL")
+    t.lexer.lineno += 1
     del t.lexer.macro_params
     
     # Damage control in case the token immediately after the #define failed
