@@ -130,6 +130,12 @@ class PreprocessorParser(object):
         
         cmd = self.options.cpp
         cmd += " -U __GNUC__ -dD"
+
+        # This fixes Issue #6 where OS X 10.6+ adds a C extension that breaks
+        # the parser.  Blocks shouldn't be needed for ctypesgen support anyway.
+        if os.uname()[0] == 'Darwin':
+            cmd += " -U __BLOCKS__"
+
         for path in self.options.include_search_paths:
             cmd += " -I%s" % path 
         for define in self.defines:
