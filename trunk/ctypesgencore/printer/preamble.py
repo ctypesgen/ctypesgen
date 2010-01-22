@@ -252,7 +252,7 @@ class String(MutableString, Union):
             return String.from_param(obj._as_parameter_)
     from_param = classmethod(from_param)
 
-def ReturnString(obj):
+def ReturnString(obj, func, arguments):
     return String.from_param(obj)
 
 # As of ctypes 1.0, ctypes does not support custom error-checking

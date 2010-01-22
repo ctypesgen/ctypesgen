@@ -205,6 +205,9 @@ class WrapperPrinter:
                 (function.py_name(),function.restype.py_string())
             print >>self.file, "    %s.argtypes = [%s]" % (function.py_name(),
                 ', '.join([a.py_string() for a in function.argtypes]))
+            if function.restype.py_string() == "String":
+              print >>self.file, "    %s.errcheck = ReturnString" % \
+                  (function.py_name())
         else:
             print >>self.file, "for _lib in _libs.values():"
             print >>self.file, "    if hasattr(_lib, %r):" % function.c_name()
@@ -212,6 +215,9 @@ class WrapperPrinter:
             print >>self.file, "        %s.restype = %s" % (function.py_name(),function.restype.py_string())
             print >>self.file, "        %s.argtypes = [%s]" % (function.py_name(),
                 ', '.join([a.py_string() for a in function.argtypes]))
+            if function.restype.py_string() == "String":
+              print >>self.file, "        %s.errcheck = ReturnString" % \
+                  (function.py_name())
             print >>self.file, "        break"
     
     def print_variadic_function(self,function):
