@@ -217,9 +217,9 @@ class CtypesFunction(CtypesType):
            self.restype.destination.name == 'None':
             self.restype = CtypesPointer(CtypesSpecial('c_void'), ())
 
-        # Return 'ReturnString' instead of simply 'String'
+        # Return "String" instead of "POINTER(c_char)"
         if self.restype.py_string() == 'POINTER(c_char)':
-            self.restype = CtypesSpecial('ReturnString')
+            self.restype = CtypesSpecial('String')
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
         self.variadic = variadic
