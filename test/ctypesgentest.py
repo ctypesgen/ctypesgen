@@ -8,6 +8,9 @@ single function, test(). test() takes a string that represents a C header file, 
 keyword arguments representing options. It processes the header using ctypesgen and returns a tuple
 containing the resulting module object and the output that ctypesgen produced."""
 
+# set redirect_stdout to False if using console based debugger like pdb
+redirect_stdout = True
+
 def test(header, **more_options):
 
 	assert isinstance(header, str)
@@ -18,8 +21,9 @@ def test(header, **more_options):
 	for opt in more_options:
 		setattr(options, opt, more_options[opt])
 	
-	# Redirect output
-	sys.stdout = StringIO.StringIO()
+	if redirect_stdout:
+		# Redirect output
+		sys.stdout = StringIO.StringIO()
 	
 	# Step 1: Parse
 	descriptions=ctypesgencore.parser.parse(options.headers,options)
@@ -30,10 +34,13 @@ def test(header, **more_options):
 	# Step 3: Print
 	ctypesgencore.printer.WrapperPrinter("temp.py",options,descriptions)
 	
-	# Un-redirect output
-	output = sys.stdout.getvalue()
-	sys.stdout.close()
-	sys.stdout = sys.__stdout__
+	if redirect_stdout:
+		# Un-redirect output
+		output = sys.stdout.getvalue()
+		sys.stdout.close()
+		sys.stdout = sys.__stdout__
+	else:
+		output = ''
 	
 	# Load the module we have just produced
 	module = __import__("temp")
