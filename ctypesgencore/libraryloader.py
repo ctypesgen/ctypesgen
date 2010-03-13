@@ -217,6 +217,16 @@ class _WindowsLibrary(object):
 class WindowsLibraryLoader(LibraryLoader):
     name_formats = ["%s.dll", "lib%s.dll"]
     
+    def load_library(self, libname):
+        try:
+            result = LibraryLoader.load_library(self, libname)
+        except ImportError:
+            try:
+                result = getattr(ctypes.cdll, libname)
+            except WindowsError:
+                raise ImportError("%s not found." % libname)
+        return result
+    
     def load(self, path):
         return _WindowsLibrary(path)
     
