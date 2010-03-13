@@ -1,4 +1,4 @@
-#What you need to know to get started with ctypesgen/
+# What you need to know to get started with ctypesgen
 
 = Requirements =
 
@@ -28,4 +28,4 @@ Alternatively gcc does not need to be in the path:
 ctypesgen.py --cpp="%SystemDrive%\MinGW\bin\gcc.exe -E" -l MYLIB - o pyMYLIB.py MYLIB.h
 }}}
 
-The --cpp flag could also be used to call the Microsoft Visual Stdio compiler cl.exe.
+The --cpp flag could also be used to call the Microsoft Visual Studio compiler cl.exe.
