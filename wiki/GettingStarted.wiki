@@ -16,16 +16,18 @@ Assuming mingw32 has been installed in the default location, open a command prom
 
 {{{
 path %SystemDrive%\MinGW\bin;%PATH%
-ctypesgen.py -l MYLIB - o pyMYLIB.py MYLIB.h
+ctypesgen.py -a -l MYLIB - o pyMYLIB.py MYLIB.h
 }}}
 
 Where MYLIB.dll is the name of the name of the dll of interest and MYLIB.h is the main header include file.
+
+NOTE the "-a" flag, this ensures macros etc. that are present in include files that MYLIB.h include are included in pyMYLIB.py.
 
 
 Alternatively gcc does not need to be in the path:
 
 {{{
-ctypesgen.py --cpp="%SystemDrive%\MinGW\bin\gcc.exe -E" -l MYLIB - o pyMYLIB.py MYLIB.h
+ctypesgen.py -a --cpp="%SystemDrive%\MinGW\bin\gcc.exe -E" -l MYLIB - o pyMYLIB.py MYLIB.h
 }}}
 
 The --cpp flag could also be used to call the Microsoft Visual Studio compiler cl.exe.
