@@ -109,7 +109,7 @@ class PreprocessorParser(object):
 
         # On OSX, explicitly add these defines to keep from getting syntax
         # errors in the OSX standard headers.
-        if os.uname()[0] == 'Darwin':
+        if sys.platform == 'darwin':
             self.defines += ["__uint16_t=uint16_t",
                              "__uint32_t=uint32_t",
                              "__uint64_t=uint64_t"]
@@ -133,7 +133,7 @@ class PreprocessorParser(object):
 
         # This fixes Issue #6 where OS X 10.6+ adds a C extension that breaks
         # the parser.  Blocks shouldn't be needed for ctypesgen support anyway.
-        if os.uname()[0] == 'Darwin':
+        if sys.platform == 'darwin':
             cmd += " -U __BLOCKS__"
 
         for path in self.options.include_search_paths:
