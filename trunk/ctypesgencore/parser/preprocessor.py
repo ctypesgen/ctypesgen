@@ -150,6 +150,9 @@ class PreprocessorParser(object):
                               stderr = subprocess.PIPE)
         ppout, pperr = pp.communicate()
         
+        # just in case we have Carriage Returns loose them (is there the equivilent of the "rU" mode to subprocess.Popen()?
+        ppout = ppout.replace('\r', '')
+        pperr = pperr.replace('\r', '')
         for line in pperr.split("\n"):
             if line:
                 self.cparser.handle_pp_error(line)
