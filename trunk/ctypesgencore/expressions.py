@@ -6,6 +6,8 @@ class is ExpressionNode. ExpressionNode's most useful method is py_string(),
 which returns a Python string representing that expression.
 '''
 
+import sys
+
 from ctypedescs import *
 import keyword
 
@@ -69,10 +71,12 @@ class ConstantExpressionNode(ExpressionNode):
         return self.value
 
     def py_string(self, can_be_ctype):
-        if self.value == float('inf'):
-            return "float('inf')"
-        elif self.value == float('-inf'):
-            return "float('-inf')"
+        if sys.platform != 'win32' or (sys.platform == 'win32' and sys.version_info >= (2, 6)):
+            # Windows python did not get infinity support until 2.6
+            if self.value == float('inf'):
+                return "float('inf')"
+            elif self.value == float('-inf'):
+                return "float('-inf')"
         return repr(self.value)
 
 class IdentifierExpressionNode(ExpressionNode):
