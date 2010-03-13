@@ -34,7 +34,7 @@ The --cpp flag could also be used to call the Microsoft Visual Studio compiler c
 
 gnu gcc is known to work.
 
-Microsoft Visual C++ - unknown, should be able to setup path with:
+Microsoft Visual C++ VS .net 2003 is known to *fail*. Should be able to setup path with:
 
 {{{
 REM VS C++ 6.0
