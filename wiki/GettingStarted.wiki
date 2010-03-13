@@ -29,3 +29,23 @@ ctypesgen.py --cpp="%SystemDrive%\MinGW\bin\gcc.exe -E" -l MYLIB - o pyMYLIB.py 
 }}}
 
 The --cpp flag could also be used to call the Microsoft Visual Studio compiler cl.exe.
+
+= C Pre Processors = 
+
+gnu gcc is known to work.
+
+Microsoft Visual C++ - unknown, should be able to setup path with:
+
+{{{
+REM VS C++ 6.0
+call "C:\Program Files\DevStudio\VC\bin\VCVARS32.BAT"
+
+REM VS C++ .NET 2003
+call "C:\Program Files\Microsoft Visual Studio\VC98\Bin\VCVARS32.BAT"
+}}}
+
+Then use --cpp="cl -E" or --cpp="cl -EP"
+
+Pure Python processor would be a nice addition but at the moment there does not appear to be one, possible research items:
+  * http://www.atrandomresearch.com/pyembc/
+  * http://code.google.com/p/preprocess/
