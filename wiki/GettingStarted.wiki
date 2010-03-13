@@ -4,7 +4,7 @@
 
 Only 2 requirements:
 
-  * Python, at least version 2.4
+  * Python, at least [http://groups.google.com/group/ctypesgen/browse_thread/thread/983b59d856e963a6 version 2.4]
   * A C pre-compiler, if you have a C compiler installed such as GCC you already have one
 
 
