@@ -24,7 +24,7 @@ tokens = (
     'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'PERIOD', 'ELLIPSIS',
 
     'LPAREN', 'NEWLINE',
-    
+
     'PP_DEFINE', 'PP_DEFINE_NAME', 'PP_DEFINE_MACRO_NAME', 'PP_MACRO_PARAM',
     'PP_STRINGIFY', 'PP_IDENTIFIER_PASTE', 'PP_END_DEFINE'
 )
@@ -149,9 +149,9 @@ def t_DEFINE_identifier(t):
         # We need to look ahead and see if this macro takes parameters or not.
         if t.lexpos + len(t.value) < t.lexer.lexlen and \
             t.lexer.lexdata[t.lexpos + len(t.value)] == '(':
-            
+
             t.type = 'PP_DEFINE_MACRO_NAME'
-            
+
             # Look ahead and read macro parameter list
             lexdata = t.lexer.lexdata
             pos = t.lexpos + len(t.value) + 1
@@ -160,10 +160,10 @@ def t_DEFINE_identifier(t):
             params = lexdata[t.lexpos+len(t.value)+1 : pos]
             paramlist = [x.strip() for x in params.split(",") if x.strip()]
             t.lexer.macro_params = paramlist
-                    
+
         else:
             t.type = 'PP_DEFINE_NAME'
-        
+
         t.lexer.next_is_define_name = False
     elif t.value in t.lexer.macro_params:
         t.type = 'PP_MACRO_PARAM'
@@ -177,13 +177,13 @@ FLOAT_LITERAL = sub(r"(?P<p1>{D}+)?(?P<dp>[.]?)(?P<p2>(?(p1){D}*|{D}+))" \
 def t_ANY_float(t):
     t.type = 'PP_NUMBER'
     m = t.lexer.lexmatch
-    
+
     p1 = m.group("p1")
     dp = m.group("dp")
     p2 = m.group("p2")
     exp = m.group("exp")
     suf = m.group("suf")
-    
+
     if dp or exp or (suf and suf in ("Ff")):
         s = m.group(0)
         if suf:
@@ -195,7 +195,7 @@ def t_ANY_float(t):
         t.value = "l" + p1
     else:
         t.value = "i" + p1
-        
+
     return t
 
 INT_LITERAL = sub(r"(?P<p1>(?:0x{H}+)|(?:{D}+))(?P<suf>{IS})")
@@ -203,12 +203,12 @@ INT_LITERAL = sub(r"(?P<p1>(?:0x{H}+)|(?:{D}+))(?P<suf>{IS})")
 def t_ANY_int(t):
     t.type = 'PP_NUMBER'
     m = t.lexer.lexmatch
-    
+
     if "L" in m.group(3) or "l" in m.group(2):
         prefix = "l"
     else:
         prefix = "i"
-    
+
     g1 = m.group(2)
     if g1.startswith("0x"):
         # Convert base from hexadecimal
@@ -216,9 +216,9 @@ def t_ANY_int(t):
     elif g1[0]=="0":
         # Convert base from octal
         g1 = str(long(g1,8))
-    
+
     t.value = prefix + g1
-        
+
     return t
 
 CHARACTER_CONSTANT = sub(r"L?'(\\.|[^\\'])+'")
@@ -261,7 +261,7 @@ def t_DEFINE_newline(t):
     t.lexer.begin("INITIAL")
     t.lexer.lineno += 1
     del t.lexer.macro_params
-    
+
     # Damage control in case the token immediately after the #define failed
     # to handle this
     t.lexer.next_is_define_name = False

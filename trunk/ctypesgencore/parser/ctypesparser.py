@@ -17,12 +17,12 @@ from ctypesgencore.ctypedescs import *
 from cdeclarations import *
 from ctypesgencore.expressions import *
 
-def get_ctypes_type(typ, declarator, check_qualifiers=False):       
+def get_ctypes_type(typ, declarator, check_qualifiers=False):
     signed = True
     typename = 'int'
     longs = 0
     t = None
-    
+
     for specifier in typ.specifiers:
         if isinstance(specifier, StructTypeSpecifier):
             t = make_struct_from_specifier(specifier)
@@ -36,15 +36,15 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False):
             longs += 1
         else:
             typename = str(specifier)
-    
+
     if not t:
         # It is a numeric type of some sort
         if (typename,signed,longs) in ctypes_type_map:
             t = CtypesSimple(typename,signed,longs)
-        
+
         elif signed and not longs:
             t = CtypesTypedef(typename)
-        
+
         else:
             name = " ".join(typ.specifiers)
             if typename in [x[0] for x in ctypes_type_map.keys()]:
@@ -55,7 +55,7 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False):
                     "specifiers to typedefs, such as \"%s\"" % name
             t = CtypesTypedef(name)
             t.error(error,cls='unsupported-type')
-        
+
         if declarator and declarator.bitfield:
             t = CtypesBitfield(t,declarator.bitfield)
 
@@ -71,18 +71,18 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False):
                     break
                 params.append(get_ctypes_type(param.type, param.declarator))
             t = CtypesFunction(t, params, variadic)
-        
+
         a = declarator.array
         while a:
             t = CtypesArray(t, a.size)
             a = a.array
 
         qualifiers.extend(declarator.qualifiers)
-        
+
         t = CtypesPointer(t, declarator.qualifiers)
-        
+
         declarator = declarator.pointer
-    
+
     if declarator and declarator.parameters is not None:
         variadic = "..." in declarator.parameters
 
@@ -92,25 +92,25 @@ def get_ctypes_type(typ, declarator, check_qualifiers=False):
                 break
             params.append(get_ctypes_type(param.type, param.declarator))
         t = CtypesFunction(t, params, variadic)
-    
+
     if declarator:
         a = declarator.array
         while a:
             t = CtypesArray(t, a.size)
             a = a.array
-    
+
     if isinstance(t, CtypesPointer) and \
        isinstance(t.destination, CtypesSimple) and \
        t.destination.name=="char" and \
        t.destination.signed:
-       t = CtypesSpecial("String")
+        t = CtypesSpecial("String")
 
     return t
 
 def make_struct_from_specifier(specifier):
     variety = {True:"union", False:"struct"}[specifier.is_union]
     tag = specifier.tag
-    
+
     if specifier.declarations:
         members = []
         for declaration in specifier.declarations:
@@ -127,13 +127,13 @@ def make_struct_from_specifier(specifier):
             members.append((name, remove_function_pointer(t)))
     else:
         members = None
-    
+
     return CtypesStruct(tag,variety,members,
                         src=(specifier.filename,specifier.lineno))
 
 def make_enum_from_specifier(specifier):
     tag = specifier.tag
-    
+
     enumerators = []
     last_name = None
     for e in specifier.enumerators:
@@ -147,26 +147,26 @@ def make_enum_from_specifier(specifier):
                     ConstantExpressionNode(1))
             else:
                 value = ConstantExpressionNode(0)
-        
+
         enumerators.append((e.name,value))
         last_name = e.name
-    
+
     return CtypesEnum(tag, enumerators,
                       src=(specifier.filename,specifier.lineno))
 
 class CtypesParser(CParser):
     '''Parse a C file for declarations that can be used by ctypes.
-    
+
     Subclass and override the handle_ctypes_* methods.
     '''
 
     def handle_declaration(self, declaration, filename, lineno):
         t = get_ctypes_type(declaration.type, declaration.declarator)
-        
+
         if type(t) in (CtypesStruct, CtypesEnum):
             self.handle_ctypes_new_type(
                 remove_function_pointer(t), filename, lineno)
-        
+
         declarator = declaration.declarator
         if declarator is None:
             # XXX TEMPORARY while struct with no typedef not filled in
@@ -184,10 +184,10 @@ class CtypesParser(CParser):
             self.handle_ctypes_variable(name, t, filename, lineno)
 
     # ctypes parser interface.  Override these methods in your subclass.
-    
+
     def handle_ctypes_new_type(self, ctype, filename, lineno):
         pass
-    
+
     def handle_ctypes_typedef(self, name, ctype, filename, lineno):
         pass
 

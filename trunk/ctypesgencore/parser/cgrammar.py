@@ -34,9 +34,9 @@ tokens = (
     'PTR_OP', 'INC_OP', 'DEC_OP', 'LEFT_OP', 'RIGHT_OP', 'LE_OP', 'GE_OP',
     'EQ_OP', 'NE_OP', 'AND_OP', 'OR_OP', 'MUL_ASSIGN', 'DIV_ASSIGN',
     'MOD_ASSIGN', 'ADD_ASSIGN', 'SUB_ASSIGN', 'LEFT_ASSIGN', 'RIGHT_ASSIGN',
-    'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'PERIOD', 'TYPE_NAME', 
-    
-    'TYPEDEF', 'EXTERN', 'STATIC', 'AUTO', 'REGISTER', 
+    'AND_ASSIGN', 'XOR_ASSIGN', 'OR_ASSIGN',  'PERIOD', 'TYPE_NAME',
+
+    'TYPEDEF', 'EXTERN', 'STATIC', 'AUTO', 'REGISTER',
     'CHAR', 'SHORT', 'INT', 'LONG', 'SIGNED', 'UNSIGNED', 'FLOAT', 'DOUBLE',
     'CONST', 'VOLATILE', 'VOID',
     'STRUCT', 'UNION', 'ENUM', 'ELLIPSIS',
@@ -54,7 +54,7 @@ keywords = [
 ]
 
 def p_translation_unit(p):
-    '''translation_unit : 
+    '''translation_unit :
                         | translation_unit external_declaration
                         | translation_unit define
     '''
@@ -88,7 +88,7 @@ def p_constant(p):
                 | CHARACTER_CONSTANT
     '''
     constant = p[1]
-    
+
     if constant[0]=="'":
         # Character constant
         value = constant[1:-1]
@@ -104,7 +104,7 @@ def p_constant(p):
             value = long(constant)
         else:
             value = float(constant)
-    
+
     p[0] = expressions.ConstantExpressionNode(value)
 
 def p_string_literal(p):
@@ -153,32 +153,32 @@ def p_postfix_expression(p):
                   | postfix_expression INC_OP
                   | postfix_expression DEC_OP
     '''
-    
+
     if len(p)==2:
         p[0] = p[1]
-    
+
     elif p[2]=='[':
         p[0] = expressions.BinaryExpressionNode("array access",
             (lambda a,b: a[b]), "(%s [%s])", (True,False), p[1], p[3])
-    
+
     elif p[2]=='(':
         if p[3]==')':
             p[0] = expressions.CallExpressionNode(p[1],[])
         else:
             p[0] = expressions.CallExpressionNode(p[1],p[3])
-    
+
     elif p[2]=='.':
         p[0] = expressions.AttributeExpressionNode( \
             (lambda x,a: getattr(x,a)), "(%s.%s)", p[1],p[3])
-    
+
     elif p[2]=='->':
         p[0] = expressions.AttributeExpressionNode( \
             (lambda x,a: getattr(x.contents,a)), "(%s.contents.%s)", p[1],p[3])
-    
+
     elif p[2]=='++':
         p[0] = expressions.UnaryExpressionNode("increment",(lambda x: x+1),
                                                "(%s + 1)", False,p[1])
-    
+
     elif p[2]=='--':
         p[0] = expressions.UnaryExpressionNode("decrement",(lambda x: x-1),
                                                "(%s - 1)", False,p[1])
@@ -209,18 +209,18 @@ def p_asm_expression(p):
     p[0] = expressions.UnsupportedExpressionNode("This node is ASM assembler.")
 
 def p_str_opt_expr_pair_list(p):
-    '''str_opt_expr_pair_list : 
+    '''str_opt_expr_pair_list :
                               | str_opt_expr_pair
                               | str_opt_expr_pair_list ',' str_opt_expr_pair
     '''
 
 def p_str_opt_expr_pair(p):
-   '''str_opt_expr_pair : string_literal
-                        | string_literal '(' expression ')'
-    '''
+    '''str_opt_expr_pair : string_literal
+                         | string_literal '(' expression ')'
+     '''
 
 def p_volatile_opt(p):
-    '''volatile_opt : 
+    '''volatile_opt :
                     | VOLATILE
     '''
 
@@ -246,13 +246,13 @@ def p_unary_expression(p):
     '''
     if len(p) == 2:
         p[0] = p[1]
-    
+
     elif p[1] == 'sizeof':
         if len(p)==5:
             p[0] = expressions.SizeOfExpressionNode(p[3])
         else:
             p[0] = expressions.SizeOfExpressionNode(p[2])
-    
+
     else:
         name,op,format,can_be_ctype = prefix_ops_dict[p[1]]
         p[0] = expressions.UnaryExpressionNode(name, op, format, can_be_ctype,
@@ -291,7 +291,7 @@ def p_multiplicative_expression(p):
     '''
     if len(p) == 2:
         p[0] = p[1]
-    else:        
+    else:
         name,op,format = mult_ops_dict[p[2]]
         p[0] = expressions.BinaryExpressionNode(name, op, format, (False,False),
             p[1], p[3])
@@ -338,7 +338,7 @@ rel_ops_dict = {
 }
 
 def p_relational_expression(p):
-    '''relational_expression : shift_expression 
+    '''relational_expression : shift_expression
                              | relational_expression '<' shift_expression
                              | relational_expression '>' shift_expression
                              | relational_expression LE_OP shift_expression
@@ -381,7 +381,7 @@ def p_and_expression(p):
 def p_exclusive_or_expression(p):
     '''exclusive_or_expression : and_expression
                                | exclusive_or_expression '^' and_expression
-    ''' 
+    '''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -470,7 +470,7 @@ def p_assignment_operator(p):
                            | OR_ASSIGN
     '''
     p[0] = p[1]
-    
+
 def p_expression(p):
     '''expression : assignment_expression
                   | expression ',' assignment_expression
@@ -590,7 +590,7 @@ def p_struct_or_union_specifier(p):
         p[0] = cdeclarations.StructTypeSpecifier(p[1], '', p[3])
     else:
         p[0] = cdeclarations.StructTypeSpecifier(p[1], p[2], p[4])
-    
+
     p[0].filename = p.slice[0].filename
     p[0].lineno = p.slice[0].lineno
 
@@ -669,7 +669,7 @@ def p_enum_specifier(p):
         p[0] = cdeclarations.EnumSpecifier(p[2], p[4])
     else:
         p[0] = cdeclarations.EnumSpecifier(p[2], ())
-    
+
     p[0].filename = p.slice[0].filename
     p[0].lineno = p.slice[0].lineno
 
@@ -728,7 +728,7 @@ def p_direct_declarator(p):
                          | direct_declarator '(' ')'
     '''
     if isinstance(p[1], cdeclarations.Declarator):
-        p[0] = p[1] 
+        p[0] = p[1]
         if p[2] == '[':
             a = cdeclarations.Array()
             a.array = p[0].array
@@ -833,7 +833,7 @@ def p_type_name(p):
         declarator = p[2]
     else:
         declarator = None
-        
+
     declaration = cdeclarations.Declaration()
     declaration.declarator = declarator
     cdeclarations.apply_specifiers(typ,declaration)
@@ -900,7 +900,7 @@ def p_direct_abstract_declarator(p):
                     p[0].parameters = ()
                 else:
                     p[0].parameters = p[2]
-    
+
     # Check parameters for (void) and simplify to empty tuple.
     if p[0].parameters and len(p[0].parameters) == 1:
         param = p[0].parameters[0]
@@ -975,7 +975,7 @@ def p_iteration_statement(p):
     | DO statement WHILE '(' expression ')' ';'
     | FOR '(' expression_statement expression_statement ')' statement
     | FOR '(' expression_statement expression_statement expression ')' statement
-    '''	
+    '''
 
 def p_jump_statement(p):
     '''jump_statement : GOTO IDENTIFIER ';'
@@ -986,7 +986,7 @@ def p_jump_statement(p):
     '''
 
 def p_external_declaration(p):
-    '''external_declaration : declaration 
+    '''external_declaration : declaration
                             | function_definition
     '''
 
@@ -1008,14 +1008,14 @@ def p_define(p):
               | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' PP_END_DEFINE
               | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' constant_expression PP_END_DEFINE
     '''
-    
+
     filename = p.slice[1].filename
     lineno = p.slice[1].lineno
-    
+
     if p[3] != '(':
         if len(p) == 4:
-           p.parser.cparser.handle_define_constant(p[2], None, filename,
-                                                   lineno)
+            p.parser.cparser.handle_define_constant(p[2], None, filename,
+                                                    lineno)
         else:
             p.parser.cparser.handle_define_constant(p[2], p[3], filename,
                                                     lineno)
@@ -1032,10 +1032,10 @@ def p_define(p):
                 expr = None
             elif len(p) == 8:
                 expr = p[6]
-        
+
         filename = p.slice[1].filename
         lineno = p.slice[1].lineno
-        
+
         p.parser.cparser.handle_define_macro(p[2], params, expr, filename, lineno)
 
 def p_define_error(p):
@@ -1047,7 +1047,7 @@ def p_define_error(p):
         start -= 1
     while clexdata[end].type != 'PP_END_DEFINE':
         end += 1
-        
+
     name = clexdata[start+1].value
     if clexdata[start+1].type == 'PP_DEFINE_NAME':
         params = None
@@ -1060,10 +1060,10 @@ def p_define_error(p):
         params = [t.value for t in clexdata[start+3:end_of_param_list] if \
                     t.value != ',']
         contents = [t.value for t in clexdata[end_of_param_list+1:end]]
-    
+
     filename = p.slice[1].filename
     lineno = p.slice[1].lineno
-    
+
     p[2].lexer.cparser.handle_define_unparseable(name, params, contents, \
                                                  filename, lineno)
 
@@ -1083,10 +1083,10 @@ def p_error(t):
         pass
     else:
         if t.type == '$end':
-            t.parser.cparser.handle_error('Syntax error at end of file.', 
+            t.parser.cparser.handle_error('Syntax error at end of file.',
                  t.filename, 0)
         else:
-            t.lexer.cparser.handle_error('Syntax error at %r' % t.value, 
+            t.lexer.cparser.handle_error('Syntax error at %r' % t.value,
                  t.filename, t.lineno)
     # Don't alter lexer: default behaviour is to pass error production
     # up until it hits the catch-all at declaration, at which point

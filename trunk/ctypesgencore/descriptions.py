@@ -27,42 +27,42 @@ class Description(object):
     or macro description. Description is an abstract base class."""
     def __init__(self,src=None):
         self.src=src # A tuple of (filename, lineno)
-        
+
         # If object will be included in output file. Values are "yes", "never",
         # and "if_needed".
-        self.include_rule="yes" 
-        
+        self.include_rule="yes"
+
         # A word about requirements, and dependents:
         # If X requires Y, Y is in X.requirements.
         # If X is in Y.requirements, then Y is in X.dependents.
         self.requirements=set()
         self.dependents=set()
-        
+
         # If the processor module finds a fatal error that prevents a
         # a description from being output, then it appends a string describing
         # the problem to 'errors'. If it finds a nonfatal error, it appends a
         # string to 'warnings'. If the description would have been output, then
         # the errors and warnings are printed.
-        
+
         # If there is anything in 'errors' after processing is complete, the
         # description is not output.
-        
-        self.errors=[] 
+
+        self.errors=[]
         self.warnings=[]
-    
+
     def add_requirements(self,reqs):
         self.requirements = self.requirements.union(reqs)
         for req in reqs:
             req.dependents.add(self)
-    
+
     def error(self,msg,cls = None):
         self.errors.append((msg,cls))
     def warning(self,msg,cls = None):
         self.warnings.append((msg,cls))
-    
+
     def __repr__(self):
         return "<Description: %s>" % self.casual_name()
-    
+
     def casual_name(self):
         """Return a name to show the user."""
     def py_name(self):
@@ -75,9 +75,9 @@ class ConstantDescription(Description):
     def __init__(self,name,value,src=None):
         Description.__init__(self,src)
         # Name of constant, a string
-        self.name=name 
+        self.name=name
         # Value of constant, as an ExpressionNode object
-        self.value=value 
+        self.value=value
     def casual_name(self):
         return "Constant \"%s\""%self.name
     def py_name(self):
@@ -103,15 +103,15 @@ class StructDescription(Description):
     def __init__(self,tag,variety,members,opaque,ctype,src=None):
         Description.__init__(self,src)
         # The name of the structure minus the "struct" or "union"
-        self.tag=tag 
+        self.tag=tag
         # A string "struct" or "union"
-        self.variety=variety 
+        self.variety=variety
         # A list of pairs of (name,ctype)
-        self.members=members 
+        self.members=members
         # True if struct body was not specified in header file
-        self.opaque=opaque 
+        self.opaque=opaque
         # The original CtypeStruct that created the struct
-        self.ctype=ctype 
+        self.ctype=ctype
     def casual_name(self):
         return "%s \"%s\""%(self.variety.capitalize(),self.tag)
     def py_name(self):
@@ -124,11 +124,11 @@ class EnumDescription(Description):
     def __init__(self,tag,members,ctype,src=None):
         Description.__init__(self,src)
         # The name of the enum, minus the "enum"
-        self.tag=tag 
+        self.tag=tag
         # A list of (name,value) pairs where value is a number
-        self.members=members 
+        self.members=members
         # The original CtypeEnum that created the enum
-        self.ctype=ctype 
+        self.ctype=ctype
     def casual_name(self):
         return "Enum \"%s\""%self.tag
     def py_name(self):
@@ -141,15 +141,15 @@ class FunctionDescription(Description):
     def __init__(self,name,restype,argtypes,variadic=False,src=None):
         Description.__init__(self,src)
         # Name, a string
-        self.name=name 
+        self.name=name
         # Name according to C - stored in case description is renamed
-        self.cname=name 
+        self.cname=name
         # A ctype representing return type
-        self.restype=restype 
+        self.restype=restype
         # A list of ctypes representing the argument types
-        self.argtypes=argtypes 
+        self.argtypes=argtypes
         # Does this function accept a variable number of arguments?
-        self.variadic=variadic 
+        self.variadic=variadic
     def casual_name(self):
         return "Function \"%s\""%self.name
     def py_name(self):
@@ -162,11 +162,11 @@ class VariableDescription(Description):
     def __init__(self,name,ctype,src=None):
         Description.__init__(self,src)
         # Name, a string
-        self.name=name 
+        self.name=name
         # Name according to C - stored in case description is renamed
-        self.cname=name 
+        self.cname=name
         # The type of the variable
-        self.ctype=ctype 
+        self.ctype=ctype
     def casual_name(self):
         return "Variable \"%s\""%self.name
     def py_name(self):

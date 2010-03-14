@@ -39,7 +39,7 @@ import ctypesgencore.messages as msgs
 if __name__=="__main__":
     usage = 'usage: %prog [options] /path/to/header.h ...'
     op = optparse.OptionParser(usage=usage)
-    
+
     # Parameters
     op.add_option('-o', '--output', dest='output', metavar='FILE',
         help='write wrapper to FILE')
@@ -66,7 +66,7 @@ if __name__=="__main__":
     op.add_option('', "--runtime-libdir", action="append",
         dest="runtime_libdirs", metavar="LIBDIR", default=[],
         help="Add LIBDIR to the run-time library search path.")
-    
+
     # Parser options
     op.add_option('', '--cpp', dest='cpp', default='gcc -E',
         help='The command to invoke the c preprocessor, including any ' \
@@ -74,7 +74,7 @@ if __name__=="__main__":
     op.add_option('', '--save-preprocessed-headers', metavar='FILENAME',
         dest='save_preprocessed_headers', default=None,
         help='Save the preprocessed headers to the specified FILENAME')
-    
+
     # Processor options
     op.add_option('-a', '--all-headers', action='store_true',
         dest='all_headers', default=False,
@@ -88,7 +88,7 @@ if __name__=="__main__":
         default=None, help='regular expression for symbols to always include')
     op.add_option('-x', '--exclude-symbols', dest='exclude_symbols',
         default=None, help='regular expression for symbols to exclude')
-    
+
     # Printer options
     op.add_option('', '--header-template', dest='header_template', default=None,
         metavar='TEMPLATE',
@@ -99,7 +99,7 @@ if __name__=="__main__":
     op.add_option('', '--insert-file', dest='inserted_files', default=[],
         action='append', metavar='FILENAME',
         help='Add the contents of FILENAME to the end of the wrapper file.')
-    
+
     # Error options
     op.add_option('', "--all-errors", action="store_true", default=False,
         dest="show_all_errors", help="Display all warnings and errors even " \
@@ -111,13 +111,13 @@ if __name__=="__main__":
         dest="show_macro_warnings", help="Do not print macro warnings.")
 
     op.set_defaults(**ctypesgencore.options.default_values)
-    
+
     (options, args) = op.parse_args(list(sys.argv[1:]))
     options.headers = args
 
     # Figure out what names will be defined by imported Python modules
     options.other_known_names = find_names_in_modules(options.modules)
-    
+
     # Required parameters
     if len(args) < 1:
         msgs.error_message('No header files specified', cls='usage')
@@ -129,18 +129,18 @@ if __name__=="__main__":
 
     if len(options.libraries) == 0:
         msgs.warning_message('No libraries specified', cls='usage')
-    
+
     # Step 1: Parse
     descriptions=ctypesgencore.parser.parse(options.headers,options)
-    
+
     # Step 2: Process
     ctypesgencore.processor.process(descriptions,options)
-    
+
     # Step 3: Print
     ctypesgencore.printer.WrapperPrinter(options.output,options,descriptions)
-    
+
     msgs.status_message("Wrapping complete.")
-    
+
     # Correct what may be a common mistake
     if descriptions.all == []:
         if not options.all_headers:

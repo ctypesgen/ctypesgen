@@ -6,9 +6,9 @@ from ctypes import *
 header = """
 struct foo
 {
-	int a;
-	int b;
-	int c;
+        int a;
+        int b;
+        int c;
 };
 """
 
