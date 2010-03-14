@@ -63,13 +63,13 @@ class CtypesTypeVisitor(object):
 
     def visit_enum(self, enum):
         pass
-    
+
     def visit_typedef(self, name):
         pass
-    
+
     def visit_error(self, error, cls):
         pass
-    
+
     def visit_identifier(self, identifier):
         # This one comes from inside ExpressionNodes. There may be
         # ExpressionNode objects in array count expressions.
@@ -110,13 +110,13 @@ def remove_function_pointer(t):
 class CtypesType(object):
     def __init__(self):
         self.errors=[]
-    
+
     def __repr__(self):
         return "<Ctype \"%s\">" % self.py_string()
-    
+
     def error(self,message,cls=None):
         self.errors.append((message,cls))
-    
+
     def visit(self,visitor):
         for error,cls in self.errors:
             visitor.visit_error(error,cls)
@@ -136,7 +136,7 @@ class CtypesSpecial(CtypesType):
     def __init__(self,name):
         CtypesType.__init__(self)
         self.name = name
-    
+
     def py_string(self):
         return self.name
 
@@ -145,12 +145,12 @@ class CtypesTypedef(CtypesType):
     def __init__(self, name):
         CtypesType.__init__(self)
         self.name = name
-    
+
     def visit(self,visitor):
         if not self.errors:
             visitor.visit_typedef(self.name)
         CtypesType.visit(self,visitor)
-    
+
     def py_string(self):
         return self.name
 
@@ -159,11 +159,11 @@ class CtypesBitfield(CtypesType):
         CtypesType.__init__(self)
         self.base = base
         self.bitfield = bitfield
-    
+
     def visit(self,visitor):
         self.base.visit(visitor)
         CtypesType.visit(self,visitor)
-    
+
     def py_string(self):
         return self.base.py_string()
 
@@ -172,7 +172,7 @@ class CtypesPointer(CtypesType):
         CtypesType.__init__(self)
         self.destination = destination
         self.qualifiers = qualifiers
-    
+
     def visit(self,visitor):
         if self.destination:
             self.destination.visit(visitor)
@@ -186,13 +186,13 @@ class CtypesArray(CtypesType):
         CtypesType.__init__(self)
         self.base = base
         self.count = count
-    
+
     def visit(self,visitor):
         self.base.visit(visitor)
         if self.count:
             self.count.visit(visitor)
         CtypesType.visit(self,visitor)
-    
+
     def py_string(self):
         if self.count is None:
             return 'POINTER(%s)' % self.base.py_string()
@@ -223,7 +223,7 @@ class CtypesFunction(CtypesType):
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
         self.variadic = variadic
-    
+
     def visit(self,visitor):
         self.restype.visit(visitor)
         for a in self.argtypes:
@@ -246,32 +246,32 @@ class CtypesStruct(CtypesType):
         self.tag = tag
         self.variety = variety # "struct" or "union"
         self.members = members
-        
+
         if not self.tag:
             self.tag = anonymous_struct_tag()
             self.anonymous = True
         else:
             self.anonymous = False
-        
+
         if self.members==None:
             self.opaque = True
         else:
             self.opaque = False
-        
-        self.src = src        
-    
+
+        self.src = src
+
     def get_required_types(self):
         types = CtypesType.get_required_types(self)
         types.add((self.variety,self.tag))
         return types
-    
+
     def visit(self,visitor):
         visitor.visit_struct(self)
         if not self.opaque:
             for name,ctype in self.members:
                 ctype.visit(visitor)
         CtypesType.visit(self,visitor)
-    
+
     def get_subtypes(self):
         if self.opaque:
             return set()
@@ -292,20 +292,20 @@ class CtypesEnum(CtypesType):
         CtypesType.__init__(self)
         self.tag = tag
         self.enumerators = enumerators
-        
+
         if not self.tag:
             self.tag = anonymous_enum_tag()
             self.anonymous = True
         else:
             self.anonymous = False
-        
+
         if self.enumerators==None:
             self.opaque = True
         else:
             self.opaque = False
-        
+
         self.src = src
-        
+
     def visit(self,visitor):
         visitor.visit_enum(self)
         CtypesType.visit(self,visitor)

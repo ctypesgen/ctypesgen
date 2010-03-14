@@ -17,14 +17,14 @@ def automatically_typedef_structs(data,options):
     """automatically_typedef_structs() aliases "struct_<tag>" to "<tag>" for
     every struct and union."""
     # XXX Check if it has already been aliased in the C code.
-    
+
     for struct in data.structs:
         if not struct.ctype.anonymous: # Don't alias anonymous structs
             typedef=TypedefDescription(struct.tag,
                                        struct.ctype,
                                        src=struct.src)
             typedef.add_requirements(set([struct]))
-            
+
             data.typedefs.append(typedef)
             data.all.insert(data.all.index(struct)+1,typedef)
             data.output_order.append(("typedef", typedef))
@@ -32,7 +32,7 @@ def automatically_typedef_structs(data,options):
 def remove_NULL(data, options):
     """remove_NULL() removes any NULL definitions from the C headers because
 ctypesgen supplies its own NULL definition."""
-    
+
     for macro in data.macros:
         if macro.name=="NULL":
             macro.include_rule = "never"
@@ -40,9 +40,9 @@ ctypesgen supplies its own NULL definition."""
 def remove_descriptions_in_system_headers(data,opts):
     """remove_descriptions_in_system_headers() removes descriptions if they came
     from files outside of the header files specified from the command line."""
-    
+
     known_headers = [os.path.basename(x) for x in opts.headers]
-    
+
     for description in data.all:
         if description.src!=None:
             if description.src[0] == "<command line>":
@@ -85,15 +85,15 @@ def fix_conflicting_names(data,opts):
     """If any descriptions from the C code would overwrite Python builtins or
     other important names, fix_conflicting_names() adds underscores to resolve
     the name conflict."""
-    
+
     # This is the order of priority for names
     descriptions = data.functions + data.variables + data.structs + \
         data.typedefs + data.enums + data.constants + data.macros
-    
+
     # This dictionary maps names to a string representing where the name
     # came from.
     important_names={}
-    
+
     preamble_names=set()
     preamble_names=preamble_names.union(['DarwinLibraryLoader',
         'LibraryLoader', 'LinuxLibraryLoader', 'WindowsLibraryLoader',
@@ -114,11 +114,11 @@ def fix_conflicting_names(data,opts):
     for name in opts.other_known_names:
         important_names[name] = "a name from an included Python module"
     for name in keyword.kwlist: important_names[name] = "a Python keyword"
-    
+
     for description in descriptions:
         if description.py_name() in important_names:
             conflict_name = important_names[description.py_name()]
-            
+
             original_name=description.casual_name()
             while description.py_name() in important_names:
                 if isinstance(description,
@@ -126,7 +126,7 @@ def fix_conflicting_names(data,opts):
                     description.tag+="_"
                 else:
                     description.name="_"+description.name
-            
+
             if not description.dependents:
                 description.warning("%s has been renamed to %s due to a name " \
                     "conflict with %s." % \
@@ -141,17 +141,17 @@ def fix_conflicting_names(data,opts):
                     (original_name, description.casual_name(),
                     conflict_name, original_name),
                     cls = 'rename')
-                
+
                 for dependent in description.dependents:
                     dependent.include_rule = "never"
-            
+
             if description.include_rule=="yes":
                 important_names[description.py_name()] = \
                     description.casual_name()
-    
+
     # Names of struct members don't conflict with much, but they can conflict
     # with Python keywords.
-    
+
     for struct in data.structs:
         if not struct.opaque:
             for i,(name,type) in enumerate(struct.members):
@@ -161,11 +161,11 @@ def fix_conflicting_names(data,opts):
                         "\"%s\" because it has the same name as a Python " \
                         "keyword." % (name, struct.casual_name(), "_"+name),
                         cls = 'rename')
-    
+
     # Macro arguments may be have names that conflict with Python keywords.
     # In a perfect world, this would simply rename the parameter instead
     # of throwing an error message.
-    
+
     for macro in data.macros:
         if macro.params:
             for param in macro.params:
@@ -178,14 +178,14 @@ def fix_conflicting_names(data,opts):
 def find_source_libraries(data,opts):
     """find_source_libraries() determines which library contains each function
     and variable."""
-    
+
     all_symbols=data.functions+data.variables
-    
+
     for symbol in all_symbols:
         symbol.source_library=None
-    
+
     ctypesgencore.libraryloader.add_library_search_dirs(opts.compile_libdirs)
-    
+
     for library_name in opts.libraries:
         try:
             library=ctypesgencore.libraryloader.load_library(library_name)

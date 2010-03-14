@@ -38,17 +38,17 @@ class CLexer(object):
     def token(self):
         while self.pos < len(self.tokens):
             t = self.tokens[self.pos]
-            
+
             self.pos += 1
 
             if not t:
                 break
-            
+
             if t.type == 'PP_DEFINE':
                 self.in_define = True
             elif t.type == 'PP_END_DEFINE':
                 self.in_define = False
-            
+
             # Transform PP tokens into C tokens
             elif t.type == 'LPAREN':
                 t.type = '('
@@ -60,13 +60,13 @@ class CLexer(object):
                 if (self.pos < 2 or self.tokens[self.pos-2].type not in
                     ('ENUM', 'STRUCT', 'UNION')):
                     t.type = 'TYPE_NAME'
-            
+
             t.lexer = self
             t.clexpos = self.pos - 1
-            
+
             return t
         return None
-        
+
 # --------------------------------------------------------------------------
 # Parser
 # --------------------------------------------------------------------------
@@ -86,7 +86,7 @@ class CParser(object):
                               write_tables  = True,
                               outputdir     = os.path.dirname(__file__),
                               optimize      = True)
-        
+
         # If yacc is reading tables from a file, then it won't find the error
         # function... need to set it manually
         prototype.errorfunc = cgrammar.p_error
@@ -102,7 +102,7 @@ class CParser(object):
             self.lexer.type_names.add('__builtin_va_list')
         if sys.platform == 'win32':
             self.lexer.type_names.add('__int64')
-        
+
     def parse(self, filename, debug=False):
         '''Parse a file.
 
@@ -120,22 +120,22 @@ class CParser(object):
     # ----------------------------------------------------------------------
 
     def handle_error(self, message, filename, lineno):
-        '''A parse error occured.  
-        
+        '''A parse error occured.
+
         The default implementation prints `lineno` and `message` to stderr.
         The parser will try to recover from errors by synchronising at the
         next semicolon.
         '''
         print >> sys.stderr, '%s:%s %s' % (filename, lineno, message)
-    
+
     def handle_pp_error(self, message):
         '''The C preprocessor emitted an error.
-        
+
         The default implementatin prints the error to stderr. If processing
         can continue, it will.
         '''
         print >> sys.stderr, 'Preprocessor:', message
-    
+
     def handle_status(self, message):
         '''Progress information.
 
@@ -144,7 +144,7 @@ class CParser(object):
         print >> sys.stderr, message
 
     def handle_define(self, name, params, value, filename, lineno):
-        '''#define `name` `value` 
+        '''#define `name` `value`
         or #define `name`(`params`) `value`
 
         name is a string
@@ -154,19 +154,19 @@ class CParser(object):
 
     def handle_define_constant(self, name, value, filename, lineno):
         '''#define `name` `value`
-        
+
         name is a string
         value is an ExpressionNode or None
         '''
-    
+
     def handle_define_macro(self, name, params, value, filename, lineno):
         '''#define `name`(`params`) `value`
-        
+
         name is a string
         params is a list of strings
         value is an ExpressionNode or None
         '''
-    
+
     def impl_handle_declaration(self, declaration, filename, lineno):
         '''Internal method that calls `handle_declaration`.  This method
         also adds any new type definitions to the lexer's list of valid type
@@ -183,8 +183,8 @@ class CParser(object):
         self.handle_declaration(declaration, filename, lineno)
 
     def handle_declaration(self, declaration, filename, lineno):
-        '''A declaration was encountered.  
-        
+        '''A declaration was encountered.
+
         `declaration` is an instance of Declaration.  Where a declaration has
         multiple initialisers, each is returned as a separate declaration.
         '''
@@ -203,6 +203,6 @@ class DebugCParser(CParser):
 
     def handle_declaration(self, declaration, filename, lineno):
         print declaration
-        
+
 if __name__ == '__main__':
     DebugCParser().parse(sys.argv[1], debug=True)
