@@ -51,3 +51,5 @@ Then use --cpp="cl -E" or --cpp="cl -EP"
 Pure Python processor would be a nice addition but at the moment there does not appear to be one, possible research items:
   * http://www.atrandomresearch.com/pyembc/
   * http://code.google.com/p/preprocess/
+
+See HackingTips for modifying ctypesgen and testing information.
