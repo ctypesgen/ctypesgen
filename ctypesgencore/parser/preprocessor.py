@@ -27,7 +27,7 @@ class PreprocessorLexer(lex.Lexer):
 
     def input(self, data, filename=None):
         if filename:
-            self.filename = filename 
+            self.filename = filename
         self.lasttoken = None
         self.input_stack = []
 
@@ -121,13 +121,13 @@ class PreprocessorParser(object):
                              lextab='lextab',
                              outputdir=os.path.dirname(__file__),
                              module=pplexer)
-        
+
         self.options = options
         self.cparser = cparser # An instance of CParser
 
     def parse(self, filename):
         """Parse a file and save its output"""
-        
+
         cmd = self.options.cpp
         cmd += " -U __GNUC__ -dD"
 
@@ -137,52 +137,52 @@ class PreprocessorParser(object):
             cmd += " -U __BLOCKS__"
 
         for path in self.options.include_search_paths:
-            cmd += " -I%s" % path 
+            cmd += " -I%s" % path
         for define in self.defines:
             cmd += ' "-D%s"' % define
         cmd += " " + filename
 
         self.cparser.handle_status(cmd)
-        
+
         pp = subprocess.Popen(cmd,
                               shell = True,
                               universal_newlines=True,
                               stdout = subprocess.PIPE,
                               stderr = subprocess.PIPE)
         ppout, pperr = pp.communicate()
-        
+
         for line in pperr.split("\n"):
             if line:
                 self.cparser.handle_pp_error(line)
-        
+
         # We separate lines that are #defines and lines that are source code
         # We put all the source lines first, then all the #define lines.
-        
+
         source_lines= []
         define_lines = []
-        
+
         for line in ppout.split("\n"):
             line = line + "\n"
             if line.startswith("# "):
                 # Line number information has to go with both groups
                 source_lines.append(line)
                 define_lines.append(line)
-            
+
             elif line.startswith("#define"):
                 source_lines.append("\n")
                 define_lines.append(line)
-            
+
             elif line.startswith("#"):
                 # It's a directive, but not a #define. Remove it
                 source_lines.append("\n")
                 define_lines.append("\n")
-            
+
             else:
                 source_lines.append(line)
                 define_lines.append("\n")
-        
+
         text = "".join(source_lines + define_lines)
-        
+
         if self.options.save_preprocessed_headers:
             self.cparser.handle_status("Saving preprocessed headers to %s." % \
                 self.options.save_preprocessed_headers)
@@ -192,10 +192,10 @@ class PreprocessorParser(object):
                 f.close()
             except IOError:
                 self.cparser.handle_error("Couldn't save headers.")
-        
+
         self.lexer.input(text)
         self.output = []
-        
+
         while True:
             token = self.lexer.token()
             if token is not None:

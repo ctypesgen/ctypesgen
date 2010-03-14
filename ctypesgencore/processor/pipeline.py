@@ -40,9 +40,9 @@ the errors that print_errors_encountered() has flagged.
 
 def process(data,options):
     status_message("Processing description list.")
-    
+
     find_dependencies(data,options)
-    
+
     automatically_typedef_structs(data,options)
     remove_NULL(data, options)
     remove_descriptions_in_system_headers(data,options)
@@ -51,7 +51,7 @@ def process(data,options):
     remove_macros(data,options)
     fix_conflicting_names(data,options)
     find_source_libraries(data,options)
-        
+
     calculate_final_inclusion(data,options)
     print_errors_encountered(data,options)
     calculate_final_inclusion(data,options)
@@ -66,7 +66,7 @@ def calculate_final_inclusion(data,opts):
     An object with include_rule="if_needed" is included if an object to be
         included requires it and if its requirements can be included.
     """
-    
+
     def can_include_desc(desc):
         if desc.can_include==None:
             if desc.include_rule=="no":
@@ -77,18 +77,18 @@ def calculate_final_inclusion(data,opts):
                     if not can_include_desc(req):
                         desc.can_include=False
         return desc.can_include
-        
+
     def do_include_desc(desc):
         if desc.included:
             return # We've already been here
         desc.included = True
         for req in desc.requirements:
             do_include_desc(req)
-    
+
     for desc in data.all:
         desc.can_include=None # None means "Not Yet Decided"
         desc.included=False
-        
+
     for desc in data.all:
         if desc.include_rule=="yes":
             if can_include_desc(desc):
@@ -110,7 +110,7 @@ def print_errors_encountered(data,opts):
                         error_message(error,cls)
                 for (warning,cls) in desc.warnings:
                     warning_message(warning,cls)
-            
+
             else:
                 if desc.errors:
                     error1,cls1 = desc.errors[0]
@@ -131,4 +131,3 @@ def print_errors_encountered(data,opts):
         if desc.errors:
             # process() will recalculate to take this into account
             desc.include_rule = "never"
-

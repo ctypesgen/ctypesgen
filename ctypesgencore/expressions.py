@@ -35,11 +35,11 @@ class EvaluationContext(object):
     def evaluate_sizeof(self, type):
         warnings.warn('Attempt to evaluate sizeof "%s" failed' % str(type))
         return 0
-    
+
     def evaluate_sizeof(self, object):
         warnings.warn('Attempt to evaluate sizeof object "%s" failed' % str(object))
         return 0
-    
+
     def evaluate_parameter(self, name):
         warnings.warn('Attempt to evaluate parameter "%s" failed' % name)
         return 0
@@ -47,17 +47,17 @@ class EvaluationContext(object):
 class ExpressionNode(object):
     def __init__(self):
         self.errors = []
-    
+
     def error(self,message,cls = None):
         self.errors.append((message,cls))
-    
+
     def __repr__(self):
         try:
             string = repr(self.py_string(True))
         except ValueError:
             string = "<error in expression node>"
         return "<ExpressionNode: %s>" % string
-    
+
     def visit(self,visitor):
         for error,cls in self.errors:
             visitor.visit_error(error,cls)
@@ -66,7 +66,7 @@ class ConstantExpressionNode(ExpressionNode):
     def __init__(self, value):
         ExpressionNode.__init__(self)
         self.value = value
-    
+
     def evaluate(self, context):
         return self.value
 
@@ -86,11 +86,11 @@ class IdentifierExpressionNode(ExpressionNode):
 
     def evaluate(self, context):
         return context.evaluate_identifier(self.name)
-    
+
     def visit(self, visitor):
         visitor.visit_identifier(self.name)
         ExpressionNode.visit(self,visitor)
-    
+
     def py_string(self, can_be_ctype):
         # Errors will be thrown in generated code if identifier evaluates
         # to a ctypes object, and can_be_ctype is False.
@@ -100,13 +100,13 @@ class ParameterExpressionNode(ExpressionNode):
     def __init__(self, name):
         ExpressionNode.__init__(self)
         self.name = name
-    
+
     def evaluate(self, context):
         return context.evaluate_parameter(self.name)
-    
+
     def visit(self, visitor):
         ExpressionNode.visit(self,visitor)
-    
+
     def py_string(self, can_be_ctype):
         # Errors will be thrown in generated code if parameter is
         # a ctypes object, and can_be_ctype is False.
@@ -120,11 +120,11 @@ class UnaryExpressionNode(ExpressionNode):
         self.format = format
         self.child_can_be_ctype = child_can_be_ctype
         self.child = child
-    
+
     def visit(self, visitor):
         self.child.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self, context):
         if self.op:
             return self.op(self.child.evaluate(context))
@@ -140,11 +140,11 @@ class SizeOfExpressionNode(ExpressionNode):
     def __init__(self, child):
         ExpressionNode.__init__(self)
         self.child = child
-    
+
     def visit(self, visitor):
         self.child.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self, context):
         if isinstance(self.child, CtypesType):
             return context.evaluate_sizeof(self.child)
@@ -166,16 +166,16 @@ class BinaryExpressionNode(ExpressionNode):
         self.can_be_ctype = can_be_ctype
         self.left = left
         self.right = right
-    
+
     def visit(self, visitor):
         self.left.visit(visitor)
         self.right.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self, context):
         if self.op:
-           return self.op(self.left.evaluate(context), 
-                          self.right.evaluate(context))
+            return self.op(self.left.evaluate(context),
+                           self.right.evaluate(context))
         else:
             raise ValueError("The C operator \"%s\" can't be evaluated right " \
                 "now" % self.name)
@@ -191,13 +191,13 @@ class ConditionalExpressionNode(ExpressionNode):
         self.cond = cond
         self.yes = yes
         self.no = no
-    
+
     def visit(self, visitor):
         self.cond.visit(visitor)
         self.yes.visit(visitor)
         self.no.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self, context):
         if self.cond.evaluate(context):
             return self.yes.evaluate(context)
@@ -217,20 +217,20 @@ class AttributeExpressionNode(ExpressionNode):
         self.format = format
         self.base = base
         self.attribute = attribute
-        
-        # Attribute access will raise parse errors if you don't do this. 
-        # Fortunately, the processor module does the same thing to 
+
+        # Attribute access will raise parse errors if you don't do this.
+        # Fortunately, the processor module does the same thing to
         # the struct member name.
         if self.attribute in keyword.kwlist:
             self.attribute = "_"+self.attribute
-    
+
     def visit(self,visitor):
         self.base.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self, context):
         return self.op(self.base.evalute(context),self.attribute)
-    
+
     def py_string(self, can_be_ctype):
         if can_be_ctype:
             return self.format % (self.base.py_string(can_be_ctype),
@@ -244,17 +244,17 @@ class CallExpressionNode(ExpressionNode):
         ExpressionNode.__init__(self)
         self.function = function
         self.arguments = arguments
-    
+
     def visit(self,visitor):
         self.function.visit(visitor)
         for arg in self.arguments:
             arg.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self,context):
         arguments = [arg.evaluate(context) for arg in self.arguments]
         return self.function.evaluate(context)(*arguments)
-    
+
     def py_string(self, can_be_ctype):
         function = self.function.py_string(can_be_ctype)
         arguments = [x.py_string(can_be_ctype) for x in self.arguments]
@@ -273,18 +273,18 @@ class TypeCastExpressionNode(ExpressionNode):
         self.isnull = isinstance(ctype, CtypesPointer) and \
                       isinstance(base, ConstantExpressionNode) and \
                       base.value == 0
-    
+
     def visit(self,visitor):
         # No need to visit ctype because it isn't actually used
         self.base.visit(visitor)
         ExpressionNode.visit(self,visitor)
-    
+
     def evaluate(self,context):
         if self.isnull:
             return None
         else:
             return self.base.evaluate(context)
-    
+
     def py_string(self, can_be_ctype):
         if self.isnull:
             return "None"
@@ -296,14 +296,14 @@ class UnsupportedExpressionNode(ExpressionNode):
         ExpressionNode.__init__(self)
         self.message = message
         self.error(message,'unsupported-type')
-    
+
     def evaluate(self,context):
         raise ValueError("Tried to evaluate an unsupported expression " \
             "node: %s" % self.message)
-    
+
     def __repr__(self):
         return "<UnsupportedExpressionNode>"
-    
+
     def py_string(self, can_be_ctype):
         raise ValueError("Called py_string() an unsupported expression " \
             "node: %s" % self.message)
