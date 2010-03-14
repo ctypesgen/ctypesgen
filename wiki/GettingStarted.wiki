@@ -1,4 +1,4 @@
-# What you need to know to get started with ctypesgen
+#summary What you need to know to get started with ctypesgen
 
 = Requirements =
 
