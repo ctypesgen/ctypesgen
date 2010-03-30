@@ -221,9 +221,21 @@ class WindowsLibraryLoader(LibraryLoader):
         try:
             result = LibraryLoader.load_library(self, libname)
         except ImportError:
-            try:
-                result = getattr(ctypes.cdll, libname)
-            except WindowsError:
+            result = None
+            if os.path.sep not in libname:
+                for name in self.name_formats:
+                    try:
+                        result = getattr(ctypes.cdll, name % libname)
+                        if result:
+                            break
+                    except WindowsError:
+                        result = None
+            if result is None:
+                try:
+                    result = getattr(ctypes.cdll, libname)
+                except WindowsError:
+                    result = None
+            if result is None:
                 raise ImportError("%s not found." % libname)
         return result
 
