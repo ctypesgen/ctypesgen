@@ -215,7 +215,7 @@ class _WindowsLibrary(object):
                 raise
 
 class WindowsLibraryLoader(LibraryLoader):
-    name_formats = ["%s.dll", "lib%s.dll"]
+    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
 
     def load_library(self, libname):
         try:
