@@ -196,29 +196,41 @@ class WrapperPrinter:
 
     def print_fixed_function(self, function):
         self.srcinfo(function.src)
+
+        # If we know what library the function lives in, look there.
+        # Otherwise, check all the libraries.
         if function.source_library:
             print >>self.file, "if hasattr(_libs[%r], %r):" % \
                 (function.source_library,function.c_name())
             print >>self.file, "    %s = _libs[%r].%s" % \
-                (function.py_name(),function.source_library,function.c_name())
+               (function.py_name(),function.source_library,function.c_name())
+        else:
+            print >>self.file, "for _lib in _libs.itervalues():"
+            print >>self.file, "    if not hasattr(_lib, %r):" % function.c_name()
+            print >>self.file, "        continue"
+            print >>self.file, "    %s = _lib.%s" % \
+               (function.py_name(),function.c_name())
+
+        # Argument types
+        print >>self.file, "    %s.argtypes = [%s]" % (function.py_name(),
+            ', '.join([a.py_string() for a in function.argtypes]))
+
+        # Return value
+        if function.restype.py_string() == "String":
+            print >>self.file, "    if sizeof(c_int) == sizeof(c_void_p):"
+            print >>self.file, "        %s.restype = ReturnString" % \
+                (function.py_name())
+            print >>self.file, "    else:"
+            print >>self.file, "        %s.restype = %s" % \
+                (function.py_name(),function.restype.py_string())
+            print >>self.file, "        %s.errcheck = ReturnString" % \
+                (function.py_name())
+        else:
             print >>self.file, "    %s.restype = %s" % \
                 (function.py_name(),function.restype.py_string())
-            print >>self.file, "    %s.argtypes = [%s]" % (function.py_name(),
-                ', '.join([a.py_string() for a in function.argtypes]))
-            if function.restype.py_string() == "String":
-                print >>self.file, "    %s.errcheck = ReturnString" % \
-                    (function.py_name())
-        else:
-            print >>self.file, "for _lib in _libs.values():"
-            print >>self.file, "    if hasattr(_lib, %r):" % function.c_name()
-            print >>self.file, "        %s = _lib.%s" % (function.py_name(),function.c_name())
-            print >>self.file, "        %s.restype = %s" % (function.py_name(),function.restype.py_string())
-            print >>self.file, "        %s.argtypes = [%s]" % (function.py_name(),
-                ', '.join([a.py_string() for a in function.argtypes]))
-            if function.restype.py_string() == "String":
-                print >>self.file, "        %s.errcheck = ReturnString" % \
-                    (function.py_name())
-            print >>self.file, "        break"
+
+        if not function.source_library:
+            print >>self.file, "    break"
 
     def print_variadic_function(self,function):
         self.srcinfo(function.src)
