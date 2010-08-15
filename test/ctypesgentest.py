@@ -1,4 +1,9 @@
-import optparse, sys, StringIO
+import os
+import sys
+import StringIO
+import optparse
+import glob
+
 sys.path.append(".")  # Allow tests to be called from parent directory with Python 2.6
 sys.path.append("..")
 import ctypesgencore
@@ -46,3 +51,8 @@ def test(header, **more_options):
     module = __import__("temp")
 
     return module, output
+
+def cleanup(filepattern='temp.*'):
+    fnames = glob.glob(filepattern)
+    for fname in fnames:
+        os.unlink(fname)
