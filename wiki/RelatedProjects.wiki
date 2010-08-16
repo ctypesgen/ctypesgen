@@ -4,9 +4,10 @@ The only project like ctypesgen is ctypes http://docs.python.org/library/ctypes 
 
 = Helpers for Building Python Extensions =
 
-  * swig
+  * swig http://www.swig.org/
   * http://code.google.com/p/pybindgen/
-  * boost_python
-  * sip
-  * Cython/Pyrex
-  * New Nokia/glib based system used in PySide
+  * boost_python http://www.boost.org/doc/libs/1_43_0/libs/python/doc/index.html (C++ focus)
+  * sip http://www.riverbankcomputing.com/software/sip/
+  * Cython/Pyrex http://www.cython.org/ http://www.cosc.canterbury.ac.nz/greg.ewing/python/Pyrex/
+  * Shiboken http://qt.gitorious.org/pyside/shiboken new Nokia/glib based system used in PySide
+  * PyPy http://codespeak.net/pypy/dist/pypy/doc/
