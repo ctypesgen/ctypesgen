@@ -1,0 +1,12 @@
+= Introduction =
+
+The only project like ctypesgen is ctypes http://docs.python.org/library/ctypes (which ctypesgen uses). Other projects require a C compiler to build executable/modules.
+
+= Helpers for Building Python Extensions =
+
+  * swig
+  * http://code.google.com/p/pybindgen/
+  * boost_python
+  * sip
+  * Cython/Pyrex
+  * New Nokia/glib based system used in PySide
