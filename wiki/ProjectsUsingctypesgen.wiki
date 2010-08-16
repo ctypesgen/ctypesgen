@@ -5,3 +5,5 @@
   * http://code.google.com/p/csvn/
   * http://github.com/tonysimpson/pyiidbi
   * http://code.google.com/p/pyadf/
+
+You may also be interested in RelatedProjects
