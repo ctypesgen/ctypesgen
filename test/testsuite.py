@@ -115,16 +115,39 @@ class SimpleMacrosTest(unittest.TestCase):
         del self.module
         ctypesgentest.cleanup()
 
-    def test_macros(self):
+    def test_macro_constant_int(self):
         """Tests from simple_macros.py
         """
         module = self.module
         
-        # multiple tests, should these be placed into sub tests?
         self.failUnlessEqual(module.A, 1)
+
+    def test_macro_addition(self):
+        """Tests from simple_macros.py
+        """
+        module = self.module
+        
         self.failUnlessEqual(module.B(2, 2), 4)
+
+    def test_macro_ternary_true(self):
+        """Tests from simple_macros.py
+        """
+        module = self.module
+        
         self.failUnlessEqual(module.C(True, 1, 2), 1)
+
+    def test_macro_ternary_false(self):
+        """Tests from simple_macros.py
+        """
+        module = self.module
+        
         self.failUnlessEqual(module.C(False, 1, 2), 2)
+
+    def test_macro_string_compose(self):
+        """Tests from simple_macros.py
+        """
+        module = self.module
+        
         self.failUnlessEqual(module.funny("bunny"),  "funnybunny")
 
 
@@ -184,13 +207,27 @@ class MathTest(unittest.TestCase):
         del self.module
         ctypesgentest.cleanup()
 
-    def test_math(self):
+    def test_sin(self):
         """Based on math_functions.py"""
         module = self.module
         
         self.failUnlessEqual(module.sin(2), math.sin(2))
+
+    def test_sqrt(self):
+        """Based on math_functions.py"""
+        module = self.module
+        
         self.failUnlessEqual(module.sqrt(4), 2)
 
+        def local_test():
+            module.sin("foobar")
+        
+        self.failUnlessRaises(ctypes.ArgumentError, local_test)
+
+    def test_bad_args_string_not_number(self):
+        """Based on math_functions.py"""
+        module = self.module
+        
         def local_test():
             module.sin("foobar")
         
