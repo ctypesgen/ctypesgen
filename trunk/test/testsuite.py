@@ -25,10 +25,8 @@ Known to run clean with:
 
 import sys
 import os
-
+import ctypes
 import unittest
-
-
 
 test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
@@ -127,6 +125,39 @@ class SimpleMacrosTest(unittest.TestCase):
         self.failUnlessEqual(module.C(True, 1, 2), 1)
         self.failUnlessEqual(module.C(False, 1, 2), 2)
         self.failUnlessEqual(module.funny("bunny"),  "funnybunny")
+
+
+class StructuresTest(unittest.TestCase):
+    """Based on structures.py
+    """
+    
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = '''
+struct foo
+{
+        int a;
+        int b;
+        int c;
+};
+'''
+        libraries = None
+        self.module, output = ctypesgentest.test(header_str)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+
+    def test_macros(self):
+        """Tests from structures.py
+        """
+        module = self.module
+        
+        struct_foo = module.struct_foo
+        self.failUnlessEqual(struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)])
 
 
 def main(argv=None):
