@@ -26,6 +26,7 @@ Known to run clean with:
 import sys
 import os
 import ctypes
+import math
 import unittest
 
 test_directory = os.path.abspath(os.path.dirname(__file__))
@@ -151,13 +152,49 @@ struct foo
         del self.module
         ctypesgentest.cleanup()
 
-    def test_macros(self):
+    def test_structures(self):
         """Tests from structures.py
         """
         module = self.module
         
         struct_foo = module.struct_foo
         self.failUnlessEqual(struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)])
+
+
+class MathTest(unittest.TestCase):
+    """Based on math_functions.py"""
+    
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = '#include <math.h>\n'
+        if sys.platform == "win32":
+            # pick something from %windir%\system32\msvc*dll that include stdlib
+            libraries=["msvcrt.dll"]
+            libraries=["msvcrt"]
+        elif sys.platform == "linux2":
+            libraries=["libm.so.6"]
+        else:
+            libraries=["libc"]
+        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+
+    def test_math(self):
+        """Based on math_functions.py"""
+        module = self.module
+        
+        self.failUnlessEqual(module.sin(2), math.sin(2))
+        self.failUnlessEqual(module.sqrt(4), 2)
+
+        def local_test():
+            module.sin("foobar")
+        
+        self.failUnlessRaises(ctypes.ArgumentError, local_test)
 
 
 def main(argv=None):
