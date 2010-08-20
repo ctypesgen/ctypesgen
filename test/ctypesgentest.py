@@ -49,6 +49,7 @@ def test(header, **more_options):
 
     # Load the module we have just produced
     module = __import__("temp")
+    reload(module)  # import twice, this hack ensure that "temp" is force loaded (there *must* be a better way to do this)
 
     return module, output
 

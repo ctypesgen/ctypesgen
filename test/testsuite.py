@@ -28,10 +28,14 @@ import os
 
 import unittest
 
-import ctypesgentest  # TODO consider moving test() from ctypesgentest into this module
 
 
 test_directory = os.path.abspath(os.path.dirname(__file__))
+sys.path.append(test_directory)
+sys.path.append(os.path.join(test_directory, '..'))
+
+import ctypesgentest  # TODO consider moving test() from ctypesgentest into this module
+
 
 class StdlibTest(unittest.TestCase):
     
@@ -76,7 +80,7 @@ class StdlibTest(unittest.TestCase):
         self.failUnlessEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
-        """Realted to issue 8. Test getenv of unset variable.
+        """Related to issue 8. Test getenv of unset variable.
         """
         module = self.module
         env_var_name = 'NOT SET'
@@ -88,6 +92,41 @@ class StdlibTest(unittest.TestCase):
             pass
         result = module.getenv(env_var_name)
         self.failUnlessEqual(expect_result, result)
+
+
+class SimpleMacrosTest(unittest.TestCase):
+    """Based on simple_macros.py
+    """
+    
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = '''
+#define A 1
+#define B(x,y) x+y
+#define C(a,b,c) a?b:c
+#define funny(x) "funny" #x
+'''
+        libraries = None
+        self.module, output = ctypesgentest.test(header_str)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+
+    def test_macros(self):
+        """Tests from simple_macros.py
+        """
+        module = self.module
+        
+        # multiple tests, should these be placed into sub tests?
+        self.failUnlessEqual(module.A, 1)
+        self.failUnlessEqual(module.B(2, 2), 4)
+        self.failUnlessEqual(module.C(True, 1, 2), 1)
+        self.failUnlessEqual(module.C(False, 1, 2), 2)
+        self.failUnlessEqual(module.funny("bunny"),  "funnybunny")
 
 
 def main(argv=None):
