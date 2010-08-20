@@ -107,6 +107,10 @@ class SimpleMacrosTest(unittest.TestCase):
 #define B(x,y) x+y
 #define C(a,b,c) a?b:c
 #define funny(x) "funny" #x
+#define multipler_macro(x,y) x*y
+#define minus_macro(x,y) x-y
+#define divide_macro(x,y) x/y
+#define mod_macro(x,y) x%y
 '''
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
@@ -143,12 +147,50 @@ class SimpleMacrosTest(unittest.TestCase):
         
         self.failUnlessEqual(module.C(False, 1, 2), 2)
 
+    def test_macro_ternary_true_complex(self):
+        """Test ?: with true, using values that can not be confused between True and 1
+        """
+        module = self.module
+        
+        self.failUnlessEqual(module.C(True, 99, 100), 99)
+
+    def test_macro_ternary_false_complex(self):
+        """Test ?: with false, using values that can not be confused between True and 1
+        """
+        module = self.module
+        
+        self.failUnlessEqual(module.C(False, 99, 100), 100)
+
     def test_macro_string_compose(self):
         """Tests from simple_macros.py
         """
         module = self.module
         
         self.failUnlessEqual(module.funny("bunny"),  "funnybunny")
+        
+    def test_macro_math_multipler(self):
+        module = self.module
+        
+        x, y = 2, 5
+        self.failUnlessEqual(module.multipler_macro(x, y), x * y)
+
+    def test_macro_math_minus(self):
+        module = self.module
+        
+        x, y = 2, 5
+        self.failUnlessEqual(module.minus_macro(x, y), x - y)
+
+    def test_macro_math_divide(self):
+        module = self.module
+        
+        x, y = 2, 5
+        self.failUnlessEqual(module.divide_macro(x, y), x / y)
+
+    def test_macro_math_mod(self):
+        module = self.module
+        
+        x, y = 2, 5
+        self.failUnlessEqual(module.mod_macro(x, y), x % y)
 
 
 class StructuresTest(unittest.TestCase):
