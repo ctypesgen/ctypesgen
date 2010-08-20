@@ -3,6 +3,7 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 #
 """Simple test suite using unittest.
+By clach04 (Chris Clark).
 
 Calling:
 
@@ -16,6 +17,10 @@ Could use any unitest compatible test runner (nose, etc.)
 
 Aims to test for regressions. Where possible use stdlib to
 avoid the need to compile C code.
+
+Known to run clean with:
+  * 32bit Linux (python 2.5.2, 2.6)
+  * 32bit Windows XP (python 2.4, 2.5, 2.6.1)
 """
 
 import sys
@@ -36,7 +41,11 @@ class StdlibTest(unittest.TestCase):
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
         header_str = '#include <stdlib.h>\n'
-        if sys.platform == "linux2":
+        if sys.platform == "win32":
+            # pick something from %windir%\system32\msvc*dll that include stdlib
+            libraries=["msvcrt.dll"]
+            libraries=["msvcrt"]
+        elif sys.platform == "linux2":
             libraries=["libc.so.6"]
         else:
             libraries=["libc"]
@@ -49,11 +58,20 @@ class StdlibTest(unittest.TestCase):
     def test_getenv_returns_string(self):
         """Issue 8 - Regression for crash with 64 bit and bad strings on 32 bit.
         See http://code.google.com/p/ctypesgen/issues/detail?id=8
+        Test that we get a valid (non-NULL, non-empty) string back
         """
         module = self.module
-        env_var_name = 'HELLO'
-        os.environ[env_var_name] = 'WORLD'
-        expect_result = 'WORLD'
+        
+        if sys.platform == "win32":
+            # Check a variable that is already set
+            env_var_name = 'USERNAME'  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
+            expect_result = os.environ[env_var_name]
+            self.assert_(expect_result, 'this should not be None or empty')
+        else:
+            env_var_name = 'HELLO'
+            os.environ[env_var_name] = 'WORLD'  # This doesn't work under win32
+            expect_result = 'WORLD'
+        
         result = module.getenv(env_var_name)
         self.failUnlessEqual(expect_result, result)
 
