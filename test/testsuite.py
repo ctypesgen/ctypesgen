@@ -70,6 +70,11 @@ class StdlibTest(unittest.TestCase):
             env_var_name = 'USERNAME'  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
             expect_result = os.environ[env_var_name]
             self.assert_(expect_result, 'this should not be None or empty')
+            # reason for using an existing OS variable is that unless the
+            # MSVCRT dll imported is the exact same one that Python was
+            # built with you can't share structures, see
+            # http://msdn.microsoft.com/en-us/library/ms235460.aspx
+            # "Potential Errors Passing CRT Objects Across DLL Boundaries"
         else:
             env_var_name = 'HELLO'
             os.environ[env_var_name] = 'WORLD'  # This doesn't work under win32
