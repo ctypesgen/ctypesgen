@@ -1,9 +1,19 @@
 #!/usr/bin/env python
+# -*- coding: ascii -*-
+# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
+"""Examples:
+
+        setup.py sdist
+        setup.py bdist_wininst
+
+"""
 
 from distutils.core import setup
 
+import ctypesgencore
+
 setup(name='ctypesgen',
-    version='0.0',
+    version=ctypesgencore.VERSION,
     description='Python wrapper generator for ctypes',
     url='http://code.google.com/p/ctypesgen/',
     license='BSD License',

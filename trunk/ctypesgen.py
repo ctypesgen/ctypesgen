@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: ascii -*-
+# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 def find_names_in_modules(modules):
     names = set()
