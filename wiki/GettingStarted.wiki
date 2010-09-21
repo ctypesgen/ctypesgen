@@ -2,6 +2,8 @@
 
 = Requirements =
 
+ctypesgen is available via svn http://code.google.com/p/ctypesgen/source/checkout or as a tarball from http://pypi.python.org/pypi/ctypesgen
+
 Only 2 requirements:
 
   * Python, at least [http://groups.google.com/group/ctypesgen/browse_thread/thread/983b59d856e963a6 version 2.4]
