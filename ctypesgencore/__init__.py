@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+# -*- coding: ascii -*-
+# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 """
 Ctypesgencore is the module that contains the main body of ctypesgen - in fact,
@@ -42,6 +44,8 @@ parser, processor, and printer modules use to pass information. They are:
 format.
 """
 
+__version__ = '0.0'
+VERSION = __version__
 
 __all__ = ["parser","processor","printer",
            "descriptions","ctypedescs","expressions",
