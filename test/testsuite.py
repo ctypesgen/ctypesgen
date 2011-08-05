@@ -48,7 +48,7 @@ class StdlibTest(unittest.TestCase):
             # pick something from %windir%\system32\msvc*dll that include stdlib
             libraries=["msvcrt.dll"]
             libraries=["msvcrt"]
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             libraries=["libc.so.6"]
         else:
             libraries=["libc"]
@@ -244,7 +244,7 @@ class MathTest(unittest.TestCase):
             # pick something from %windir%\system32\msvc*dll that include stdlib
             libraries=["msvcrt.dll"]
             libraries=["msvcrt"]
-        elif sys.platform == "linux2":
+        elif sys.platform.startswith("linux"):
             libraries=["libm.so.6"]
         else:
             libraries=["libc"]
