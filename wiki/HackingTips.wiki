@@ -21,11 +21,7 @@ path %SystemDrive%\MinGW\bin;%PATH%
 run test(s):
 {{{
 cd test
-simple_macros.py
-structures.py
-math_functions.py
+python testsuite.py 
 }}}
 
-May be able to run nose but these are not unittests so.....
-
-NOTE math_functions.py requires libc so will probably fail under Windows.
+May be able to run nose or some other test runner but the test suite simply relies on the batteries included unittest module.
