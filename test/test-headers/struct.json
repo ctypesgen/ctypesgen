@@ -1,0 +1,79 @@
+[
+    {
+        "fields": [
+            {
+                "ctype": {
+                    "errors": [], 
+                    "longs": 0, 
+                    "name": "int", 
+                    "signed": true
+                }, 
+                "name": "a"
+            }, 
+            {
+                "ctype": {
+                    "errors": [], 
+                    "longs": 0, 
+                    "name": "int", 
+                    "signed": true
+                }, 
+                "name": "b"
+            }, 
+            {
+                "ctype": {
+                    "errors": [], 
+                    "longs": 0, 
+                    "name": "int", 
+                    "signed": true
+                }, 
+                "name": "c"
+            }
+        ], 
+        "name": "foo", 
+        "type": "struct"
+    }, 
+    {
+        "ctype": {
+            "anonymous": false, 
+            "errors": [], 
+            "members": [
+                [
+                    "a", 
+                    {
+                        "errors": [], 
+                        "longs": 0, 
+                        "name": "int", 
+                        "signed": true
+                    }
+                ], 
+                [
+                    "b", 
+                    {
+                        "errors": [], 
+                        "longs": 0, 
+                        "name": "int", 
+                        "signed": true
+                    }
+                ], 
+                [
+                    "c", 
+                    {
+                        "errors": [], 
+                        "longs": 0, 
+                        "name": "int", 
+                        "signed": true
+                    }
+                ]
+            ], 
+            "opaque": false, 
+            "src": [
+                "/home/rrt/repo/ctypesgen/test/test-headers/struct.h", 
+                1
+            ], 
+            "tag": "foo", 
+            "variety": "struct"
+        }, 
+        "name": "foo", 
+        "type": "typedef"
+    }
+]

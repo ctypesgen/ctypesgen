@@ -1,0 +1,14 @@
+[
+    {
+        "args": [], 
+        "name": "foo", 
+        "return": {
+            "errors": [], 
+            "longs": 0, 
+            "name": "void", 
+            "signed": true
+        }, 
+        "type": "function", 
+        "variadic": false
+    }
+]

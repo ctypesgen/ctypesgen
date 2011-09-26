@@ -1,0 +1,21 @@
+[
+    {
+        "args": [
+            {
+                "errors": [], 
+                "longs": 0, 
+                "name": "int", 
+                "signed": true
+            }
+        ], 
+        "name": "bar", 
+        "return": {
+            "errors": [], 
+            "longs": 0, 
+            "name": "int", 
+            "signed": true
+        }, 
+        "type": "function", 
+        "variadic": false
+    }
+]
