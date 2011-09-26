@@ -44,7 +44,7 @@ if __name__=="__main__":
 
     # Parameters
     op.add_option('-o', '--output', dest='output', metavar='FILE',
-        help='write wrapper to FILE')
+        help='write wrapper to FILE [default stdout]')
     op.add_option('-l', '--library', dest='libraries', action='append',
         default=[], metavar='LIBRARY', help='link to LIBRARY')
     op.add_option('', '--include', dest='other_headers', action='append',
@@ -135,10 +135,6 @@ if __name__=="__main__":
     # Required parameters
     if len(args) < 1:
         msgs.error_message('No header files specified', cls='usage')
-        sys.exit(1)
-
-    if options.output is None:
-        msgs.error_message('No output file specified', cls='usage')
         sys.exit(1)
 
     if len(options.libraries) == 0:

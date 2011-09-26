@@ -14,9 +14,9 @@ def path_to_local_file(name,known_local_module = test):
 
 class WrapperPrinter:
     def __init__(self,outpath,options,data):
-        status_message("Writing to %s." % outpath)
+        status_message("Writing to %s." % (outpath or "stdout"))
 
-        self.file=file(outpath,"w")
+        self.file=outpath and file(outpath,"w") or sys.stdout
         self.options=options
 
         if self.options.strip_build_path and \
