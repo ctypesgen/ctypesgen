@@ -1,0 +1,8 @@
+#!/bin/bash
+# Generate parser tests outputs (assumes parser is working!)
+# Reuben Thomas 26th September 2011
+# This program is in the public domain.
+
+for i in test-headers/*.h; do
+    ../ctypesgen.py --output-language=json $i > ${i%%.h}.json
+done

@@ -1,0 +1,11 @@
+[
+    {
+        "args": [
+            "x", 
+            "y"
+        ], 
+        "body": "(x - y)", 
+        "name": "minus_macro", 
+        "type": "macro_function"
+    }
+]

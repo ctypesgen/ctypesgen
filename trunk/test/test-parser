@@ -1,0 +1,20 @@
+#!/bin/bash
+# Test JSON parser on header fragments
+# Reuben Thomas 26th September 2011
+# This program is in the public domain.
+
+errs=0
+for i in test-headers/*.h; do
+    ../ctypesgen.py --output-language=json $i > test.json 2> /dev/null
+    echo $i
+    diff ${i%%.h}.json test.json
+    errs=$[ $errs + $? ]
+done
+
+if test $errs = "0"; then
+    echo "All tests passed"
+    exit 0
+else
+    echo "$errs errors"
+    exit 1
+fi
