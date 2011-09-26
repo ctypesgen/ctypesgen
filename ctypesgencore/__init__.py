@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-# -*- coding: ascii -*-
+# -*- coding: us-ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
 """
@@ -54,7 +54,8 @@ __all__ = ["parser","processor","printer",
 # Workhorse modules
 import parser
 import processor
-import printer
+import printer_python
+import printer_json
 
 # Modules describing internal format
 import descriptions

@@ -30,7 +30,8 @@ default_values={
     "other_known_names": [],
     "include_macros": True,
     "libraries": [],
-    "strip_build_path": None
+    "strip_build_path": None,
+    "output_language": "python",
 }
 
 def get_default_options():
