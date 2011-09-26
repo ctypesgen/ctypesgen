@@ -1,0 +1,31 @@
+                            ctypesgen-json
+                            --------------
+
+                (c) Reuben Thomas 2011 <rrt@sc3d.org>
+              https://github.com/rrthomas/ctypesgen-json
+
+ctypesgen-json parses C header files and outputs JSON intended to be
+used for generating libffi bindings. In particular, it is intended to
+be used with Mork, which generates bindings for Lua, using the
+alien module (which binds libffi to Lua). ctypesgen-json is
+distributed under the New (2-clause) BSD License:
+http://www.opensource.org/licenses/bsd-license.php
+
+ctypesgen-json is a fork of ctypesgen, the pure-Python wrapper
+generator: http://code.google.com/p/ctypesgen/
+
+libffi is a portable Foreign Function Interface library:
+http://sources.redhat.com/libffi/
+
+Mork, the friendly alien, can be found at:
+https://github.com/rrthomas/mork
+
+
+Usage
+-----
+
+By default, ctypesgen-json works exactly like ctypesgen, for backwards
+compatibility with ctypesgen. To get JSON output, use
+--output-language=json. You will probably want to use --all-headers
+--builtin-symbols --no-stddef-types --no-gnu-types --no-python-types
+too.
