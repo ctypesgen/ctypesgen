@@ -32,6 +32,9 @@ default_values={
     "libraries": [],
     "strip_build_path": None,
     "output_language": "python",
+    "no_stddef_types": False,
+    "no_gnu_types": False,
+    "no_python_types": False,
 }
 
 def get_default_options():
