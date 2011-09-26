@@ -1,0 +1,12 @@
+[
+    {
+        "args": [
+            "a", 
+            "b", 
+            "c"
+        ], 
+        "body": "a and b or c", 
+        "name": "C", 
+        "type": "macro_function"
+    }
+]

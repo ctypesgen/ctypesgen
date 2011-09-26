@@ -1,0 +1,10 @@
+[
+    {
+        "args": [
+            "x"
+        ], 
+        "body": "('funny' + x)", 
+        "name": "funny", 
+        "type": "macro_function"
+    }
+]
