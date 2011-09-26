@@ -25,10 +25,10 @@ import sys
 __all__ = ["error_message","warning_message","status_message"]
 
 def error_message(msg,cls=None):
-    print "Error: %s" % msg
+    print >> sys.stderr, "Error: %s" % msg
 
 def warning_message(msg,cls=None):
-    print "Warning: %s" % msg
+    print >> sys.stderr, "Warning: %s" % msg
 
 def status_message(msg):
-    print "Status: %s" % msg
+    print >> sys.stderr, "Status: %s" % msg
