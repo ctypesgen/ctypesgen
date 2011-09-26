@@ -837,7 +837,7 @@ def p_type_name(p):
     declaration = cdeclarations.Declaration()
     declaration.declarator = declarator
     cdeclarations.apply_specifiers(typ,declaration)
-    ctype = ctypesparser.get_ctypes_type(declaration.type,
+    ctype = p.parser.cparser.get_ctypes_type(declaration.type,
                                             declaration.declarator)
     p[0] = ctype
 

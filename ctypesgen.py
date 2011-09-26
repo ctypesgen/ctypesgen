@@ -90,6 +90,15 @@ if __name__=="__main__":
         default=None, help='regular expression for symbols to always include')
     op.add_option('-x', '--exclude-symbols', dest='exclude_symbols',
         default=None, help='regular expression for symbols to exclude')
+    op.add_option('', '--no-stddef-types', action='store_true',
+        dest='no_stddef_types', default=False,
+        help='Do not support extra C types from stddef.h')
+    op.add_option('', '--no-gnu-types', action='store_true',
+        dest='no_gnu_types', default=False,
+        help='Do not support extra GNU C types')
+    op.add_option('', '--no-python-types', action='store_true',
+        dest='no_python_types', default=False,
+        help='Do not support extra C types built in to Python')
 
     # Printer options
     op.add_option('', '--header-template', dest='header_template', default=None,
