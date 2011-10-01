@@ -74,8 +74,8 @@ class LibraryLoader(object):
         """Return a list of paths where the library might be found."""
         if os.path.isabs(libname):
             yield libname
-
         else:
+            # FIXME / TODO return '.' and os.path.dirname(__file__)
             for path in self.getplatformpaths(libname):
                 yield path
 
@@ -161,6 +161,7 @@ class PosixLibraryLoader(LibraryLoader):
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
         directories.append(".")
+        directories.append(os.path.dirname(__file__))
 
         try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
         except IOError: pass
