@@ -108,7 +108,7 @@ class WrapperPrinter:
         res = {'type': 'function',
                'name': function.c_name(),
                'variadic': function.variadic,
-               'args': todict(function.argtypes),
+               'args': todict(function.argtypes, "Klass"),
                'return': todict(function.restype),
                }
         if function.source_library:

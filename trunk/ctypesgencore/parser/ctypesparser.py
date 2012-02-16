@@ -40,6 +40,15 @@ def make_enum_from_specifier(specifier):
     return CtypesEnum(tag, enumerators,
                       src=(specifier.filename,specifier.lineno))
 
+def get_decl_id(decl):
+    """Return the identifier of a given declarator"""
+    while isinstance(decl, Pointer):
+        decl = decl.pointer
+    p_name = ""
+    if decl is not None and decl.identifier is not None:
+        p_name = decl.identifier
+    return p_name
+
 class CtypesParser(CParser):
     '''Parse a C file for declarations that can be used by ctypes.
 
@@ -128,7 +137,10 @@ class CtypesParser(CParser):
                 for param in declarator.parameters:
                     if param=="...":
                         break
-                    params.append(self.get_ctypes_type(param.type, param.declarator))
+                    param_name = get_decl_id(param.declarator)
+                    ct = self.get_ctypes_type(param.type, param.declarator)
+                    ct.identifier = param_name
+                    params.append(ct)
                 t = CtypesFunction(t, params, variadic)
 
             a = declarator.array
@@ -149,7 +161,10 @@ class CtypesParser(CParser):
             for param in declarator.parameters:
                 if param=="...":
                     break
-                params.append(self.get_ctypes_type(param.type, param.declarator))
+                param_name = get_decl_id(param.declarator)
+                ct = self.get_ctypes_type(param.type, param.declarator)
+                ct.identifier = param_name
+                params.append(ct)
             t = CtypesFunction(t, params, variadic)
 
         if declarator:
