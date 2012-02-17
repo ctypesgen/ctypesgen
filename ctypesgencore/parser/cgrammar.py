@@ -622,6 +622,12 @@ def p_struct_declaration(p):
             cdeclarations.apply_specifiers(p[1], declaration)
             declaration.declarator = declarator
             r += (declaration,)
+    else:
+        # anonymous field (C11/GCC extension)
+        declaration = cdeclarations.Declaration()
+        cdeclarations.apply_specifiers(p[1], declaration)
+        r = (declaration,)
+
     p[0] = r
 
 def p_specifier_qualifier_list(p):
