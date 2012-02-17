@@ -170,10 +170,37 @@ class WrapperPrinter:
 
     def print_struct_members(self, struct):
         if struct.opaque: return
+
+        # handle unnamed fields.
+        unnamed_fields = []
+        names = set([x[0] for x in struct.members])
+        anon_prefix = "unnamed_"
+        n = 1
+        for mi in range(len(struct.members)):
+            mem = list(struct.members[mi])
+            if mem[0] is None:
+                while True:
+                    name = "%s%i" % (anon_prefix, n)
+                    n += 1
+                    if name not in names:
+                        break
+                mem[0] = name
+                names.add(name)
+                unnamed_fields.append(name)
+                struct.members[mi] = mem
+
         print >>self.file, '%s_%s.__slots__ = [' % (struct.variety, struct.tag)
         for name,ctype in struct.members:
             print >>self.file, "    '%s'," % name
         print >>self.file, ']'
+
+        if len(unnamed_fields) > 0:
+            print >>self.file, '%s_%s._anonymous_ = [' % (struct.variety,
+                    struct.tag)
+            for name in unnamed_fields:
+                print >>self.file, "    '%s'," % name
+            print >>self.file, ']'
+
         print >>self.file, '%s_%s._fields_ = [' % (struct.variety, struct.tag)
         for name,ctype in struct.members:
             if isinstance(ctype,CtypesBitfield):

@@ -73,11 +73,12 @@ class CtypesParser(CParser):
                                          check_qualifiers=True)
                 declarator = declaration.declarator
                 if declarator is None:
-                    # XXX TEMPORARY while struct with no typedef not filled in
-                    break
-                while declarator.pointer:
-                    declarator = declarator.pointer
-                name = declarator.identifier
+                    # Anonymous field in nested union/struct (C11/GCC).
+                    name = None
+                else:
+                    while declarator.pointer:
+                        declarator = declarator.pointer
+                    name = declarator.identifier
                 members.append((name, remove_function_pointer(t)))
         else:
             members = None
