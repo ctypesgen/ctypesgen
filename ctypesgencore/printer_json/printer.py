@@ -13,7 +13,7 @@ def path_to_local_file(name,known_local_module = test):
     return os.path.join(basedir,name)
 
 # From http://stackoverflow.com/questions/1036409/recursively-convert-python-object-graph-to-dictionary
-def todict(obj, classkey=None):
+def todict(obj, classkey="Klass"):
     if isinstance(obj, dict):
         for k in obj.keys():
             obj[k] = todict(obj[k], classkey)
@@ -99,16 +99,24 @@ class WrapperPrinter:
         pass
 
     def print_enum(self,enum):
-        return {'type': 'enum',
+        res = {'type': 'enum',
                 'name': enum.tag,
                 }
-        # Values of enumerator are output as constants.
+
+        if not enum.opaque:
+            res['fields'] = []
+            for name, ctype in enum.members:
+                field = {'name': name,
+                         'ctype': todict(ctype),
+                         }
+                res['fields'].append(field)
+        return res
 
     def print_function(self, function):
         res = {'type': 'function',
                'name': function.c_name(),
                'variadic': function.variadic,
-               'args': todict(function.argtypes, "Klass"),
+               'args': todict(function.argtypes),
                'return': todict(function.restype),
                }
         if function.source_library:
