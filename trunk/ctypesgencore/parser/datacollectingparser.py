@@ -218,7 +218,7 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         if ctypeenum.opaque:
             if tag not in self.already_seen_opaque_enums:
                 enum=EnumDescription(ctypeenum.tag,
-                             ctypeenum.enumerators,
+                             None,
                              ctypeenum,
                              src = (filename,str(lineno)))
                 enum.opaque = True
@@ -235,12 +235,13 @@ class DataCollectingParser(ctypesparser.CtypesParser,
                 enum.opaque = False
                 enum.ctype = ctypeenum
                 enum.src = ctypeenum.src
+                enum.members = ctypeenum.enumerators
 
                 del self.already_seen_opaque_enums[tag]
 
             else:
                 enum=EnumDescription(ctypeenum.tag,
-                                None,
+                                ctypeenum.enumerators,
                                 src=(filename,str(lineno)),
                                 ctype=ctypeenum)
                 enum.opaque = False
