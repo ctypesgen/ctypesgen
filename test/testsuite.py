@@ -46,12 +46,12 @@ class StdlibTest(unittest.TestCase):
         header_str = '#include <stdlib.h>\n'
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
-            libraries=["msvcrt.dll"]
-            libraries=["msvcrt"]
+            libraries = ["msvcrt.dll"]
+            libraries = ["msvcrt"]
         elif sys.platform.startswith("linux"):
-            libraries=["libc.so.6"]
+            libraries = ["libc.so.6"]
         else:
-            libraries=["libc"]
+            libraries = ["libc"]
         self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
 
     def tearDown(self):
@@ -171,7 +171,7 @@ class SimpleMacrosTest(unittest.TestCase):
         """
         module = self.module
         
-        self.failUnlessEqual(module.funny("bunny"),  "funnybunny")
+        self.failUnlessEqual(module.funny("bunny"), "funnybunny")
         
     def test_macro_math_multipler(self):
         module = self.module
@@ -242,12 +242,12 @@ class MathTest(unittest.TestCase):
         header_str = '#include <math.h>\n'
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
-            libraries=["msvcrt.dll"]
-            libraries=["msvcrt"]
+            libraries = ["msvcrt.dll"]
+            libraries = ["msvcrt"]
         elif sys.platform.startswith("linux"):
-            libraries=["libm.so.6"]
+            libraries = ["libm.so.6"]
         else:
-            libraries=["libc"]
+            libraries = ["libc"]
         self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
 
     def tearDown(self):
