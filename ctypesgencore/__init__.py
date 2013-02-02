@@ -65,3 +65,5 @@ import expressions
 # Helper modules
 import messages
 import options
+
+printer = printer_python  # Default the printer to generating Python
