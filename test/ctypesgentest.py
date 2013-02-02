@@ -16,10 +16,11 @@ containing the resulting module object and the output that ctypesgen produced.""
 # set redirect_stdout to False if using console based debugger like pdb
 redirect_stdout = True
 
+
 def test(header, **more_options):
 
     assert isinstance(header, str)
-    file("temp.h","w").write(header)
+    file("temp.h", "w").write(header)
 
     options = ctypesgencore.options.get_default_options()
     options.headers = ["temp.h"]
@@ -31,13 +32,13 @@ def test(header, **more_options):
         sys.stdout = StringIO.StringIO()
 
     # Step 1: Parse
-    descriptions=ctypesgencore.parser.parse(options.headers,options)
+    descriptions = ctypesgencore.parser.parse(options.headers, options)
 
     # Step 2: Process
-    ctypesgencore.processor.process(descriptions,options)
+    ctypesgencore.processor.process(descriptions, options)
 
     # Step 3: Print
-    ctypesgencore.printer.WrapperPrinter("temp.py",options,descriptions)
+    ctypesgencore.printer.WrapperPrinter("temp.py", options, descriptions)
 
     if redirect_stdout:
         # Un-redirect output
@@ -52,6 +53,7 @@ def test(header, **more_options):
     reload(module)  # import twice, this hack ensure that "temp" is force loaded (there *must* be a better way to do this)
 
     return module, output
+
 
 def cleanup(filepattern='temp.*'):
     fnames = glob.glob(filepattern)
