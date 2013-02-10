@@ -4,6 +4,7 @@ The only project like ctypesgen is ctypes http://docs.python.org/library/ctypes 
 
 = Helpers for Building Python Extensions =
 
+  * http://pypi.python.org/pypi/cffi
   * swig http://www.swig.org/
   * http://code.google.com/p/pybindgen/
   * boost_python http://www.boost.org/doc/libs/1_43_0/libs/python/doc/index.html (C++ focus)
