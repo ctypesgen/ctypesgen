@@ -55,7 +55,10 @@ __all__ = ["parser","processor","printer",
 import parser
 import processor
 import printer_python
-import printer_json
+try:
+    import printer_json
+except ImportError:
+    pass
 
 # Modules describing internal format
 import descriptions
