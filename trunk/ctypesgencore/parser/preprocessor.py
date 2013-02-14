@@ -140,7 +140,7 @@ class PreprocessorParser(object):
             cmd += " -I%s" % path
         for define in self.defines:
             cmd += ' "-D%s"' % define
-        cmd += " " + filename
+        cmd += ' "' + filename + '"'
 
         self.cparser.handle_status(cmd)
 
