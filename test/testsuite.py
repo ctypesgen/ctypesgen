@@ -28,7 +28,7 @@ import os
 import ctypes
 import math
 import unittest
-import logging
+#import logging
 
 test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
@@ -97,6 +97,36 @@ class StdlibTest(unittest.TestCase):
             pass
         result = module.getenv(env_var_name)
         self.failUnlessEqual(expect_result, result)
+
+
+class StdBoolTest(unittest.TestCase):
+    "Test correct parsing and generation of bool type"
+
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = '''
+#include <stdbool.h>
+
+struct foo
+{
+    bool is_bar;
+    int a;
+};
+'''
+        self.module, _ = ctypesgentest.test(header_str)#, all_headers=True)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+        
+    def test_stdbool_type(self):
+        """Test is bool is correctly parsed"""
+        module = self.module
+        struct_foo = module.struct_foo
+        self.failUnlessEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
 
 
 class SimpleMacrosTest(unittest.TestCase):
