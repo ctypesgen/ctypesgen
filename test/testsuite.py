@@ -28,7 +28,7 @@ import os
 import ctypes
 import math
 import unittest
-#import logging
+import logging
 
 test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
@@ -316,7 +316,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
     
-    #ctypesgentest.ctypesgencore.messages.log.setLevel(logging.CRITICAL)  # do not log anything
+    ctypesgentest.ctypesgencore.messages.log.setLevel(logging.CRITICAL)  # do not log anything
     unittest.main()
     
     return 0
