@@ -104,7 +104,7 @@ def create_token(type, value, production=None):
 class PreprocessorParser(object):
     def __init__(self,options,cparser):
         self.defines = ["inline=", "__inline__=", "__extension__=",
-                        "_Bool=uint8_t", "__const=const", "__asm__(x)=",
+                        "__const=const", "__asm__(x)=",
                         "__asm(x)=", "CTYPESGEN=1"]
 
         # On OSX, explicitly add these defines to keep from getting syntax
