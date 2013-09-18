@@ -1,4 +1,0 @@
-global-exclude *.pyc
-global-exclude .gitignore
-global-exclude .svnignore
-global-exclude .DS_STORE
