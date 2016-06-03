@@ -147,6 +147,10 @@ class SimpleMacrosTest(unittest.TestCase):
 #define minus_macro(x,y) x-y
 #define divide_macro(x,y) x/y
 #define mod_macro(x,y) x%y
+#define subcall_macro_simple(x) (A)
+#define subcall_macro_simple_plus(x) (A) + (x)
+#define subcall_macro_minus(x,y) minus_macro(x,y)
+#define subcall_macro_minus_plus(x,y,z) (minus_macro(x,y)) + (z)
 '''
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
@@ -228,6 +232,32 @@ class SimpleMacrosTest(unittest.TestCase):
         x, y = 2, 5
         self.failUnlessEqual(module.mod_macro(x, y), x % y)
 
+    def test_macro_subcall_simple(self):
+        """Test use of a constant valued macro within a macro"""
+        module = self.module
+
+        self.failUnlessEqual(module.subcall_macro_simple(2), 1)
+
+    def test_macro_subcall_simple_plus(self):
+        """Test math with constant valued macro within a macro"""
+        module = self.module
+
+        self.failUnlessEqual(module.subcall_macro_simple_plus(2), 1 + 2)
+
+    def test_macro_subcall_minus(self):
+        """Test use of macro function within a macro"""
+        module = self.module
+
+        x, y = 2, 5
+        self.failUnlessEqual(module.subcall_macro_minus(x, y), x - y)
+
+    def test_macro_subcall_minus_plus(self):
+        """Test math with a macro function within a macro"""
+        module = self.module
+
+        x, y, z = 2, 5, 1
+        self.failUnlessEqual(module.subcall_macro_minus_plus(x, y, z), (x - y) + z)
+
 
 class StructuresTest(unittest.TestCase):
     """Based on structures.py
@@ -270,7 +300,10 @@ class MathTest(unittest.TestCase):
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '#include <math.h>\n'
+        header_str = '''
+#include <math.h>
+#define sin_plus_y(x,y) (sin(x) + (y))
+'''
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
             libraries = ["msvcrt.dll"]
@@ -310,6 +343,12 @@ class MathTest(unittest.TestCase):
             module.sin("foobar")
         
         self.failUnlessRaises(ctypes.ArgumentError, local_test)
+
+    def test_subcall_sin(self):
+        """Test math with sin(x) in a macro"""
+        module = self.module
+
+        self.failUnlessEqual(module.sin_plus_y(2,1), math.sin(2) + 1)
 
 
 def main(argv=None):

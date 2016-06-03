@@ -258,10 +258,7 @@ class CallExpressionNode(ExpressionNode):
     def py_string(self, can_be_ctype):
         function = self.function.py_string(can_be_ctype)
         arguments = [x.py_string(can_be_ctype) for x in self.arguments]
-        if can_be_ctype:
-            return '(%s (%s))' % (function,", ".join(arguments))
-        else:
-            return '((%s (%s)).value)' % (function,", ".join(arguments))
+        return '(%s (%s))' % (function,", ".join(arguments))
 
 # There seems not to be any reasonable way to translate C typecasts
 # into Python. Ctypesgen doesn't try, except for the special case of NULL.

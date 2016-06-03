@@ -186,7 +186,8 @@ class WrapperPrinter:
                         break
                 mem[0] = name
                 names.add(name)
-                unnamed_fields.append(name)
+                if type(mem[1]) is CtypesStruct:
+                  unnamed_fields.append(name)
                 struct.members[mi] = mem
 
         print >>self.file, '%s_%s.__slots__ = [' % (struct.variety, struct.tag)

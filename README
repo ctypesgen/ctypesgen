@@ -1,12 +1,53 @@
                               ctypesgen
                               ---------
 
-                  (c) Ctypesgen developers 2007-2011
-                 http://code.google.com/p/ctypesgen/
+                  (c) Ctypesgen developers 2007-2015
+                 https://github.com/davidjamesca/ctypesgen
 
 ctypesgen is a pure-python ctypes wrapper generator. It can also
 output JSON, which can be used with Mork, which generates bindings for
 Lua, using the alien module (which binds libffi to Lua).
+
+Documentation
+-------------
+
+See https://github.com/davidjamesca/ctypesgen/wiki for full documentation.
+
+Basic Usage
+-----------
+
+This project automatically generates ctypes wrappers for header files written
+in C.
+
+For example, if you'd like to generate Neon bindings, you can do so using this
+recipe:
+
+  $ python ctypesgen.py -lneon /usr/local/include/neon/ne_*.h -o neon.py
+
+Some libraries, such as APR, need special flags to compile. You can pass these
+flags in on the command line.
+
+For example:
+
+$ FLAGS = `apr-1-config --cppflags --includes`
+$ python ctypesgen.py $FLAGS -llibapr-1.so $HOME/include/apr-1/apr*.h -o apr.py
+
+Sometimes, libraries will depend on each other. You can specify these
+dependencies using -mmodule, where module is the name of the dependency module.
+
+Here's an example for apr_util:
+
+$ python ctypesgen.py $FLAGS -llibaprutil-1.so $HOME/include/apr-1/ap[ru]*.h \
+    -mapr -o apr_util.py
+
+
+If you want JSON output (e.g. for generating Lua bindings), use
+--output-language=json. When outputting JSON, you will probably want to use
+--all-headers --builtin-symbols --no-stddef-types --no-gnu-types
+--no-python-types too.
+
+License
+-------
 
 ctypesgen is distributed under the New (2-clause) BSD License:
 http://www.opensource.org/licenses/bsd-license.php
@@ -16,11 +57,3 @@ http://sources.redhat.com/libffi/
 
 Mork, the friendly alien, can be found at:
 https://github.com/rrthomas/mork
-
-
-Usage
------
-
-To get JSON output, use --output-language=json. When outputting JSON,
-you will probably want to use --all-headers --builtin-symbols
---no-stddef-types --no-gnu-types --no-python-types too.

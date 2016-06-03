@@ -38,7 +38,7 @@ def option_callback_libdir(option, opt, value, parser):
 import ctypesgencore
 import ctypesgencore.messages as msgs
 
-if __name__=="__main__":
+def main(givenargs):
     usage = 'usage: %prog [options] /path/to/header.h ...'
     op = optparse.OptionParser(usage=usage)
 
@@ -126,7 +126,7 @@ if __name__=="__main__":
 
     op.set_defaults(**ctypesgencore.options.default_values)
 
-    (options, args) = op.parse_args(list(sys.argv[1:]))
+    (options, args) = op.parse_args(givenargs)
     options.headers = args
 
     # Figure out what names will be defined by imported Python modules
@@ -168,3 +168,6 @@ if __name__=="__main__":
                 "specified header file(s). Perhaps you meant to run with " \
                 "--all-headers to include objects from included sub-headers? ",
                 cls = 'usage')
+
+if __name__ == "__main__":
+    main(list(sys.argv[1:]))
