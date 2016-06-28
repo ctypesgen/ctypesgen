@@ -283,7 +283,16 @@ loaderclass = {
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
 
 def add_library_search_dirs(other_dirs):
-    loader.other_dirs = other_dirs
+    """
+    Add libraries to search paths.
+    If library paths are relative, convert them to absolute with respect to this
+    file's directory
+    """
+    THIS_DIR = os.path.dirname(__file__)
+    for F in other_dirs:
+        if not os.path.isabs(F):
+            F = os.path.abspath(os.path.join(THIS_DIR,F))
+        loader.other_dirs.append(F)
 
 load_library = loader.load_library
 
