@@ -171,6 +171,11 @@ class WrapperPrinter:
     def print_struct_members(self, struct):
         if struct.opaque: return
 
+        # is this supposed to be packed?
+        if struct.packed:
+          print >>self.file, '{}_{}._pack_ = 1'.format(struct.variety,
+                                                       struct.tag)
+
         # handle unnamed fields.
         unnamed_fields = []
         names = set([x[0] for x in struct.members])

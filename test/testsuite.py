@@ -269,12 +269,34 @@ class StructuresTest(unittest.TestCase):
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
         header_str = '''
+
 struct foo
 {
         int a;
-        int b;
+        char b;
         int c;
 };
+
+struct __attribute__((packed)) packed_foo
+{
+        int a;
+        char b;
+        int c;
+};
+
+typedef struct
+{
+        int a;
+        char b;
+        int c;
+} foo_t;
+
+typedef struct __attribute__((packed))
+{
+        int a;
+        char b;
+        int c;
+} packed_foo_t;
 '''
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
@@ -283,13 +305,30 @@ struct foo
         del self.module
         ctypesgentest.cleanup()
 
-    def test_structures(self):
-        """Tests from structures.py
+    def test_fields(self):
+        """Test whether fields are built correctly.
         """
-        module = self.module
-        
-        struct_foo = module.struct_foo
-        self.failUnlessEqual(struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)])
+        struct_foo = self.module.struct_foo
+        self.failUnlessEqual(struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_char), ("c", ctypes.c_int)])
+
+    def test_pack(self):
+        """Test whether gcc __attribute__((packed)) is interpreted correctly.
+        """
+        unpacked_size = ctypes.sizeof(ctypes.c_int)*3
+        packed_size = ctypes.sizeof(ctypes.c_int)*2 + ctypes.sizeof(ctypes.c_char)
+
+        struct_foo          = self.module.struct_foo
+        struct_packed_foo   = self.module.struct_packed_foo
+        foo_t               = self.module.foo_t
+        packed_foo_t        = self.module.packed_foo_t
+        self.failUnlessEqual(getattr(struct_foo, '_pack_', 0), 0)
+        self.failUnlessEqual(getattr(struct_packed_foo, '_pack_', 0), 1)
+        self.failUnlessEqual(getattr(foo_t, '_pack_', 0), 0)
+        self.failUnlessEqual(getattr(packed_foo_t, '_pack_', -1), 1)
+        self.failUnlessEqual(ctypes.sizeof(struct_foo),         unpacked_size)
+        self.failUnlessEqual(ctypes.sizeof(foo_t),              unpacked_size)
+        self.failUnlessEqual(ctypes.sizeof(struct_packed_foo),  packed_size)
+        self.failUnlessEqual(ctypes.sizeof(packed_foo_t),       packed_size)
 
 
 class MathTest(unittest.TestCase):

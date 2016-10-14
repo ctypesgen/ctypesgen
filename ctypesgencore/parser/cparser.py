@@ -204,5 +204,17 @@ class DebugCParser(CParser):
     def handle_declaration(self, declaration, filename, lineno):
         print declaration
 
+    def get_ctypes_type(self, typ, declarator):
+        return typ
+
+    def handle_define_unparseable(self, name, params, value, filename, lineno):
+        if params:
+            original_string = "#define %s(%s) %s" % \
+                (name, ",".join(params), " ".join(value))
+        else:
+            original_string = "#define %s %s" % \
+                (name, " ".join(value))
+        print original_string
+
 if __name__ == '__main__':
     DebugCParser().parse(sys.argv[1], debug=True)

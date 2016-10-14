@@ -115,8 +115,9 @@ class TypeSpecifier(str):
     pass
 
 class StructTypeSpecifier(object):
-    def __init__(self, is_union, tag, declarations):
+    def __init__(self, is_union, is_packed, tag, declarations):
         self.is_union = is_union
+        self.is_packed = is_packed
         self.tag = tag
         self.declarations = declarations
 
@@ -125,6 +126,8 @@ class StructTypeSpecifier(object):
             s = 'union'
         else:
             s = 'struct'
+        if self.is_packed:
+            s += ' __attribute__((packed))'
         if self.tag:
             s += ' %s' % self.tag
         if self.declarations:

@@ -164,6 +164,7 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         if ctypestruct.opaque:
             if name not in self.already_seen_opaque_structs:
                 struct = StructDescription(ctypestruct.tag,
+                                           ctypestruct.packed,
                                            ctypestruct.variety,
                                            None, # No members
                                            True, # Opaque
@@ -193,6 +194,7 @@ class DataCollectingParser(ctypesparser.CtypesParser,
 
             else:
                 struct = StructDescription(ctypestruct.tag,
+                                           ctypestruct.packed,
                                            ctypestruct.variety,
                                            ctypestruct.members,
                                            False, # Not opaque
