@@ -226,6 +226,10 @@ class String(MutableString, Union):
         elif isinstance(obj, int):
             return cls(cast(obj, POINTER(c_char)))
 
+        # Convert from c_char array
+        elif isinstance(obj, c_char*len(obj)):
+            return obj
+
         # Convert from object
         else:
             return String.from_param(obj._as_parameter_)
