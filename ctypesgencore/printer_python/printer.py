@@ -1,16 +1,35 @@
 #!/usr/bin/env python
 
-import os, sys, time
+import os, sys, time, glob, re
 from ctypesgencore.descriptions import *
 from ctypesgencore.ctypedescs import *
 from ctypesgencore.messages import *
 
 import ctypesgencore.libraryloader # So we can get the path to it
-import test # So we can find the path to local files in the printer package
+from . import test # So we can find the path to local files in the printer package
+
 
 def path_to_local_file(name,known_local_module = test):
     basedir=os.path.dirname(known_local_module.__file__)
     return os.path.join(basedir,name)
+
+THIS_DIR=os.path.dirname(__file__)
+PREAMBLE_PATH = os.path.join(THIS_DIR, 'preamble', '*.py')
+
+def get_preamble():
+    """get the available preambles"""
+    preambles = dict()
+    for fp in glob.glob(PREAMBLE_PATH):
+        m = re.search('preamble/(\d)_(\d).py$', fp)
+        if not m: continue
+        preambles[ (int(m.group(1)), int(m.group(2))) ] = fp
+    L = preambles.keys()
+    L.sort()
+    v = L[0]
+    for vi in L[1:]:
+      if vi > sys.version_info[:2]: break
+      v = vi
+    return preambles[vi]
 
 class WrapperPrinter:
     def __init__(self,outpath,options,data):
@@ -118,7 +137,7 @@ class WrapperPrinter:
         template_file.close()
 
     def print_preamble(self):
-        path = path_to_local_file("preamble.py")
+        path = get_preamble()
 
         print >>self.file, "# Begin preamble"
         print >>self.file
@@ -135,7 +154,7 @@ class WrapperPrinter:
         print >>self.file, "# Begin loader"
         print >>self.file
         path = path_to_local_file("libraryloader.py",
-                                      ctypesgencore.libraryloader)
+                                  ctypesgencore.libraryloader)
         loader_file=file(path,"r")
         self.file.write(loader_file.read())
         loader_file.close()
@@ -261,6 +280,9 @@ class WrapperPrinter:
         else:
             print >>self.file, "    %s.restype = %s" % \
                 (function.py_name(),function.restype.py_string())
+            if function.errcheck:
+                print >>self.file, "    %s.errcheck = %s" % \
+                    (function.py_name(),function.errcheck.py_string())
 
         if not function.source_library:
             print >>self.file, "    break"
@@ -273,9 +295,11 @@ class WrapperPrinter:
             print >>self.file, "    _func = _libs[%r].%s" % \
                 (function.source_library,function.c_name())
             print >>self.file, "    _restype = %s" % function.restype.py_string()
+            print >>self.file, "    _errcheck = %s" % \
+                (function.py_name(),function.errcheck.py_string())
             print >>self.file, "    _argtypes = [%s]" % \
                 ', '.join([a.py_string() for a in function.argtypes])
-            print >>self.file, "    %s = _variadic_function(_func,_restype,_argtypes)" % \
+            print >>self.file, "    %s = _variadic_function(_func,_restype,_argtypes,_errcheck)" % \
                 function.py_name()
         else:
             print >>self.file, "for _lib in _libs.values():"
@@ -283,9 +307,11 @@ class WrapperPrinter:
             print >>self.file, "        _func = _lib.%s" % \
                 (function.c_name())
             print >>self.file, "        _restype = %s" % function.restype.py_string()
+            print >>self.file, "    _errcheck = %s" % \
+                (function.py_name(),function.errcheck.py_string())
             print >>self.file, "        _argtypes = [%s]" % \
                 ', '.join([a.py_string() for a in function.argtypes])
-            print >>self.file, "        %s = _variadic_function(_func,_restype,_argtypes)" % \
+            print >>self.file, "        %s = _variadic_function(_func,_restype,_argtypes,_errcheck)" % \
                 function.py_name()
 
 

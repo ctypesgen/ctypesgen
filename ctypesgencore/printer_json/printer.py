@@ -6,7 +6,7 @@ from ctypesgencore.ctypedescs import *
 from ctypesgencore.messages import *
 
 import ctypesgencore.libraryloader # So we can get the path to it
-import test # So we can find the path to local files in the printer package
+from . import test # So we can find the path to local files in the printer package
 
 def path_to_local_file(name,known_local_module = test):
     basedir=os.path.dirname(known_local_module.__file__)

@@ -201,7 +201,7 @@ class CtypesParser(CParser):
                 name, remove_function_pointer(t), filename, lineno)
         elif type(t) == CtypesFunction:
             self.handle_ctypes_function(
-                name, t.restype, t.argtypes, t.variadic, filename, lineno)
+                name, t.restype, t.argtypes, t.errcheck, t.variadic, filename, lineno)
         elif declaration.storage != 'static':
             self.handle_ctypes_variable(name, t, filename, lineno)
 
@@ -213,7 +213,7 @@ class CtypesParser(CParser):
     def handle_ctypes_typedef(self, name, ctype, filename, lineno):
         pass
 
-    def handle_ctypes_function(self, name, restype, argtypes, filename, lineno):
+    def handle_ctypes_function(self, name, restype, argtypes, errcheck, filename, lineno):
         pass
 
     def handle_ctypes_variable(self, name, ctype, filename, lineno):

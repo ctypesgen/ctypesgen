@@ -207,10 +207,25 @@ class CtypesArray(CtypesType):
             return '%s * %s' % (self.base.py_string(),
                                 self.count.py_string(False))
 
+class CtypesNoErrorCheck(object):
+    def py_string(self):
+        return 'None'
+    def __bool__(self):
+        return False
+    __nonzero__ = __bool__
+
+class CtypesPointerCast(object):
+    def __init__(self, target):
+        self.target = target
+
+    def py_string(self):
+        return 'lambda v,*a : cast(v, {})'.format(self.target.py_string())
+
 class CtypesFunction(CtypesType):
     def __init__(self, restype, parameters, variadic=False):
         CtypesType.__init__(self)
         self.restype = restype
+        self.errcheck = CtypesNoErrorCheck()
 
         # Don't allow POINTER(None) (c_void_p) as a restype... causes errors
         # when ctypes automagically returns it as an int.
@@ -218,8 +233,10 @@ class CtypesFunction(CtypesType):
         # you can make it any arbitrary type.
         if type(self.restype) == CtypesPointer and \
            type(self.restype.destination) == CtypesSimple and \
-           self.restype.destination.name == 'None':
-            self.restype = CtypesPointer(CtypesSpecial('c_void'), ())
+           self.restype.destination.name == 'void':
+            # we will provide a means of converting this to a c_void_p
+            self.restype = CtypesPointer(CtypesSpecial('c_ubyte'), ())
+            self.errcheck = CtypesPointerCast(CtypesSpecial('c_void_p'))
 
         # Return "String" instead of "POINTER(c_char)"
         if self.restype.py_string() == 'POINTER(c_char)':
