@@ -151,7 +151,7 @@ class CtypesParser(CParser):
 
             qualifiers.extend(declarator.qualifiers)
 
-            t = CtypesPointer(t, declarator.qualifiers)
+            t = CtypesPointer(t, tuple(typ.qualifiers) + tuple(declarator.qualifiers))
 
             declarator = declarator.pointer
 

@@ -240,7 +240,10 @@ class CtypesFunction(CtypesType):
 
         # Return "String" instead of "POINTER(c_char)"
         if self.restype.py_string() == 'POINTER(c_char)':
-            self.restype = CtypesSpecial('String')
+            if 'const' in self.restype.qualifiers:
+                self.restype = CtypesSpecial('c_char_p')
+            else:
+                self.restype = CtypesSpecial('String')
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
         self.variadic = variadic
