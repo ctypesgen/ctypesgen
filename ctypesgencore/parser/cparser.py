@@ -58,7 +58,9 @@ class CLexer(object):
                 t.type = t.value.upper()
             elif t.type == 'IDENTIFIER' and t.value in self.type_names:
                 if (self.pos < 2 or self.tokens[self.pos-2].type not in
-                    ('ENUM', 'STRUCT', 'UNION')):
+                    ('VOID', '_BOOL', 'CHAR', 'SHORT', 'INT', 'LONG',
+                        'FLOAT', 'DOUBLE', 'SIGNED', 'UNSIGNED', 'ENUM',
+                        'STRUCT', 'UNION', 'TYPE_NAME')):
                     t.type = 'TYPE_NAME'
 
             t.lexer = self
