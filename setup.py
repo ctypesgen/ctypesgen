@@ -8,7 +8,7 @@
 
 """
 
-from distutils.core import setup
+from setuptools import setup, find_packages
 
 import ctypesgencore
 
@@ -17,9 +17,5 @@ setup(name='ctypesgen',
     description='Python wrapper generator for ctypes',
     url='http://code.google.com/p/ctypesgen/',
     license='BSD License',
-    packages=['ctypesgencore',
-        'ctypesgencore.parser',
-        'ctypesgencore.printer_python',
-        'ctypesgencore.printer_json',
-        'ctypesgencore.processor'],
+    packages=find_packages(),
     scripts=['ctypesgen.py'])
