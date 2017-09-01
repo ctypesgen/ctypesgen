@@ -696,6 +696,7 @@ def p_struct_declarator(p):
     '''
     if p[1]==':':
         p[0] = cdeclarations.Declarator()
+        p[0].bitfield = p[2]
     else:
         p[0] = p[1]
         # Bitfield support

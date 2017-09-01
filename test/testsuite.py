@@ -275,6 +275,8 @@ struct foo
         int a;
         char b;
         int c;
+        int d : 15;
+        int   : 17;
 };
 
 struct __attribute__((packed)) packed_foo
@@ -282,6 +284,8 @@ struct __attribute__((packed)) packed_foo
         int a;
         char b;
         int c;
+        int d : 15;
+        int   : 17;
 };
 
 typedef struct
@@ -289,6 +293,8 @@ typedef struct
         int a;
         char b;
         int c;
+        int d : 15;
+        int   : 17;
 } foo_t;
 
 typedef struct __attribute__((packed))
@@ -296,6 +302,8 @@ typedef struct __attribute__((packed))
         int a;
         char b;
         int c;
+        int d : 15;
+        int   : 17;
 } packed_foo_t;
 '''
         libraries = None
@@ -309,13 +317,17 @@ typedef struct __attribute__((packed))
         """Test whether fields are built correctly.
         """
         struct_foo = self.module.struct_foo
-        self.failUnlessEqual(struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_char), ("c", ctypes.c_int)])
+        self.failUnlessEqual(struct_foo._fields_,
+            [("a", ctypes.c_int), ("b", ctypes.c_char), ("c", ctypes.c_int),
+             ("d", ctypes.c_int, 15), ("unnamed_1", ctypes.c_int, 17)
+            ]
+        )
 
     def test_pack(self):
         """Test whether gcc __attribute__((packed)) is interpreted correctly.
         """
-        unpacked_size = ctypes.sizeof(ctypes.c_int)*3
-        packed_size = ctypes.sizeof(ctypes.c_int)*2 + ctypes.sizeof(ctypes.c_char)
+        unpacked_size = ctypes.sizeof(ctypes.c_int)*4
+        packed_size = ctypes.sizeof(ctypes.c_int)*3 + ctypes.sizeof(ctypes.c_char)
 
         struct_foo          = self.module.struct_foo
         struct_packed_foo   = self.module.struct_packed_foo
