@@ -1141,6 +1141,6 @@ if __name__ == '__main__':
     # NOTE if this file is modified, run to generate a new parsetab.py
     #   E.g.:
     #       env PYTHONPATH=. python ctypesgencore/parser/cgrammar.py
-    # parsetab.py is generated in the current directory and needs to be
+    # new_parsetab.py is generated in the current directory and needs to be
     # manually copied (after inspection) to ctypesgencore/parser/parsetab.py
-    yacc.yacc()
+    yacc.yacc(tabmodule='new_parsetab')
