@@ -305,6 +305,12 @@ typedef struct __attribute__((packed))
         int d : 15;
         int   : 17;
 } packed_foo_t;
+
+typedef int Int;
+
+typedef struct {
+        int Int;
+} id_struct_t;
 '''
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
@@ -341,6 +347,15 @@ typedef struct __attribute__((packed))
         self.failUnlessEqual(ctypes.sizeof(foo_t),              unpacked_size)
         self.failUnlessEqual(ctypes.sizeof(struct_packed_foo),  packed_size)
         self.failUnlessEqual(ctypes.sizeof(packed_foo_t),       packed_size)
+
+    def test_typedef_vs_field_id(self):
+        """Test whether local field identifier names can override external
+        typedef names.
+        """
+        Int = self.module.Int
+        id_struct_t = self.module.id_struct_t
+        self.failUnlessEqual(Int, ctypes.c_int)
+        self.failUnlessEqual(id_struct_t._fields_, [("Int", ctypes.c_int)])
 
 
 class MathTest(unittest.TestCase):
