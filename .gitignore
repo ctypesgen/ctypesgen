@@ -12,3 +12,4 @@ ctypesgen.egg-info/
 # Swap/backup editor files
 *.swp
 *~
+.pybuild/
