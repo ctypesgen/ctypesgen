@@ -1,7 +1,7 @@
 '''Wrapper for demolib.h
 
 Generated with:
-../ctypesgen.py -o pydemolib.py -l demolib.so demolib.h
+../run.py -o pydemolib.py -l demolib.so demolib.h
 
 Do not modify this file.
 '''

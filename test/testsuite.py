@@ -421,7 +421,7 @@ def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    ctypesgentest.ctypesgencore.messages.log.setLevel(logging.CRITICAL)  # do not log anything
+    ctypesgentest.ctypesgen.messages.log.setLevel(logging.CRITICAL)  # do not log anything
     unittest.main()
 
     return 0

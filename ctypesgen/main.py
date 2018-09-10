@@ -1,6 +1,15 @@
-#!/usr/bin/env python3
 # -*- coding: us-ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
+"""
+Main loop for ctypesgen.
+"""
+
+import optparse, sys
+
+from . import options as core_options
+from . import parser as core_parser
+from . import printer_python, printer_json, processor
+from . import messages as msgs
 
 def find_names_in_modules(modules):
     names = set()
@@ -12,8 +21,6 @@ def find_names_in_modules(modules):
         else:
             names.union(dir(module))
     return names
-
-import optparse, sys
 
 def option_callback_W(option, opt, value, parser):
     # Options preceded by a "-Wl," are simply treated as though the "-Wl,"
@@ -35,10 +42,7 @@ def option_callback_libdir(option, opt, value, parser):
     parser.values.compile_libdirs.append(value)
     parser.values.runtime_libdirs.append(value)
 
-import ctypesgencore
-import ctypesgencore.messages as msgs
-
-def main(givenargs):
+def main(givenargs = None):
     usage = 'usage: %prog [options] /path/to/header.h ...'
     op = optparse.OptionParser(usage=usage)
 
@@ -131,7 +135,7 @@ def main(givenargs):
     op.add_option('', "--no-macro-warnings", action="store_false", default=True,
         dest="show_macro_warnings", help="Do not print macro warnings.")
 
-    op.set_defaults(**ctypesgencore.options.default_values)
+    op.set_defaults(**core_options.default_values)
 
     (options, args) = op.parse_args(givenargs)
     options.headers = args
@@ -150,18 +154,18 @@ def main(givenargs):
     # Check output language
     printer = None
     if options.output_language.startswith('py'):
-        printer = ctypesgencore.printer_python.WrapperPrinter
+        printer = printer_python.WrapperPrinter
     elif options.output_language == "json":
-        printer = ctypesgencore.printer_json.WrapperPrinter
+        printer = printer_json.WrapperPrinter
     else:
         msgs.error_message("No such output language `" + options.output_language + "'", cls='usage')
         sys.exit(1)
 
     # Step 1: Parse
-    descriptions=ctypesgencore.parser.parse(options.headers,options)
+    descriptions=core_parser.parse(options.headers,options)
 
     # Step 2: Process
-    ctypesgencore.processor.process(descriptions,options)
+    processor.process(descriptions,options)
 
     # Step 3: Print
     printer(options.output,options,descriptions)
@@ -175,6 +179,3 @@ def main(givenargs):
                 "specified header file(s). Perhaps you meant to run with " \
                 "--all-headers to include objects from included sub-headers? ",
                 cls = 'usage')
-
-if __name__ == "__main__":
-    main(list(sys.argv[1:]))

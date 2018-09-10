@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 '''
-ctypesgencore.ctypedescs contains classes to represent a C type. All of them
+ctypesgen.ctypedescs contains classes to represent a C type. All of them
 classes are subclasses of CtypesType.
 
 Unlike in previous versions of ctypesgen, CtypesType and its subclasses are

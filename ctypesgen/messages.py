@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-ctypesgencore.messages contains functions to display status, error, or warning
+ctypesgen.messages contains functions to display status, error, or warning
 messages to the user. Warning and error messages are also associated
 with a "message class", which is a string, which currently has no effect.
 

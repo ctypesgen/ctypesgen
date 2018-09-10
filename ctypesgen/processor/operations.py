@@ -3,13 +3,13 @@
 """
 The operations module contains various functions to process the
 DescriptionCollection and prepare it for output.
-ctypesgencore.processor.pipeline calls the operations module.
+ctypesgen.processor.pipeline calls the operations module.
 """
 
 import ctypes, re, os, sys, keyword
-from ctypesgencore.descriptions import *
-from ctypesgencore.messages import *
-import ctypesgencore.libraryloader
+from ..descriptions import *
+from ..messages import *
+from .. import libraryloader
 
 # Processor functions
 
@@ -184,11 +184,11 @@ def find_source_libraries(data,opts):
     for symbol in all_symbols:
         symbol.source_library=None
 
-    ctypesgencore.libraryloader.add_library_search_dirs(opts.compile_libdirs)
+    libraryloader.add_library_search_dirs(opts.compile_libdirs)
 
     for library_name in opts.libraries:
         try:
-            library=ctypesgencore.libraryloader.load_library(library_name)
+            library = libraryloader.load_library(library_name)
         except ImportError as e:
             warning_message("Could not load library \"%s\". Okay, I'll " \
                 "try to load it at runtime instead. " % (library_name),

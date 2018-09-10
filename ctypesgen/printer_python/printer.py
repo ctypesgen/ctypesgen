@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import os, sys, time, glob, re
-from ctypesgencore.descriptions import *
-from ctypesgencore.ctypedescs import *
-from ctypesgencore.messages import *
+from ..descriptions import *
+from ..ctypedescs import *
+from ..messages import *
 
-import ctypesgencore.libraryloader # So we can get the path to it
+from .. import libraryloader # So we can get the path to it
 from . import test # So we can find the path to local files in the printer package
 
 
@@ -156,8 +156,7 @@ class WrapperPrinter:
         self.file.write("_libs = {}\n")
         self.file.write("_libdirs = %s\n\n" % self.options.compile_libdirs)
         self.file.write("# Begin loader\n\n")
-        path = path_to_local_file("libraryloader.py",
-                                  ctypesgencore.libraryloader)
+        path = path_to_local_file("libraryloader.py", libraryloader)
         loader_file=open(path,"r")
         self.file.write(loader_file.read())
         loader_file.close()

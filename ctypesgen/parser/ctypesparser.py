@@ -1,6 +1,6 @@
 '''
-ctypesgencore.parser.ctypesparser contains a class, CtypesParser, which is a
-subclass of ctypesgencore.parser.cparser.CParser. CtypesParser overrides the
+ctypesgen.parser.ctypesparser contains a class, CtypesParser, which is a
+subclass of ctypesgen.parser.cparser.CParser. CtypesParser overrides the
 handle_declaration() method of CParser. It turns the low-level type declarations
 produced by CParser into CtypesType instances and breaks the parser's general
 declarations into function, variable, typedef, constant, and type descriptions.
@@ -10,10 +10,11 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["CtypesParser"]
 
+from ..ctypedescs import *
+from ..expressions import *
+
 from .cparser import *
-from ctypesgencore.ctypedescs import *
 from .cdeclarations import *
-from ctypesgencore.expressions import *
 
 def make_enum_from_specifier(specifier):
     tag = specifier.tag

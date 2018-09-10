@@ -8,10 +8,10 @@ calling DataCollectingParser.data().
 """
 
 from . import ctypesparser
-from ctypesgencore.descriptions import *
-from ctypesgencore.ctypedescs import *
-from ctypesgencore.expressions import *
-from ctypesgencore.messages import *
+from ..descriptions import *
+from ..ctypedescs import *
+from ..expressions import *
+from ..messages import *
 from tempfile import mkstemp
 import os
 

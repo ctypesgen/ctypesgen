@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
 import os, sys, time, json
-from ctypesgencore.descriptions import *
-from ctypesgencore.ctypedescs import *
-from ctypesgencore.messages import *
+from ctypesgen.descriptions import *
+from ctypesgen.ctypedescs import *
+from ctypesgen.messages import *
 
-import ctypesgencore.libraryloader # So we can get the path to it
+import ctypesgen.libraryloader # So we can get the path to it
 from . import test # So we can find the path to local files in the printer package
 
 def path_to_local_file(name,known_local_module = test):

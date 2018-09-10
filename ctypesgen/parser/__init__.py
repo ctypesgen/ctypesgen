@@ -9,7 +9,7 @@ The public interface for this package is the function "parse". Use as follows:
 >>> descriptions = parse(["inputfile1.h","inputfile2.h"], options)
 where "options" is an optparse.Values object.
 
-parse() returns a DescriptionCollection object. See ctypesgencore.descriptions
+parse() returns a DescriptionCollection object. See ctypesgen.descriptions
 for more information.
 
 """

@@ -33,7 +33,7 @@ Ctypesgen writes the descriptions to the output file, along with a header.
 
 The package ctypesgen.printer is responsible for the printing stage.
 
-There are three modules in ctypesgencore that describe the format that the
+There are three modules in ctypesgen that describe the format that the
 parser, processor, and printer modules use to pass information. They are:
 
 * descriptions: Classes to represent the descriptions.

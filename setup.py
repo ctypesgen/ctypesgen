@@ -13,20 +13,20 @@ from setuptools import setup, find_packages
 
 THIS_DIR = os.path.dirname( __file__ )
 
-import ctypesgencore
+import ctypesgen
 
-ctypesgencore.version.write_version_file()
+ctypesgen.version.write_version_file()
 
-VERSION_FILE = os.path.relpath(ctypesgencore.version.VERSION_FILE, THIS_DIR)
+VERSION_FILE = os.path.relpath(ctypesgen.version.VERSION_FILE, THIS_DIR)
 f = open('MANIFEST.in', 'w')
 f.write('include {}\n'.format(VERSION_FILE))
-f.write('graft ctypesgencore\n')
+f.write('graft ctypesgen\n')
 f.close()
 
 try:
     setup(
         name='ctypesgen',
-        version=ctypesgencore.VERSION.partition('-g')[0],
+        version=ctypesgen.VERSION.partition('-g')[0],
         description='Python wrapper generator for ctypes',
         long_description=
             'ctypesgen reads parses c header files and creates a wrapper for '
@@ -42,7 +42,11 @@ try:
         license='BSD License',
         packages=find_packages(),
         include_package_data=True,
-        scripts=['ctypesgen.py'],
+        entry_points={
+          'console_scripts': [
+            'ctypesgen = ctypesgen.main:main',
+          ],
+        },
     )
 finally:
     os.unlink('MANIFEST.in')

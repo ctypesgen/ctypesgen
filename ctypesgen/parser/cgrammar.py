@@ -16,12 +16,12 @@ __docformat__ = 'restructuredtext'
 if __name__ == '__main__':
     # NOTE if this file is modified, run to generate a new parsetab.py
     #   E.g.:
-    #       env PYTHONPATH=. python ctypesgencore/parser/cgrammar.py
+    #       env PYTHONPATH=. python ctypesgen/parser/cgrammar.py
     # new_parsetab.py is generated in the current directory and needs to be
-    # manually copied (after inspection) to ctypesgencore/parser/parsetab.py
+    # manually copied (after inspection) to ctypesgen/parser/parsetab.py
     import sys, os
     sys.path.insert(0, os.path.join(os.path.pardir, os.path.pardir))
-    from ctypesgencore.parser.cgrammar import main
+    from ctypesgen.parser.cgrammar import main
     main()
     sys.exit()
 
@@ -33,7 +33,7 @@ import time
 import warnings
 
 from . import yacc
-import ctypesgencore.expressions as expressions
+from .. import expressions
 from . import cdeclarations
 
 tokens = (

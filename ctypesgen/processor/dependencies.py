@@ -5,9 +5,9 @@ The dependencies module determines which descriptions depend on which other
 descriptions.
 """
 
-from ctypesgencore.descriptions import *
-from ctypesgencore.ctypedescs import *
-from ctypesgencore.messages import *
+from ..descriptions import *
+from ..ctypedescs import *
+from ..messages import *
 
 def find_dependencies(data, opts):
     """Visit each description in `data` and figure out which other descriptions

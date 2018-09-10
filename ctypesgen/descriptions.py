@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-ctypesgencore.descriptions contains classes to represent a description of a
+ctypesgen.descriptions contains classes to represent a description of a
 struct, union, enum, function, constant, variable, or macro. All the
 description classes are subclassed from an abstract base class, Description.
 The descriptions module also contains a class, DescriptionCollection, to hold
