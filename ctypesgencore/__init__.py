@@ -44,21 +44,23 @@ parser, processor, and printer modules use to pass information. They are:
 format.
 """
 
-__version__ = '0.0'
-VERSION = __version__
-
 __all__ = ["parser","processor","printer",
            "descriptions","ctypedescs","expressions",
-           "messages","options"]
+           "messages","options","version"]
 
 # Workhorse modules
 from . import parser
 from . import processor
 from . import printer_python
+from . import version
 try:
     from . import printer_json
 except ImportError:
     pass
+
+__version__ = version.VERSION.partition('-')[-1]
+VERSION = __version__
+
 
 # Modules describing internal format
 from . import descriptions
