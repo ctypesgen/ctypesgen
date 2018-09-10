@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 '''
 ctypesgencore.parser.ctypesparser contains a class, CtypesParser, which is a
 subclass of ctypesgencore.parser.cparser.CParser. CtypesParser overrides the
@@ -12,9 +10,9 @@ __docformat__ = 'restructuredtext'
 
 __all__ = ["CtypesParser"]
 
-from cparser import *
+from .cparser import *
 from ctypesgencore.ctypedescs import *
-from cdeclarations import *
+from .cdeclarations import *
 from ctypesgencore.expressions import *
 
 def make_enum_from_specifier(specifier):

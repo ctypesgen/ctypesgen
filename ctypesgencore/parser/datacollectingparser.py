@@ -7,7 +7,7 @@ After parsing is complete, a DescriptionCollection object can be retrieved by
 calling DataCollectingParser.data().
 """
 
-import ctypesparser
+from . import ctypesparser
 from ctypesgencore.descriptions import *
 from ctypesgencore.ctypedescs import *
 from ctypesgencore.expressions import *
@@ -23,7 +23,7 @@ class DataCollectingParser(ctypesparser.CtypesParser,
     data=p.data() #A dictionary of constants, enums, structs, functions, etc.
     """
     def __init__(self,headers,options):
-        ctypesparser.CtypesParser.__init__(self,options)
+        super(DataCollectingParser, self).__init__(options)
         self.headers=headers
         self.options=options
 
@@ -61,12 +61,12 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         fd, fname = mkstemp(suffix=".h")
         f = os.fdopen(fd, 'w')
         for header in self.options.other_headers:
-            print >>f, '#include <%s>' % header
+            f.write('#include <%s>\n' % header)
         for header in self.headers:
-            print >>f, '#include "%s"' % os.path.abspath(header)
+            f.write('#include "%s"\n' % os.path.abspath(header))
         f.flush()
         f.close()
-        ctypesparser.CtypesParser.parse(self, fname, None)
+        super(DataCollectingParser,self).parse(fname, 0)
         os.unlink(fname)
 
         for name, params, expr, (filename,lineno) in self.saved_macros:

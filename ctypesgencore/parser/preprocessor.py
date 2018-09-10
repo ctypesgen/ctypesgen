@@ -10,10 +10,11 @@ Reference is C99:
 
 __docformat__ = 'restructuredtext'
 
-import os, re, shlex, sys, tokenize, lex, yacc, traceback, subprocess
+import os, re, shlex, sys, tokenize, traceback, subprocess
 import ctypes
-from lex import TOKEN
-import pplexer
+from . import lex, yacc
+from .lex import TOKEN
+from . import pplexer
 
 # --------------------------------------------------------------------------
 # Lexers
@@ -187,9 +188,8 @@ class PreprocessorParser(object):
             self.cparser.handle_status("Saving preprocessed headers to %s." % \
                 self.options.save_preprocessed_headers)
             try:
-                f = file(self.options.save_preprocessed_headers, "w")
-                f.write(text)
-                f.close()
+                with open(self.options.save_preprocessed_headers, "w") as f:
+                    f.write(text)
             except IOError:
                 self.cparser.handle_error("Couldn't save headers.")
 

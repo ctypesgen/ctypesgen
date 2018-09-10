@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: us-ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
@@ -111,8 +111,15 @@ def main(givenargs):
         action='append', metavar='FILENAME',
         help='Add the contents of FILENAME to the end of the wrapper file.')
     op.add_option('', '--output-language', dest='output_language', metavar='LANGUAGE',
-        default='python',
-        help="Choose output language (`json' or `python' [default])")
+        default='py',
+        choices=('py', 'py36', 'py27', 'py25', 'json'),
+        help="Choose output language (`py'[default], `py36', `py27', `py25', or "
+             "`json').  The implementation for py36 does appear to be "
+             "compatible down to at least Python2.7.15.  py25 and py27 are in "
+             "any case _not_ compatible with >= Python3.  The default choice "
+             "(py) attempts to select `py36', `py27', or `py25' based on the "
+             "version of Python that runs this script."
+        )
 
     # Error options
     op.add_option('', "--all-errors", action="store_true", default=False,
@@ -142,7 +149,7 @@ def main(givenargs):
 
     # Check output language
     printer = None
-    if options.output_language == "python":
+    if options.output_language.startswith('py'):
         printer = ctypesgencore.printer_python.WrapperPrinter
     elif options.output_language == "json":
         printer = ctypesgencore.printer_json.WrapperPrinter

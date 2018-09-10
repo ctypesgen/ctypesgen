@@ -16,26 +16,29 @@ def path_to_local_file(name,known_local_module = test):
 THIS_DIR=os.path.dirname(__file__)
 PREAMBLE_PATH = os.path.join(THIS_DIR, 'preamble', '*.py')
 
-def get_preamble():
+def get_preamble(major=None, minor=None):
     """get the available preambles"""
     preambles = dict()
     for fp in glob.glob(PREAMBLE_PATH):
         m = re.search('preamble/(\d)_(\d).py$', fp)
         if not m: continue
         preambles[ (int(m.group(1)), int(m.group(2))) ] = fp
-    L = preambles.keys()
-    L.sort()
-    v = L[0]
-    for vi in L[1:]:
-      if vi > sys.version_info[:2]: break
-      v = vi
-    return preambles[vi]
+
+    if None not in (major, minor):
+        v = (int(major),int(minor))
+    else:
+        L = sorted(preambles.keys())
+        v = L[0]
+        for vi in L[1:]:
+          if vi > sys.version_info[:2]: break
+          v = vi
+    return preambles[v], v
 
 class WrapperPrinter:
     def __init__(self,outpath,options,data):
         status_message("Writing to %s." % (outpath or "stdout"))
 
-        self.file=outpath and file(outpath,"w") or sys.stdout
+        self.file=open(outpath,"w") if outpath else sys.stdout
         self.options=options
 
         if self.options.strip_build_path and \
@@ -43,13 +46,13 @@ class WrapperPrinter:
             self.options.strip_build_path += os.path.sep
 
         self.print_header()
-        print >>self.file
+        self.file.write('\n')
 
         self.print_preamble()
-        print >>self.file
+        self.file.write('\n')
 
         self.print_loader()
-        print >>self.file
+        self.file.write('\n')
 
         self.print_group(self.options.libraries,"libraries",self.print_library)
         self.print_group(self.options.modules,"modules",self.print_module)
@@ -68,36 +71,38 @@ class WrapperPrinter:
         for kind,desc in data.output_order:
             if desc.included:
                 method_table[kind](desc)
-                print >>self.file
+                self.file.write('\n')
 
         self.print_group(self.options.inserted_files,"inserted files",
                          self.insert_file)
 
+    def __del__(self):
+        self.file.close()
+
     def print_group(self,list,name,function):
         if list:
-            print >>self.file,"# Begin %s" % name
-            print >>self.file
+            self.file.write("# Begin %s\n" % name)
             for obj in list:
                 function(obj)
-            print >>self.file
-            print >>self.file,"# %d %s" % (len(list),name)
-            print >>self.file,"# End %s" % name
+            self.file.write('\n')
+            self.file.write("# %d %s\n" % (len(list),name))
+            self.file.write("# End %s\n" % name)
         else:
-            print >>self.file,"# No %s" % name
-        print >>self.file
+            self.file.write("# No %s\n" % name)
+        self.file.write('\n')
 
     def srcinfo(self,src):
         if src==None:
-            print >>self.file
+            self.file.write('\n')
         else:
             filename,lineno = src
             if filename in ("<built-in>","<command line>"):
-                print >>self.file, "# %s" % filename
+                self.file.write("# %s\n" % filename)
             else:
                 if self.options.strip_build_path and \
                   filename.startswith(self.options.strip_build_path):
                     filename = filename[len(self.options.strip_build_path):]
-                print >>self.file, "# %s: %s" % (filename, lineno)
+                self.file.write("# %s: %s\n" % (filename, lineno))
 
     def template_subs(self):
         template_subs={
@@ -106,7 +111,7 @@ class WrapperPrinter:
             'name': os.path.basename(self.options.headers[0])
         }
 
-        for opt,value in self.options.__dict__.iteritems():
+        for opt,value in self.options.__dict__.items():
             if type(value)==str:
                 template_subs[opt]=value
             elif isinstance(value,(list,tuple)):
@@ -122,14 +127,14 @@ class WrapperPrinter:
         if self.options.header_template:
             path = self.options.header_template
             try:
-                template_file = file(path,"r")
+                template_file = open(path,"r")
             except IOError:
                 error_message("Cannot load header template from file \"%s\" " \
                     " - using default template." % path, cls = 'missing-file')
 
         if not template_file:
             path = path_to_local_file("defaultheader.py")
-            template_file = file(path,"r")
+            template_file = open(path,"r")
 
         template_subs=self.template_subs()
         self.file.write(template_file.read() % template_subs)
@@ -137,63 +142,61 @@ class WrapperPrinter:
         template_file.close()
 
     def print_preamble(self):
-        path = get_preamble()
+        m = re.match('py((?P<major>[0-9])(?P<minor>[0-9]))?',
+                     self.options.output_language)
+        path, v = get_preamble(**m.groupdict())
 
-        print >>self.file, "# Begin preamble"
-        print >>self.file
-        preamble_file=file(path,"r")
+        self.file.write("# Begin preamble for Python v{}\n\n".format(v))
+        preamble_file=open(path,"r")
         self.file.write(preamble_file.read())
         preamble_file.close()
-        print >>self.file
-        print >>self.file, "# End preamble"
+        self.file.write("\n# End preamble\n")
 
     def print_loader(self):
-        print >>self.file, "_libs = {}"
-        print >>self.file, "_libdirs = %s" % self.options.compile_libdirs
-        print >>self.file
-        print >>self.file, "# Begin loader"
-        print >>self.file
+        self.file.write("_libs = {}\n")
+        self.file.write("_libdirs = %s\n\n" % self.options.compile_libdirs)
+        self.file.write("# Begin loader\n\n")
         path = path_to_local_file("libraryloader.py",
                                   ctypesgencore.libraryloader)
-        loader_file=file(path,"r")
+        loader_file=open(path,"r")
         self.file.write(loader_file.read())
         loader_file.close()
-        print >>self.file
-        print >>self.file, "# End loader"
-        print >>self.file
-        print >>self.file, "add_library_search_dirs([%s])" % \
-                ", ".join([repr(d) for d in self.options.runtime_libdirs])
+        self.file.write("\n# End loader\n\n")
+        self.file.write("add_library_search_dirs([%s])" % \
+                ", ".join([repr(d) for d in self.options.runtime_libdirs]))
+        self.file.write("\n")
 
     def print_library(self,library):
-        print >>self.file, '_libs["%s"] = load_library("%s")'%(library,library)
+        self.file.write('_libs["%s"] = load_library("%s")\n'%(library,library))
 
     def print_module(self,module):
-        print >>self.file, 'from %s import *' % name
+        self.file.write('from %s import *\n' % name)
 
     def print_constant(self,constant):
-        print >>self.file, '%s = %s' % \
-            (constant.name,constant.value.py_string(False)),
+        self.file.write('%s = %s' %
+            (constant.name,constant.value.py_string(False)))
         self.srcinfo(constant.src)
 
     def print_typedef(self,typedef):
-        print >>self.file, '%s = %s' % \
-            (typedef.name,typedef.ctype.py_string()),
+        self.file.write('%s = %s' %
+            (typedef.name,typedef.ctype.py_string()))
         self.srcinfo(typedef.src)
 
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {'union': 'Union', 'struct': 'Structure'}[struct.variety]
-        print >>self.file, 'class %s_%s(%s):' % \
-            (struct.variety, struct.tag, base)
-        print >>self.file, '    pass'
+        self.file.write(
+          'class %s_%s(%s):\n'
+          '    pass\n'
+          % (struct.variety, struct.tag, base))
 
     def print_struct_members(self, struct):
         if struct.opaque: return
 
         # is this supposed to be packed?
         if struct.packed:
-          print >>self.file, '{}_{}._pack_ = 1'.format(struct.variety,
-                                                       struct.tag)
+          self.file.write('{}_{}._pack_ = 1\n'
+                          .format(struct.variety, struct.tag))
 
         # handle unnamed fields.
         unnamed_fields = []
@@ -214,29 +217,29 @@ class WrapperPrinter:
                   unnamed_fields.append(name)
                 struct.members[mi] = mem
 
-        print >>self.file, '%s_%s.__slots__ = [' % (struct.variety, struct.tag)
+        self.file.write('%s_%s.__slots__ = [\n' % (struct.variety, struct.tag))
         for name,ctype in struct.members:
-            print >>self.file, "    '%s'," % name
-        print >>self.file, ']'
+            self.file.write("    '%s',\n" % name)
+        self.file.write(']\n')
 
         if len(unnamed_fields) > 0:
-            print >>self.file, '%s_%s._anonymous_ = [' % (struct.variety,
-                    struct.tag)
+            self.file.write(
+              '%s_%s._anonymous_ = [\n' % (struct.variety, struct.tag))
             for name in unnamed_fields:
-                print >>self.file, "    '%s'," % name
-            print >>self.file, ']'
+                self.file.write("    '%s',\n" % name)
+            self.file.write(']\n')
 
-        print >>self.file, '%s_%s._fields_ = [' % (struct.variety, struct.tag)
+        self.file.write('%s_%s._fields_ = [\n' % (struct.variety, struct.tag))
         for name,ctype in struct.members:
             if isinstance(ctype,CtypesBitfield):
-                print >>self.file, "    ('%s', %s, %s)," % \
-                    (name, ctype.py_string(), ctype.bitfield.py_string(False))
+                self.file.write("    ('%s', %s, %s),\n" %
+                    (name, ctype.py_string(), ctype.bitfield.py_string(False)))
             else:
-                print >>self.file, "    ('%s', %s)," % (name, ctype.py_string())
-        print >>self.file, ']'
+                self.file.write("    ('%s', %s),\n" % (name, ctype.py_string()))
+        self.file.write(']\n')
 
     def print_enum(self,enum):
-        print >>self.file, 'enum_%s = c_int' % enum.tag,
+        self.file.write('enum_%s = c_int' % enum.tag)
         self.srcinfo(enum.src)
         # Values of enumerator are output as constants.
 
@@ -252,90 +255,109 @@ class WrapperPrinter:
         # If we know what library the function lives in, look there.
         # Otherwise, check all the libraries.
         if function.source_library:
-            print >>self.file, "if hasattr(_libs[%r], %r):" % \
-                (function.source_library,function.c_name())
-            print >>self.file, "    %s = _libs[%r].%s" % \
-               (function.py_name(),function.source_library,function.c_name())
+            self.file.write(
+              "if hasattr(_libs['{L}'], '{CN}'):\n"
+              "    {PN} = _libs['{L}'].{CN}\n"
+              .format(L = function.source_library,
+                      CN = function.c_name(),
+                      PN = function.py_name())
+            )
         else:
-            print >>self.file, "for _lib in _libs.itervalues():"
-            print >>self.file, "    if not hasattr(_lib, %r):" % function.c_name()
-            print >>self.file, "        continue"
-            print >>self.file, "    %s = _lib.%s" % \
-               (function.py_name(),function.c_name())
+            self.file.write(
+              "for _lib in _libs.values():\n"
+              "    if not hasattr(_lib, '{CN}'):\n"
+              "        continue\n"
+              "    {PN} = _lib.{CN}\n"
+              .format(CN=function.c_name(), PN=function.py_name())
+            )
 
         # Argument types
-        print >>self.file, "    %s.argtypes = [%s]" % (function.py_name(),
-            ', '.join([a.py_string() for a in function.argtypes]))
+        self.file.write("    %s.argtypes = [%s]\n"
+            % (function.py_name(),
+               ', '.join([a.py_string() for a in function.argtypes])))
 
         # Return value
         if function.restype.py_string() == "String":
-            print >>self.file, "    if sizeof(c_int) == sizeof(c_void_p):"
-            print >>self.file, "        %s.restype = ReturnString" % \
-                (function.py_name())
-            print >>self.file, "    else:"
-            print >>self.file, "        %s.restype = %s" % \
-                (function.py_name(),function.restype.py_string())
-            print >>self.file, "        %s.errcheck = ReturnString" % \
-                (function.py_name())
+            self.file.write(
+              "    if sizeof(c_int) == sizeof(c_void_p):\n"
+              "        {PN}.restype = ReturnString\n"
+              "    else:\n"
+              "        {PN}.restype = {RT}\n"
+              "        {PN}.errcheck = ReturnString\n"
+              .format(PN = function.py_name(),
+                      RT = function.restype.py_string())
+            )
         else:
-            print >>self.file, "    %s.restype = %s" % \
-                (function.py_name(),function.restype.py_string())
+            self.file.write("    %s.restype = %s\n" % \
+                (function.py_name(),function.restype.py_string()))
             if function.errcheck:
-                print >>self.file, "    %s.errcheck = %s" % \
-                    (function.py_name(),function.errcheck.py_string())
+                self.file.write("    %s.errcheck = %s\n" % \
+                    (function.py_name(),function.errcheck.py_string()))
 
         if not function.source_library:
-            print >>self.file, "    break"
+            self.file.write("    break\n")
 
     def print_variadic_function(self,function):
         self.srcinfo(function.src)
         if function.source_library:
-            print >>self.file, "if hasattr(_libs[%r], %r):" % \
-                (function.source_library,function.c_name())
-            print >>self.file, "    _func = _libs[%r].%s" % \
-                (function.source_library,function.c_name())
-            print >>self.file, "    _restype = %s" % function.restype.py_string()
-            print >>self.file, "    _errcheck = %s" % \
-                (function.py_name(),function.errcheck.py_string())
-            print >>self.file, "    _argtypes = [%s]" % \
-                ', '.join([a.py_string() for a in function.argtypes])
-            print >>self.file, "    %s = _variadic_function(_func,_restype,_argtypes,_errcheck)" % \
-                function.py_name()
+            self.file.write(
+              "if hasattr(_libs['{L}'], '{CN}'):\n"
+              "    _func = _libs['{L}'].{CN}\n"
+              "    _restype = {RT}\n"
+              "    _errcheck = {E}\n"
+              "    _argtypes = [{t0}]\n"
+              "    {PN} = _variadic_function(_func,_restype,_argtypes,_errcheck)\n"
+              .format(
+                  L = function.source_library,
+                  CN = function.c_name(),
+                  RT = function.restype.py_string(),
+                  E  = function.errcheck.py_string(),
+                  t0 = ', '.join([a.py_string() for a in function.argtypes]),
+                  PN = function.py_name())
+            )
         else:
-            print >>self.file, "for _lib in _libs.values():"
-            print >>self.file, "    if hasattr(_lib, %r):" % function.c_name()
-            print >>self.file, "        _func = _lib.%s" % \
-                (function.c_name())
-            print >>self.file, "        _restype = %s" % function.restype.py_string()
-            print >>self.file, "    _errcheck = %s" % \
-                (function.py_name(),function.errcheck.py_string())
-            print >>self.file, "        _argtypes = [%s]" % \
-                ', '.join([a.py_string() for a in function.argtypes])
-            print >>self.file, "        %s = _variadic_function(_func,_restype,_argtypes,_errcheck)" % \
-                function.py_name()
+            self.file.write(
+              "for _lib in _libs.values():\n"
+              "    if hasattr(_lib, '{CN}'):\n"
+              "        _func = _lib.{CN}\n"
+              "        _restype = {RT}\n"
+              "        _errcheck = {E}\n"
+              "        _argtypes = [{t0}]\n"
+              "        {PN} = _variadic_function(_func,_restype,_argtypes,_errcheck)\n"
+              .format(
+                  CN = function.c_name(),
+                  RT = function.restype.py_string(),
+                  E  = function.errcheck.py_string(),
+                  t0 = ', '.join([a.py_string() for a in function.argtypes]),
+                  PN = function.py_name())
+            )
 
 
     def print_variable(self, variable):
         self.srcinfo(variable.src)
         if variable.source_library:
-            print >>self.file, 'try:'
-            print >>self.file, '    %s = (%s).in_dll(_libs[%r], %r)' % \
-                (variable.py_name(),
-                 variable.ctype.py_string(),
-                 variable.source_library,
-                 variable.c_name())
-            print >>self.file, 'except:'
-            print >>self.file, '    pass'
+            self.file.write(
+              'try:\n'
+              '    {PN} = ({PS}).in_dll(_libs["{L}"], "{CN}")\n'
+              'except:\n'
+              '    pass\n'
+              .format(PN = variable.py_name(),
+                      PS = variable.ctype.py_string(),
+                      L  = variable.source_library,
+                      CN = variable.c_name())
+            )
         else:
-            print >>self.file, "for _lib in _libs.values():"
-            print >>self.file, '    try:'
-            print >>self.file, '        %s = (%s).in_dll(_lib, %r)' % \
-                (variable.py_name(),
-                 variable.ctype.py_string(),
-                 variable.c_name())
-            print >>self.file, "        break"
-            print >>self.file, '    except:'
-            print >>self.file, '        pass'
+            self.file.write(
+              "for _lib in _libs.values():\n"
+              '    try:\n'
+              '        {PN} = ({PS}).in_dll(_lib, "{CN}")\n'
+              "        break\n"
+              '    except:\n'
+              '        pass\n'
+              .format(PN = variable.py_name(),
+                      PS = variable.ctype.py_string(),
+                      CN = variable.c_name())
+            )
 
     def print_macro(self, macro):
         if macro.params:
@@ -348,28 +370,36 @@ class WrapperPrinter:
         # We want to contain the failures as much as possible.
         # Hence the try statement.
         self.srcinfo(macro.src)
-        print >>self.file, "try:"
-        print >>self.file, "    %s = %s" % (macro.name,macro.expr.py_string(True))
-        print >>self.file, "except:"
-        print >>self.file, "    pass"
+        self.file.write(
+          "try:\n"
+          "    {MN} = {ME}\n"
+          "except:\n"
+          "    pass\n"
+          .format(MN = macro.name, ME = macro.expr.py_string(True))
+        )
 
     def print_func_macro(self, macro):
         self.srcinfo(macro.src)
-        print >>self.file, "def %s(%s):" % \
-            (macro.name,", ".join(macro.params))
-        print >>self.file, "    return %s" % macro.expr.py_string(True)
+        self.file.write(
+          "def {MN}({MP}):\n"
+          "    return {ME}\n"
+          .format(MN = macro.name,
+                  MP = ", ".join(macro.params),
+                  ME = macro.expr.py_string(True))
+        )
 
     def insert_file(self,filename):
         try:
-            inserted_file = file(filename,"r")
+            inserted_file = open(filename,"r")
         except IOError:
             error_message("Cannot open file \"%s\". Skipped it." % filename,
                           cls = 'missing-file')
 
-        print >>self.file,"# Begin \"%s\"" % filename
-        print >>self.file
-        self.file.write(inserted_file.read())
-        print >>self.file
-        print >>self.file,"# End \"%s\"" % filename
+        self.file.write(
+          '# Begin "{filename}"\n'
+          '\n{file}\n'
+          '# End "{filename}"\n'
+          .format(filename = filename, file = inserted_file.read())
+        )
 
         inserted_file.close()

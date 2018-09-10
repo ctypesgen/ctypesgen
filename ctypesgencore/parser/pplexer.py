@@ -10,9 +10,9 @@ Reference is C99:
 
 __docformat__ = 'restructuredtext'
 
-import os, re, shlex, sys, tokenize, lex, yacc, traceback
+import os, re, shlex, sys, tokenize, traceback
 import ctypes
-from lex import TOKEN
+from .lex import TOKEN
 
 tokens = (
     'HEADER_NAME', 'IDENTIFIER', 'PP_NUMBER', 'CHARACTER_CONSTANT',
@@ -36,7 +36,8 @@ subs = {
     'L': '[a-zA-Z_]',
     'H': '[a-fA-F0-9]',
     'E': '[Ee][+-]?\s*{D}+',
-    'FS': '[FflL]',
+    # new float suffixes supported in gcc 7
+    'FS': '([FflL]|D[FDL]|[fF]\d+x?)',
     'IS': '[uUlL]*',
 }
 # Helper: substitute {foo} with subs[foo] in string (makes regexes more lexy)
@@ -57,7 +58,7 @@ class StringLiteral(str):
     def __new__(cls, value):
         assert value[0] == '"' and value[-1] == '"'
         # Unescaping probably not perfect but close enough.
-        value = value[1:-1].decode('string_escape')
+        value = value[1:-1] # .decode('string_escape')
         return str.__new__(cls, value)
 
 # --------------------------------------------------------------------------
@@ -119,7 +120,7 @@ punctuators = {
 
 def punctuator_regex(punctuators):
     punctuator_regexes = [v[0] for v in punctuators.values()]
-    punctuator_regexes.sort(lambda a, b: -cmp(len(a), len(b)))
+    punctuator_regexes.sort(key= len, reverse=True)
     return '(%s)' % '|'.join(punctuator_regexes)
 
 # Process line-number directives from the preprocessor
@@ -184,10 +185,10 @@ def t_ANY_float(t):
     exp = m.group("exp")
     suf = m.group("suf")
 
-    if dp or exp or (suf and suf in ("Ff")):
+    if dp or exp or (suf and re.match(subs['FS'] + '$', suf)):
         s = m.group(0)
         if suf:
-            s = s[:-1]
+            s = s[:-len(suf)]
         # Attach a prefix so the parser can figure out if should become an
         # integer, float, or long
         t.value = "f" + s
@@ -212,10 +213,10 @@ def t_ANY_int(t):
     g1 = m.group(2)
     if g1.startswith("0x"):
         # Convert base from hexadecimal
-        g1 = str(long(g1[2:],16))
+        g1 = str(int(g1[2:],16))
     elif g1[0]=="0":
         # Convert base from octal
-        g1 = str(long(g1,8))
+        g1 = str(int(g1,8))
 
     t.value = prefix + g1
 

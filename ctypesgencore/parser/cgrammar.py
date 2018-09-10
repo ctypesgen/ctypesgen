@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 '''This is a yacc grammar for C.
 
@@ -13,6 +13,18 @@ Reference is C99:
 
 __docformat__ = 'restructuredtext'
 
+if __name__ == '__main__':
+    # NOTE if this file is modified, run to generate a new parsetab.py
+    #   E.g.:
+    #       env PYTHONPATH=. python ctypesgencore/parser/cgrammar.py
+    # new_parsetab.py is generated in the current directory and needs to be
+    # manually copied (after inspection) to ctypesgencore/parser/parsetab.py
+    import sys, os
+    sys.path.insert(0, os.path.join(os.path.pardir, os.path.pardir))
+    from ctypesgencore.parser.cgrammar import main
+    main()
+    sys.exit()
+
 import operator
 import os.path
 import re
@@ -20,11 +32,9 @@ import sys
 import time
 import warnings
 
-import preprocessor
-import yacc
-import ctypesparser
+from . import yacc
 import ctypesgencore.expressions as expressions
-import cdeclarations
+from . import cdeclarations
 
 tokens = (
     'PP_DEFINE', 'PP_DEFINE_NAME', 'PP_DEFINE_MACRO_NAME', 'PP_MACRO_PARAM',
@@ -103,7 +113,7 @@ def p_constant(p):
         if prefix=="i":
             value = int(constant)
         elif prefix=="l":
-            value = long(constant)
+            value = int(constant)
         else:
             value = float(constant)
 
@@ -1138,10 +1148,5 @@ def p_error(t):
     # parsing continues (synchronisation).
 
 
-if __name__ == '__main__':
-    # NOTE if this file is modified, run to generate a new parsetab.py
-    #   E.g.:
-    #       env PYTHONPATH=. python ctypesgencore/parser/cgrammar.py
-    # new_parsetab.py is generated in the current directory and needs to be
-    # manually copied (after inspection) to ctypesgencore/parser/parsetab.py
+def main():
     yacc.yacc(tabmodule='new_parsetab')

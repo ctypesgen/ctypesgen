@@ -52,21 +52,21 @@ __all__ = ["parser","processor","printer",
            "messages","options"]
 
 # Workhorse modules
-import parser
-import processor
-import printer_python
+from . import parser
+from . import processor
+from . import printer_python
 try:
-    import printer_json
+    from . import printer_json
 except ImportError:
     pass
 
 # Modules describing internal format
-import descriptions
-import ctypedescs
-import expressions
+from . import descriptions
+from . import ctypedescs
+from . import expressions
 
 # Helper modules
-import messages
-import options
+from . import messages
+from . import options
 
 printer = printer_python  # Default the printer to generating Python

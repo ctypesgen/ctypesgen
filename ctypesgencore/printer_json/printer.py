@@ -22,7 +22,7 @@ def todict(obj, classkey="Klass"):
         return [todict(v, classkey) for v in obj]
     elif hasattr(obj, "__dict__"):
         data = dict([(key, todict(value, classkey))
-            for key, value in obj.__dict__.iteritems()
+            for key, value in obj.__dict__.items()
             if not callable(value) and not key.startswith('_')])
         if classkey is not None and hasattr(obj, "__class__"):
             data[classkey] = obj.__class__.__name__
@@ -34,7 +34,7 @@ class WrapperPrinter:
     def __init__(self,outpath,options,data):
         status_message("Writing to %s." % (outpath or "stdout"))
 
-        self.file=outpath and file(outpath,"w") or sys.stdout
+        self.file=open(outpath,"w") if outpath else sys.stdout
         self.options=options
 
         if self.options.strip_build_path and \
@@ -59,7 +59,8 @@ class WrapperPrinter:
             if desc.included:
                 item = method_table[kind](desc)
                 if item: res.append(item)
-        print >>self.file, json.dumps(res, sort_keys=True, indent=4)
+        self.file.write(json.dumps(res, sort_keys=True, indent=4))
+        self.file.write('\n')
 
     def print_group(self,list,name,function):
         if list:

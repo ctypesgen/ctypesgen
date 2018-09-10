@@ -31,7 +31,7 @@ default_values={
     "include_macros": True,
     "libraries": [],
     "strip_build_path": None,
-    "output_language": "python",
+    "output_language": "py",
     "no_stddef_types": False,
     "no_gnu_types": False,
     "no_python_types": False,

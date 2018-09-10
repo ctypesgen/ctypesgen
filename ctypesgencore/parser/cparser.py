@@ -16,10 +16,10 @@ import sys
 import time
 import warnings
 
-import preprocessor
-import yacc
-import cgrammar
-import cdeclarations
+from . import preprocessor
+from . import yacc
+from . import cgrammar
+from . import cdeclarations
 
 # --------------------------------------------------------------------------
 # Lexer
@@ -128,7 +128,7 @@ class CParser(object):
         The parser will try to recover from errors by synchronising at the
         next semicolon.
         '''
-        print >> sys.stderr, '%s:%s %s' % (filename, lineno, message)
+        sys.stderr.write('%s:%s %s\n' % (filename, lineno, message))
 
     def handle_pp_error(self, message):
         '''The C preprocessor emitted an error.
@@ -136,14 +136,14 @@ class CParser(object):
         The default implementatin prints the error to stderr. If processing
         can continue, it will.
         '''
-        print >> sys.stderr, 'Preprocessor:', message
+        sys.stderr.write('Preprocessor: {}\n'.format(message))
 
     def handle_status(self, message):
         '''Progress information.
 
         The default implementationg prints message to stderr.
         '''
-        print >> sys.stderr, message
+        sys.stderr.write('{}\n'.format(message))
 
     def handle_define(self, name, params, value, filename, lineno):
         '''#define `name` `value`
@@ -198,13 +198,13 @@ class DebugCParser(CParser):
     '''
 
     def handle_define(self, name, value, filename, lineno):
-        print '#define name=%r, value=%r' % (name, value)
+        print('#define name=%r, value=%r' % (name, value))
 
     def handle_define_constant(self, name, value, filename, lineno):
-        print '#define constant name=%r, value=%r' % (name, value)
+        print('#define constant name=%r, value=%r' % (name, value))
 
     def handle_declaration(self, declaration, filename, lineno):
-        print declaration
+        print(declaration)
 
     def get_ctypes_type(self, typ, declarator):
         return typ
@@ -216,7 +216,7 @@ class DebugCParser(CParser):
         else:
             original_string = "#define %s %s" % \
                 (name, " ".join(value))
-        print original_string
+        print(original_string)
 
 if __name__ == '__main__':
     DebugCParser().parse(sys.argv[1], debug=True)

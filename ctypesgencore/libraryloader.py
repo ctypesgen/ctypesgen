@@ -68,7 +68,7 @@ class LibraryLoader(object):
                 return ctypes.CDLL(path, ctypes.RTLD_GLOBAL)
             else:
                 return ctypes.cdll.LoadLibrary(path)
-        except OSError,e:
+        except OSError as e:
             raise ImportError(e)
 
     def getpaths(self,libname):
@@ -165,7 +165,9 @@ class PosixLibraryLoader(LibraryLoader):
         directories.append(".")
         directories.append(os.path.dirname(__file__))
 
-        try: directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
+        try:
+            with open('/etc/ld.so.conf') as f:
+                directories.extend([dir.strip() for dir in f])
         except IOError: pass
 
         unix_lib_dirs_list = ['/lib', '/usr/lib', '/lib64', '/usr/lib64']
