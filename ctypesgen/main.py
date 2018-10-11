@@ -116,12 +116,12 @@ def main(givenargs = None):
         help='Add the contents of FILENAME to the end of the wrapper file.')
     op.add_option('', '--output-language', dest='output_language', metavar='LANGUAGE',
         default='py',
-        choices=('py', 'py36', 'py27', 'py25', 'json'),
-        help="Choose output language (`py'[default], `py36', `py27', `py25', or "
-             "`json').  The implementation for py36 does appear to be "
+        choices=('py', 'py32', 'py27', 'py25', 'json'),
+        help="Choose output language (`py'[default], `py32', `py27', `py25', or "
+             "`json').  The implementation for py32 does appear to be "
              "compatible down to at least Python2.7.15.  py25 and py27 are in "
              "any case _not_ compatible with >= Python3.  The default choice "
-             "(py) attempts to select `py36', `py27', or `py25' based on the "
+             "(py) attempts to select `py32', `py27', or `py25' based on the "
              "version of Python that runs this script."
         )
 
