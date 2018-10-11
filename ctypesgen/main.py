@@ -80,6 +80,10 @@ def main(givenargs = None):
     op.add_option('', '--save-preprocessed-headers', metavar='FILENAME',
         dest='save_preprocessed_headers', default=None,
         help='Save the preprocessed headers to the specified FILENAME')
+    op.add_option('', '--optimize-lexer', dest='optimize_lexer',
+        action='store_true', default=False,
+        help='Run the lexer in optimized mode.  This mode requires write '
+             'access to lextab.py file stored within the ctypesgen package.')
 
     # Processor options
     op.add_option('-a', '--all-headers', action='store_true',
