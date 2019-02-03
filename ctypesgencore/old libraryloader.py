@@ -39,9 +39,9 @@ import sys
 import ctypes
 import ctypes.util
 
-
 _debug_lib = False
 _debug_trace = False
+
 
 class _TraceFunction(object):
     def __init__(self, func):
@@ -59,21 +59,24 @@ class _TraceFunction(object):
     def __setattr__(self, name, value):
         setattr(self._func, name, value)
 
+
 class _TraceLibrary(object):
     def __init__(self, library):
         self._library = library
-        print library
+        print
+        library
 
     def __getattr__(self, name):
         func = getattr(self._library, name)
         f = _TraceFunction(func)
         return f
 
+
 class _WindowsLibrary(object):
     def __init__(self, path):
         self._libraries = [
-          ctypes.cdll.LoadLibrary(path),
-          ctypes.windll.LoadLibrary(path)
+            ctypes.cdll.LoadLibrary(path),
+            ctypes.windll.LoadLibrary(path)
         ]
 
     def __getattr__(self, name):
@@ -85,7 +88,6 @@ class _WindowsLibrary(object):
             except AttributeError:
                 if i > 0:
                     raise
-
 
 
 class LibraryLoader(object):
@@ -126,11 +128,12 @@ class LibraryLoader(object):
                     else:
                         lib = ctypes.cdll.LoadLibrary(path)
                     if _debug_lib:
-                        print path
+                        print
+                        path
                     if _debug_trace:
                         lib = _TraceLibrary(lib)
                     return lib
-                except OSError,e:
+                except OSError, e:
                     pass
         raise ImportError('Library "%s" not found.' % names[0])
 
@@ -142,6 +145,7 @@ class LibraryLoader(object):
 
     def load_framework(self, path):
         raise RuntimeError("Can't load framework on this platform.")
+
 
 class MachOLibraryLoader(LibraryLoader):
     def __init__(self):
@@ -167,7 +171,8 @@ class MachOLibraryLoader(LibraryLoader):
     def find_library(self, path):
         '''Implements the dylib search as specified in Apple documentation:
 
-        http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries/Articles/DynamicLibraryUsageGuidelines.html
+        http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries
+        /Articles/DynamicLibraryUsageGuidelines.html
 
         Before commencing the standard search, the method first checks
         the bundle's ``Frameworks`` directory if the application is running
@@ -187,22 +192,22 @@ class MachOLibraryLoader(LibraryLoader):
         if '/' in path:
             search_path.extend(
                 [os.path.join(p, libname) \
-                    for p in self.dyld_library_path])
+                 for p in self.dyld_library_path])
             search_path.append(path)
             search_path.extend(
                 [os.path.join(p, libname) \
-                    for p in self.dyld_fallback_library_path])
+                 for p in self.dyld_fallback_library_path])
         else:
             search_path.extend(
                 [os.path.join(p, libname) \
-                    for p in self.ld_library_path])
+                 for p in self.ld_library_path])
             search_path.extend(
                 [os.path.join(p, libname) \
-                    for p in self.dyld_library_path])
+                 for p in self.dyld_library_path])
             search_path.append(path)
             search_path.extend(
                 [os.path.join(p, libname) \
-                    for p in self.dyld_fallback_library_path])
+                 for p in self.dyld_fallback_library_path])
 
         for path in search_path:
             if os.path.exists(path):
@@ -213,7 +218,8 @@ class MachOLibraryLoader(LibraryLoader):
     def find_framework(self, path):
         '''Implement runtime framework search as described by:
 
-        http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts/FrameworkBinding.html
+        http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts
+        /FrameworkBinding.html
         '''
 
         # e.g. path == '/System/Library/Frameworks/OpenGL.framework'
@@ -238,12 +244,14 @@ class MachOLibraryLoader(LibraryLoader):
         if realpath:
             lib = ctypes.cdll.LoadLibrary(realpath)
             if _debug_lib:
-                print realpath
+                print
+                realpath
             if _debug_trace:
                 lib = _TraceLibrary(lib)
             return lib
 
         raise ImportError("Can't find framework %s." % path)
+
 
 class LinuxLibraryLoader(LibraryLoader):
     _ld_so_cache = None
@@ -301,6 +309,7 @@ class LinuxLibraryLoader(LibraryLoader):
             self._create_ld_so_cache()
 
         return self._ld_so_cache.get(path)
+
 
 if sys.platform == 'darwin':
     loader = MachOLibraryLoader()

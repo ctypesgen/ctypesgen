@@ -21,6 +21,7 @@ import yacc
 import cgrammar
 import cdeclarations
 
+
 # --------------------------------------------------------------------------
 # Lexer
 # --------------------------------------------------------------------------
@@ -57,8 +58,8 @@ class CLexer(object):
             elif t.type == 'IDENTIFIER' and t.value in cgrammar.keywords:
                 t.type = t.value.upper()
             elif t.type == 'IDENTIFIER' and t.value in self.type_names:
-                if (self.pos < 2 or self.tokens[self.pos-2].type not in
-                    ('ENUM', 'STRUCT', 'UNION')):
+                if (self.pos < 2 or self.tokens[self.pos - 2].type not in
+                        ('ENUM', 'STRUCT', 'UNION')):
                     t.type = 'TYPE_NAME'
 
             t.lexer = self
@@ -66,6 +67,7 @@ class CLexer(object):
 
             return t
         return None
+
 
 # --------------------------------------------------------------------------
 # Parser
@@ -77,15 +79,16 @@ class CParser(object):
     Subclass and override the handle_* methods.  Call `parse` with a string
     to parse.
     '''
+
     def __init__(self, options):
-        self.preprocessor_parser = preprocessor.PreprocessorParser(options,self)
+        self.preprocessor_parser = preprocessor.PreprocessorParser(options, self)
         self.parser = yacc.Parser()
-        prototype = yacc.yacc(method        = 'LALR',
-                              debug         = False,
-                              module        = cgrammar,
-                              write_tables  = True,
-                              outputdir     = os.path.dirname(__file__),
-                              optimize      = True)
+        prototype = yacc.yacc(method='LALR',
+                              debug=False,
+                              module=cgrammar,
+                              write_tables=True,
+                              outputdir=os.path.dirname(__file__),
+                              optimize=True)
 
         # If yacc is reading tables from a file, then it won't find the error
         # function... need to set it manually
@@ -190,19 +193,24 @@ class CParser(object):
         '''
         pass
 
+
 class DebugCParser(CParser):
     '''A convenience class that prints each invocation of a handle_* method to
     stdout.
     '''
 
     def handle_define(self, name, value, filename, lineno):
-        print '#define name=%r, value=%r' % (name, value)
+        print
+        '#define name=%r, value=%r' % (name, value)
 
     def handle_define_constant(self, name, value, filename, lineno):
-        print '#define constant name=%r, value=%r' % (name, value)
+        print
+        '#define constant name=%r, value=%r' % (name, value)
 
     def handle_declaration(self, declaration, filename, lineno):
-        print declaration
+        print
+        declaration
+
 
 if __name__ == '__main__':
     DebugCParser().parse(sys.argv[1], debug=True)

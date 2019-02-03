@@ -23,7 +23,7 @@ Warning classes are:
 import sys
 import logging
 
-__all__ = ["error_message","warning_message","status_message"]
+__all__ = ["error_message", "warning_message", "status_message"]
 
 log = logging.getLogger('ctypesgen')
 ch = logging.StreamHandler()  # use stdio
@@ -34,11 +34,13 @@ log.addHandler(ch)
 log.setLevel(logging.INFO)  # default level that ctypesgen was using with original version
 
 
-def error_message(msg,cls=None):
+def error_message(msg, cls=None):
     log.error('%s', msg)
 
-def warning_message(msg,cls=None):
+
+def warning_message(msg, cls=None):
     log.warn('%s', msg)
+
 
 def status_message(msg):
     log.info('Status: %s', msg)

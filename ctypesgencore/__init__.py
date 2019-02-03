@@ -47,14 +47,15 @@ format.
 __version__ = '0.0'
 VERSION = __version__
 
-__all__ = ["parser","processor","printer",
-           "descriptions","ctypedescs","expressions",
-           "messages","options"]
+__all__ = ["parser", "processor", "printer",
+           "descriptions", "ctypedescs", "expressions",
+           "messages", "options"]
 
 # Workhorse modules
 import parser
 import processor
 import printer_python
+
 try:
     import printer_json
 except ImportError:

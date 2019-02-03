@@ -5,14 +5,17 @@ from ctypesgencore.descriptions import *
 from ctypesgencore.ctypedescs import *
 from ctypesgencore.messages import *
 
-import ctypesgencore.libraryloader # So we can get the path to it
-import test # So we can find the path to local files in the printer package
+import ctypesgencore.libraryloader  # So we can get the path to it
+import test  # So we can find the path to local files in the printer package
 
-def path_to_local_file(name,known_local_module = test):
-    basedir=os.path.dirname(known_local_module.__file__)
-    return os.path.join(basedir,name)
 
-# From http://stackoverflow.com/questions/1036409/recursively-convert-python-object-graph-to-dictionary
+def path_to_local_file(name, known_local_module=test):
+    basedir = os.path.dirname(known_local_module.__file__)
+    return os.path.join(basedir, name)
+
+
+# From http://stackoverflow.com/questions/1036409/recursively-convert-python-object-graph-to
+# -dictionary
 def todict(obj, classkey="Klass"):
     if isinstance(obj, dict):
         for k in obj.keys():
@@ -22,26 +25,27 @@ def todict(obj, classkey="Klass"):
         return [todict(v, classkey) for v in obj]
     elif hasattr(obj, "__dict__"):
         data = dict([(key, todict(value, classkey))
-            for key, value in obj.__dict__.iteritems()
-            if not callable(value) and not key.startswith('_')])
+                     for key, value in obj.__dict__.iteritems()
+                     if not callable(value) and not key.startswith('_')])
         if classkey is not None and hasattr(obj, "__class__"):
             data[classkey] = obj.__class__.__name__
         return data
     else:
         return obj
 
+
 class WrapperPrinter:
-    def __init__(self,outpath,options,data):
+    def __init__(self, outpath, options, data):
         status_message("Writing to %s." % (outpath or "stdout"))
 
-        self.file=outpath and file(outpath,"w") or sys.stdout
-        self.options=options
+        self.file = outpath and file(outpath, "w") or sys.stdout
+        self.options = options
 
         if self.options.strip_build_path and \
-          self.options.strip_build_path[-1] != os.path.sep:
+                self.options.strip_build_path[-1] != os.path.sep:
             self.options.strip_build_path += os.path.sep
 
-        self.print_group(self.options.libraries,"libraries",self.print_library)
+        self.print_group(self.options.libraries, "libraries", self.print_library)
 
         method_table = {
             'function': self.print_function,
@@ -55,26 +59,26 @@ class WrapperPrinter:
         }
 
         res = []
-        for kind,desc in data.output_order:
+        for kind, desc in data.output_order:
             if desc.included:
                 item = method_table[kind](desc)
                 if item: res.append(item)
-        print >>self.file, json.dumps(res, sort_keys=True, indent=4)
+        print >> self.file, json.dumps(res, sort_keys=True, indent=4)
 
-    def print_group(self,list,name,function):
+    def print_group(self, list, name, function):
         if list:
             return [function(obj) for obj in list]
 
-    def print_library(self,library):
+    def print_library(self, library):
         return {'load_library': library}
 
-    def print_constant(self,constant):
+    def print_constant(self, constant):
         return {'type': 'constant',
                 'name': constant.name,
                 'value': constant.value.py_string(False),
                 }
 
-    def print_typedef(self,typedef):
+    def print_typedef(self, typedef):
         return {'type': 'typedef',
                 'name': typedef.name,
                 'ctype': todict(typedef.ctype),
@@ -98,10 +102,10 @@ class WrapperPrinter:
     def print_struct_members(self, struct):
         pass
 
-    def print_enum(self,enum):
+    def print_enum(self, enum):
         res = {'type': 'enum',
-                'name': enum.tag,
-                }
+               'name': enum.tag,
+               }
 
         if not enum.opaque:
             res['fields'] = []

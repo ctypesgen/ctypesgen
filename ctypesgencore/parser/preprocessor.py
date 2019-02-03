@@ -15,6 +15,7 @@ import ctypes
 from lex import TOKEN
 import pplexer
 
+
 # --------------------------------------------------------------------------
 # Lexers
 # --------------------------------------------------------------------------
@@ -61,6 +62,7 @@ class PreprocessorLexer(lex.Lexer):
 
         return result
 
+
 class TokenListLexer(object):
     def __init__(self, tokens):
         self.tokens = tokens
@@ -74,6 +76,7 @@ class TokenListLexer(object):
         else:
             return None
 
+
 def symbol_to_token(sym):
     if isinstance(sym, yacc.YaccSymbol):
         return sym.value
@@ -81,6 +84,7 @@ def symbol_to_token(sym):
         return sym
     else:
         assert False, 'Not a symbol: %r' % sym
+
 
 def create_token(type, value, production=None):
     '''Create a token of type and value, at the position where 'production'
@@ -97,12 +101,13 @@ def create_token(type, value, production=None):
         t.filename = '<builtin>'
     return t
 
+
 # --------------------------------------------------------------------------
 # Grammars
 # --------------------------------------------------------------------------
 
 class PreprocessorParser(object):
-    def __init__(self,options,cparser):
+    def __init__(self, options, cparser):
         self.defines = ["inline=", "__inline__=", "__extension__=",
                         "__const=const", "__asm__(x)=",
                         "__asm(x)=", "CTYPESGEN=1"]
@@ -123,7 +128,7 @@ class PreprocessorParser(object):
                              module=pplexer)
 
         self.options = options
-        self.cparser = cparser # An instance of CParser
+        self.cparser = cparser  # An instance of CParser
 
     def parse(self, filename):
         """Parse a file and save its output"""
@@ -145,10 +150,10 @@ class PreprocessorParser(object):
         self.cparser.handle_status(cmd)
 
         pp = subprocess.Popen(cmd,
-                              shell = True,
+                              shell=True,
                               universal_newlines=True,
-                              stdout = subprocess.PIPE,
-                              stderr = subprocess.PIPE)
+                              stdout=subprocess.PIPE,
+                              stderr=subprocess.PIPE)
         ppout, pperr = pp.communicate()
 
         for line in pperr.split("\n"):
@@ -158,7 +163,7 @@ class PreprocessorParser(object):
         # We separate lines that are #defines and lines that are source code
         # We put all the source lines first, then all the #define lines.
 
-        source_lines= []
+        source_lines = []
         define_lines = []
 
         for line in ppout.split("\n"):
@@ -185,7 +190,7 @@ class PreprocessorParser(object):
 
         if self.options.save_preprocessed_headers:
             self.cparser.handle_status("Saving preprocessed headers to %s." % \
-                self.options.save_preprocessed_headers)
+                                       self.options.save_preprocessed_headers)
             try:
                 f = file(self.options.save_preprocessed_headers, "w")
                 f.write(text)
