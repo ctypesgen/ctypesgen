@@ -39,7 +39,8 @@ description."""
 
         if name in nametable:
             requirement = nametable[name]
-            if requirement: desc.add_requirements([requirement])
+            if requirement:
+                desc.add_requirements([requirement])
             return True
         else:
             return False
@@ -49,13 +50,20 @@ description."""
 dependencies for `desc`. Also collect error messages regarding `desc` and
 convert unlocateable descriptions into error messages."""
 
-        if kind == "constant": roots = [desc.value]
-        if kind == "struct": roots = []
-        if kind == "struct-body": roots = [desc.ctype]
-        if kind == "enum": roots = []
-        if kind == "typedef": roots = [desc.ctype]
-        if kind == "function": roots = desc.argtypes + [desc.restype]
-        if kind == "variable": roots = [desc.ctype]
+        if kind == "constant":
+            roots = [desc.value]
+        if kind == "struct":
+            roots = []
+        if kind == "struct-body":
+            roots = [desc.ctype]
+        if kind == "enum":
+            roots = []
+        if kind == "typedef":
+            roots = [desc.ctype]
+        if kind == "function":
+            roots = desc.argtypes + [desc.restype]
+        if kind == "variable":
+            roots = [desc.ctype]
         if kind == "macro":
             if desc.expr:
                 roots = [desc.expr]
@@ -75,33 +83,29 @@ convert unlocateable descriptions into error messages."""
         unresolvables = []
 
         for cstruct in cstructs:
-            if kind == "struct" and desc.variety == cstruct.variety and \
-                    desc.tag == cstruct.tag:
+            if kind == "struct" and desc.variety == cstruct.variety and desc.tag == cstruct.tag:
                 continue
             if not depend(desc, struct_names, (cstruct.variety, cstruct.tag)):
-                unresolvables.append("%s \"%s\"" % \
-                                     (cstruct.variety, cstruct.tag))
+                unresolvables.append('%s "%s"' % (cstruct.variety, cstruct.tag))
 
         for cenum in cenums:
             if kind == "enum" and desc.tag == cenum.tag:
                 continue
             if not depend(desc, enum_names, cenum.tag):
-                unresolvables.append("enum \"%s\"" % cenum.tag)
+                unresolvables.append('enum "%s"' % cenum.tag)
 
         for ctypedef in ctypedefs:
             if not depend(desc, typedef_names, ctypedef):
-                unresolvables.append("typedef \"%s\"" % ctypedef)
+                unresolvables.append('typedef "%s"' % ctypedef)
 
         for ident in identifiers:
-            if isinstance(desc, MacroDescription) and \
-                    desc.params and ident in desc.params:
+            if isinstance(desc, MacroDescription) and desc.params and ident in desc.params:
                 continue
             if not depend(desc, ident_names, ident):
-                unresolvables.append("identifier \"%s\"" % ident)
+                unresolvables.append('identifier "%s"' % ident)
 
         for u in unresolvables:
-            errors.append(("%s depends on an unknown %s." % \
-                           (desc.casual_name(), u), None))
+            errors.append(("%s depends on an unknown %s." % (desc.casual_name(), u), None))
 
         for err, cls in errors:
             err += " %s will not be output" % desc.casual_name()

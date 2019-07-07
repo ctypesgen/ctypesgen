@@ -22,17 +22,17 @@ def do_demo():
     a = 1
     b = 2
     result = pydemolib.trivial_add(a, b)
-    print "a", a
-    print "b", b
-    print "result", result
+    print("a", a)
+    print("b", b)
+    print("result", result)
 
 
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    
+
     do_demo()
-    
+
     return 0
 
 

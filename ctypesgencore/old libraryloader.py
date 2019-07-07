@@ -45,7 +45,7 @@ _debug_trace = False
 
 class _TraceFunction(object):
     def __init__(self, func):
-        self.__dict__['_func'] = func
+        self.__dict__["_func"] = func
 
     def __str__(self):
         return self._func.__name__
@@ -74,10 +74,7 @@ class _TraceLibrary(object):
 
 class _WindowsLibrary(object):
     def __init__(self, path):
-        self._libraries = [
-            ctypes.cdll.LoadLibrary(path),
-            ctypes.windll.LoadLibrary(path)
-        ]
+        self._libraries = [ctypes.cdll.LoadLibrary(path), ctypes.windll.LoadLibrary(path)]
 
     def __getattr__(self, name):
         for i in range(len(self._libraries)):
@@ -92,16 +89,16 @@ class _WindowsLibrary(object):
 
 class LibraryLoader(object):
     def load_library(self, *names, **kwargs):
-        '''Find and load a library.
+        """Find and load a library.
 
         More than one name can be specified, they will be tried in order.
         Platform-specific library names (given as kwargs) are tried first.
 
         Raises ImportError if library is not found.
-        '''
+        """
 
-        if 'framework' in kwargs and self.platform == 'darwin':
-            return self.load_framework(kwargs['framework'])
+        if "framework" in kwargs and self.platform == "darwin":
+            return self.load_framework(kwargs["framework"])
 
         platform_names = kwargs.get(self.platform, [])
         if type(platform_names) in (str, unicode):
@@ -109,21 +106,21 @@ class LibraryLoader(object):
         elif type(platform_names) is tuple:
             platform_names = list(platform_names)
 
-        if self.platform == 'linux2':
-            platform_names.extend(['lib%s.so' % n for n in names])
-        elif self.platform == 'win32':
-            platform_names.extend(['%s.dll' % n for n in names])
-            platform_names.extend(['lib%s.dll' % n for n in names])
-        elif self.platform == 'darwin':
-            platform_names.extend(['%s.dylib' % n for n in names])
-            platform_names.extend(['lib%s.dylib' % n for n in names])
+        if self.platform == "linux2":
+            platform_names.extend(["lib%s.so" % n for n in names])
+        elif self.platform == "win32":
+            platform_names.extend(["%s.dll" % n for n in names])
+            platform_names.extend(["lib%s.dll" % n for n in names])
+        elif self.platform == "darwin":
+            platform_names.extend(["%s.dylib" % n for n in names])
+            platform_names.extend(["lib%s.dylib" % n for n in names])
 
         platform_names.extend(names)
         for name in platform_names:
             path = self.find_library(name)
             if path:
                 try:
-                    if self.platform == 'win32':
+                    if self.platform == "win32":
                         lib = _WindowsLibrary(path)
                     else:
                         lib = ctypes.cdll.LoadLibrary(path)
@@ -133,15 +130,15 @@ class LibraryLoader(object):
                     if _debug_trace:
                         lib = _TraceLibrary(lib)
                     return lib
-                except OSError, e:
+                except OSError as e:
                     pass
         raise ImportError('Library "%s" not found.' % names[0])
 
     find_library = lambda self, name: ctypes.util.find_library(name)
 
     platform = sys.platform
-    if platform == 'cygwin':
-        platform = 'win32'
+    if platform == "cygwin":
+        platform = "win32"
 
     def load_framework(self, path):
         raise RuntimeError("Can't load framework on this platform.")
@@ -149,27 +146,27 @@ class LibraryLoader(object):
 
 class MachOLibraryLoader(LibraryLoader):
     def __init__(self):
-        if 'LD_LIBRARY_PATH' in os.environ:
-            self.ld_library_path = os.environ['LD_LIBRARY_PATH'].split(':')
+        if "LD_LIBRARY_PATH" in os.environ:
+            self.ld_library_path = os.environ["LD_LIBRARY_PATH"].split(":")
         else:
             self.ld_library_path = []
 
-        if 'DYLD_LIBRARY_PATH' in os.environ:
-            self.dyld_library_path = os.environ['DYLD_LIBRARY_PATH'].split(':')
+        if "DYLD_LIBRARY_PATH" in os.environ:
+            self.dyld_library_path = os.environ["DYLD_LIBRARY_PATH"].split(":")
         else:
             self.dyld_library_path = []
 
-        if 'DYLD_FALLBACK_LIBRARY_PATH' in os.environ:
-            self.dyld_fallback_library_path = \
-                os.environ['DYLD_FALLBACK_LIBRARY_PATH'].split(':')
+        if "DYLD_FALLBACK_LIBRARY_PATH" in os.environ:
+            self.dyld_fallback_library_path = os.environ["DYLD_FALLBACK_LIBRARY_PATH"].split(":")
         else:
             self.dyld_fallback_library_path = [
-                os.path.expanduser('~/lib'),
-                '/usr/local/lib',
-                '/usr/lib']
+                os.path.expanduser("~/lib"),
+                "/usr/local/lib",
+                "/usr/lib",
+            ]
 
     def find_library(self, path):
-        '''Implements the dylib search as specified in Apple documentation:
+        """Implements the dylib search as specified in Apple documentation:
 
         http://developer.apple.com/documentation/DeveloperTools/Conceptual/DynamicLibraries
         /Articles/DynamicLibraryUsageGuidelines.html
@@ -177,37 +174,25 @@ class MachOLibraryLoader(LibraryLoader):
         Before commencing the standard search, the method first checks
         the bundle's ``Frameworks`` directory if the application is running
         within a bundle (OS X .app).
-        '''
+        """
 
         libname = os.path.basename(path)
         search_path = []
 
-        if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
-            search_path.append(os.path.join(
-                os.environ['RESOURCEPATH'],
-                '..',
-                'Frameworks',
-                libname))
+        if hasattr(sys, "frozen") and sys.frozen == "macosx_app":
+            search_path.append(
+                os.path.join(os.environ["RESOURCEPATH"], "..", "Frameworks", libname)
+            )
 
-        if '/' in path:
-            search_path.extend(
-                [os.path.join(p, libname) \
-                 for p in self.dyld_library_path])
+        if "/" in path:
+            search_path.extend([os.path.join(p, libname) for p in self.dyld_library_path])
             search_path.append(path)
-            search_path.extend(
-                [os.path.join(p, libname) \
-                 for p in self.dyld_fallback_library_path])
+            search_path.extend([os.path.join(p, libname) for p in self.dyld_fallback_library_path])
         else:
-            search_path.extend(
-                [os.path.join(p, libname) \
-                 for p in self.ld_library_path])
-            search_path.extend(
-                [os.path.join(p, libname) \
-                 for p in self.dyld_library_path])
+            search_path.extend([os.path.join(p, libname) for p in self.ld_library_path])
+            search_path.extend([os.path.join(p, libname) for p in self.dyld_library_path])
             search_path.append(path)
-            search_path.extend(
-                [os.path.join(p, libname) \
-                 for p in self.dyld_fallback_library_path])
+            search_path.extend([os.path.join(p, libname) for p in self.dyld_fallback_library_path])
 
         for path in search_path:
             if os.path.exists(path):
@@ -216,11 +201,11 @@ class MachOLibraryLoader(LibraryLoader):
         return None
 
     def find_framework(self, path):
-        '''Implement runtime framework search as described by:
+        """Implement runtime framework search as described by:
 
         http://developer.apple.com/documentation/MacOSX/Conceptual/BPFrameworks/Concepts
         /FrameworkBinding.html
-        '''
+        """
 
         # e.g. path == '/System/Library/Frameworks/OpenGL.framework'
         #      name == 'OpenGL'
@@ -231,9 +216,8 @@ class MachOLibraryLoader(LibraryLoader):
         if os.path.exists(realpath):
             return realpath
 
-        for dir in ('/Library/Frameworks',
-                    '/System/Library/Frameworks'):
-            realpath = os.path.join(dir, '%s.framework' % name, name)
+        for dir in ("/Library/Frameworks", "/System/Library/Frameworks"):
+            realpath = os.path.join(dir, "%s.framework" % name, name)
             if os.path.exists(realpath):
                 return realpath
 
@@ -266,23 +250,23 @@ class LinuxLibraryLoader(LibraryLoader):
 
         directories = []
         try:
-            directories.extend(os.environ['LD_LIBRARY_PATH'].split(':'))
+            directories.extend(os.environ["LD_LIBRARY_PATH"].split(":"))
         except KeyError:
             pass
 
         try:
-            directories.extend([dir.strip() for dir in open('/etc/ld.so.conf')])
+            directories.extend([dir.strip() for dir in open("/etc/ld.so.conf")])
         except IOError:
             pass
 
-        directories.extend(['/lib', '/usr/lib'])
+        directories.extend(["/lib", "/usr/lib"])
 
         cache = {}
-        lib_re = re.compile(r'lib(.*)\.so$')
+        lib_re = re.compile(r"lib(.*)\.so$")
         for dir in directories:
             try:
                 for file in os.listdir(dir):
-                    if '.so' not in file:
+                    if ".so" not in file:
                         continue
 
                     # Index by filename
@@ -311,9 +295,9 @@ class LinuxLibraryLoader(LibraryLoader):
         return self._ld_so_cache.get(path)
 
 
-if sys.platform == 'darwin':
+if sys.platform == "darwin":
     loader = MachOLibraryLoader()
-elif sys.platform == 'linux2':
+elif sys.platform == "linux2":
     loader = LinuxLibraryLoader()
 else:
     loader = LibraryLoader()

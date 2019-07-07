@@ -1,14 +1,14 @@
 #!/usr/bin/env python
 
-'''Preprocess a C source file using gcc and convert the result into
+"""Preprocess a C source file using gcc and convert the result into
    a token stream
 
 Reference is C99:
   * http://www.open-std.org/JTC1/SC22/WG14/www/docs/n1124.pdf
 
-'''
+"""
 
-__docformat__ = 'restructuredtext'
+__docformat__ = "restructuredtext"
 
 import os, re, shlex, sys, tokenize, lex, yacc, traceback, subprocess
 import ctypes
@@ -20,10 +20,11 @@ import pplexer
 # Lexers
 # --------------------------------------------------------------------------
 
+
 class PreprocessorLexer(lex.Lexer):
     def __init__(self):
         lex.Lexer.__init__(self)
-        self.filename = '<input>'
+        self.filename = "<input>"
         self.in_define = False
 
     def input(self, data, filename=None):
@@ -35,8 +36,7 @@ class PreprocessorLexer(lex.Lexer):
         lex.Lexer.input(self, data)
 
     def push_input(self, data, filename):
-        self.input_stack.append(
-            (self.lexdata, self.lexpos, self.filename, self.lineno))
+        self.input_stack.append((self.lexdata, self.lexpos, self.filename, self.lineno))
         self.lexdata = data
         self.lexpos = 0
         self.lineno = 1
@@ -44,8 +44,7 @@ class PreprocessorLexer(lex.Lexer):
         self.lexlen = len(self.lexdata)
 
     def pop_input(self):
-        self.lexdata, self.lexpos, self.filename, self.lineno = \
-            self.input_stack.pop()
+        self.lexdata, self.lexpos, self.filename, self.lineno = self.input_stack.pop()
         self.lexlen = len(self.lexdata)
 
     def token(self):
@@ -83,12 +82,12 @@ def symbol_to_token(sym):
     elif isinstance(sym, lex.LexToken):
         return sym
     else:
-        assert False, 'Not a symbol: %r' % sym
+        assert False, "Not a symbol: %r" % sym
 
 
 def create_token(type, value, production=None):
-    '''Create a token of type and value, at the position where 'production'
-    was reduced.  Don't specify production if the token is built-in'''
+    """Create a token of type and value, at the position where 'production'
+    was reduced.  Don't specify production if the token is built-in"""
     t = lex.LexToken()
     t.type = type
     t.value = value
@@ -98,7 +97,7 @@ def create_token(type, value, production=None):
         t.filename = production.slice[1].filename
     else:
         t.lineno = -1
-        t.filename = '<builtin>'
+        t.filename = "<builtin>"
     return t
 
 
@@ -106,26 +105,33 @@ def create_token(type, value, production=None):
 # Grammars
 # --------------------------------------------------------------------------
 
+
 class PreprocessorParser(object):
     def __init__(self, options, cparser):
-        self.defines = ["inline=", "__inline__=", "__extension__=",
-                        "__const=const", "__asm__(x)=",
-                        "__asm(x)=", "CTYPESGEN=1"]
+        self.defines = [
+            "inline=",
+            "__inline__=",
+            "__extension__=",
+            "__const=const",
+            "__asm__(x)=",
+            "__asm(x)=",
+            "CTYPESGEN=1",
+        ]
 
         # On OSX, explicitly add these defines to keep from getting syntax
         # errors in the OSX standard headers.
-        if sys.platform == 'darwin':
-            self.defines += ["__uint16_t=uint16_t",
-                             "__uint32_t=uint32_t",
-                             "__uint64_t=uint64_t"]
+        if sys.platform == "darwin":
+            self.defines += ["__uint16_t=uint16_t", "__uint32_t=uint32_t", "__uint64_t=uint64_t"]
 
         self.matches = []
         self.output = []
-        self.lexer = lex.lex(cls=PreprocessorLexer,
-                             optimize=1,
-                             lextab='lextab',
-                             outputdir=os.path.dirname(__file__),
-                             module=pplexer)
+        self.lexer = lex.lex(
+            cls=PreprocessorLexer,
+            optimize=1,
+            lextab="lextab",
+            outputdir=os.path.dirname(__file__),
+            module=pplexer,
+        )
 
         self.options = options
         self.cparser = cparser  # An instance of CParser
@@ -138,7 +144,7 @@ class PreprocessorParser(object):
 
         # This fixes Issue #6 where OS X 10.6+ adds a C extension that breaks
         # the parser.  Blocks shouldn't be needed for ctypesgen support anyway.
-        if sys.platform == 'darwin':
+        if sys.platform == "darwin":
             cmd += " -U __BLOCKS__"
 
         for path in self.options.include_search_paths:
@@ -149,11 +155,9 @@ class PreprocessorParser(object):
 
         self.cparser.handle_status(cmd)
 
-        pp = subprocess.Popen(cmd,
-                              shell=True,
-                              universal_newlines=True,
-                              stdout=subprocess.PIPE,
-                              stderr=subprocess.PIPE)
+        pp = subprocess.Popen(
+            cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+        )
         ppout, pperr = pp.communicate()
 
         for line in pperr.split("\n"):
@@ -189,8 +193,9 @@ class PreprocessorParser(object):
         text = "".join(source_lines + define_lines)
 
         if self.options.save_preprocessed_headers:
-            self.cparser.handle_status("Saving preprocessed headers to %s." % \
-                                       self.options.save_preprocessed_headers)
+            self.cparser.handle_status(
+                "Saving preprocessed headers to %s." % self.options.save_preprocessed_headers
+            )
             try:
                 f = file(self.options.save_preprocessed_headers, "w")
                 f.write(text)

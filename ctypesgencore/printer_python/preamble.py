@@ -2,7 +2,7 @@ import ctypes, os, sys
 from ctypes import *
 
 _int_types = (c_int16, c_int32)
-if hasattr(ctypes, 'c_int64'):
+if hasattr(ctypes, "c_int64"):
     # Some builds of ctypes apparently do not have c_int64
     # defined; it's a pretty good bet that these builds do not
     # have 64-bit pointers.
@@ -18,7 +18,7 @@ class c_void(Structure):
     # c_void_p is a buggy return type, converting to int, so
     # POINTER(None) == c_void_p is actually written as
     # POINTER(c_void), so it can be treated as a real pointer.
-    _fields_ = [('dummy', c_int)]
+    _fields_ = [("dummy", c_int)]
 
 
 def POINTER(obj):
@@ -27,6 +27,7 @@ def POINTER(obj):
     # Convert None to a real NULL pointer to work around bugs
     # in how ctypes handles None on 64-bit platforms
     if not isinstance(p.from_param, classmethod):
+
         def from_param(cls, x):
             if x is None:
                 return cls()
@@ -84,7 +85,7 @@ class UserString:
         return self.__class__(self.data[index])
 
     def __getslice__(self, start, end):
-        start = max(start, 0);
+        start = max(start, 0)
         end = max(end, 0)
         return self.__class__(self.data[start:end])
 
@@ -266,17 +267,19 @@ class MutableString(UserString):
     def __setitem__(self, index, sub):
         if index < 0:
             index += len(self.data)
-        if index < 0 or index >= len(self.data): raise IndexError
-        self.data = self.data[:index] + sub + self.data[index + 1:]
+        if index < 0 or index >= len(self.data):
+            raise IndexError
+        self.data = self.data[:index] + sub + self.data[index + 1 :]
 
     def __delitem__(self, index):
         if index < 0:
             index += len(self.data)
-        if index < 0 or index >= len(self.data): raise IndexError
-        self.data = self.data[:index] + self.data[index + 1:]
+        if index < 0 or index >= len(self.data):
+            raise IndexError
+        self.data = self.data[:index] + self.data[index + 1 :]
 
     def __setslice__(self, start, end, sub):
-        start = max(start, 0);
+        start = max(start, 0)
         end = max(end, 0)
         if isinstance(sub, UserString):
             self.data = self.data[:start] + sub.data + self.data[end:]
@@ -286,7 +289,7 @@ class MutableString(UserString):
             self.data = self.data[:start] + str(sub) + self.data[end:]
 
     def __delslice__(self, start, end):
-        start = max(start, 0);
+        start = max(start, 0)
         end = max(end, 0)
         self.data = self.data[:start] + self.data[end:]
 
@@ -308,8 +311,7 @@ class MutableString(UserString):
 
 
 class String(MutableString, Union):
-    _fields_ = [('raw', POINTER(c_char)),
-                ('data', c_char_p)]
+    _fields_ = [("raw", POINTER(c_char)), ("data", c_char_p)]
 
     def __init__(self, obj=""):
         if isinstance(obj, (str, unicode, UserString)):
@@ -364,8 +366,7 @@ def ReturnString(obj, func=None, arguments=None):
 # Non-primitive return values wrapped with UNCHECKED won't be
 # typechecked, and will be converted to c_void_p.
 def UNCHECKED(type):
-    if (hasattr(type, "_type_") and isinstance(type._type_, str)
-            and type._type_ != "P"):
+    if hasattr(type, "_type_") and isinstance(type._type_, str) and type._type_ != "P":
         return type
     else:
         return c_void_p

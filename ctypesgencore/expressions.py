@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
-'''
+"""
 The expressions module contains classes to represent an expression. The main
 class is ExpressionNode. ExpressionNode's most useful method is py_string(),
 which returns a Python string representing that expression.
-'''
+"""
 
 import sys
 
@@ -26,9 +26,10 @@ import keyword
 #
 # On the other hand, this would be a challenge to write.
 
+
 class EvaluationContext(object):
-    '''Interface for evaluating expression nodes.
-    '''
+    """Interface for evaluating expression nodes.
+    """
 
     def evaluate_identifier(self, name):
         warnings.warn('Attempt to evaluate identifier "%s" failed' % name)
@@ -75,11 +76,11 @@ class ConstantExpressionNode(ExpressionNode):
         return self.value
 
     def py_string(self, can_be_ctype):
-        if sys.platform != 'win32' or (sys.platform == 'win32' and sys.version_info >= (2, 6)):
+        if sys.platform != "win32" or (sys.platform == "win32" and sys.version_info >= (2, 6)):
             # Windows python did not get infinity support until 2.6
-            if self.value == float('inf'):
+            if self.value == float("inf"):
                 return "float('inf')"
-            elif self.value == float('-inf'):
+            elif self.value == float("-inf"):
                 return "float('-inf')"
         return repr(self.value)
 
@@ -136,12 +137,10 @@ class UnaryExpressionNode(ExpressionNode):
         if self.op:
             return self.op(self.child.evaluate(context))
         else:
-            raise ValueError("The C operator \"%s\" can't be evaluated right " \
-                             "now" % self.name)
+            raise ValueError('The C operator "%s" can\'t be evaluated right ' "now" % self.name)
 
     def py_string(self, can_be_ctype):
-        return self.format % \
-               self.child.py_string(self.child_can_be_ctype and can_be_ctype)
+        return self.format % self.child.py_string(self.child_can_be_ctype and can_be_ctype)
 
 
 class SizeOfExpressionNode(ExpressionNode):
@@ -161,9 +160,9 @@ class SizeOfExpressionNode(ExpressionNode):
 
     def py_string(self, can_be_ctype):
         if isinstance(self.child, CtypesType):
-            return 'sizeof(%s)' % self.child.py_string()
+            return "sizeof(%s)" % self.child.py_string()
         else:
-            return 'sizeof(%s)' % self.child.py_string(True)
+            return "sizeof(%s)" % self.child.py_string(True)
 
 
 class BinaryExpressionNode(ExpressionNode):
@@ -183,16 +182,15 @@ class BinaryExpressionNode(ExpressionNode):
 
     def evaluate(self, context):
         if self.op:
-            return self.op(self.left.evaluate(context),
-                           self.right.evaluate(context))
+            return self.op(self.left.evaluate(context), self.right.evaluate(context))
         else:
-            raise ValueError("The C operator \"%s\" can't be evaluated right " \
-                             "now" % self.name)
+            raise ValueError('The C operator "%s" can\'t be evaluated right ' "now" % self.name)
 
     def py_string(self, can_be_ctype):
-        return self.format % \
-               (self.left.py_string(self.can_be_ctype[0] and can_be_ctype),
-                self.right.py_string(self.can_be_ctype[0] and can_be_ctype))
+        return self.format % (
+            self.left.py_string(self.can_be_ctype[0] and can_be_ctype),
+            self.right.py_string(self.can_be_ctype[0] and can_be_ctype),
+        )
 
 
 class ConditionalExpressionNode(ExpressionNode):
@@ -215,10 +213,11 @@ class ConditionalExpressionNode(ExpressionNode):
             return self.no.evaluate(context)
 
     def py_string(self, can_be_ctype):
-        return "%s and %s or %s" % \
-               (self.cond.py_string(True),
-                self.yes.py_string(can_be_ctype),
-                self.no.py_string(can_be_ctype))
+        return "%s and %s or %s" % (
+            self.cond.py_string(True),
+            self.yes.py_string(can_be_ctype),
+            self.no.py_string(can_be_ctype),
+        )
 
 
 class AttributeExpressionNode(ExpressionNode):
@@ -244,11 +243,11 @@ class AttributeExpressionNode(ExpressionNode):
 
     def py_string(self, can_be_ctype):
         if can_be_ctype:
-            return self.format % (self.base.py_string(can_be_ctype),
-                                  self.attribute)
+            return self.format % (self.base.py_string(can_be_ctype), self.attribute)
         else:
-            return "(%s.value)" % (self.format % \
-                                   (self.base.py_string(can_be_ctype), self.attribute))
+            return "(%s.value)" % (
+                self.format % (self.base.py_string(can_be_ctype), self.attribute)
+            )
 
 
 class CallExpressionNode(ExpressionNode):
@@ -271,9 +270,9 @@ class CallExpressionNode(ExpressionNode):
         function = self.function.py_string(can_be_ctype)
         arguments = [x.py_string(can_be_ctype) for x in self.arguments]
         if can_be_ctype:
-            return '(%s (%s))' % (function, ", ".join(arguments))
+            return "(%s (%s))" % (function, ", ".join(arguments))
         else:
-            return '((%s (%s)).value)' % (function, ", ".join(arguments))
+            return "((%s (%s)).value)" % (function, ", ".join(arguments))
 
 
 # There seems not to be any reasonable way to translate C typecasts
@@ -283,9 +282,11 @@ class TypeCastExpressionNode(ExpressionNode):
         ExpressionNode.__init__(self)
         self.base = base
         self.ctype = ctype
-        self.isnull = isinstance(ctype, CtypesPointer) and \
-                      isinstance(base, ConstantExpressionNode) and \
-                      base.value == 0
+        self.isnull = (
+            isinstance(ctype, CtypesPointer)
+            and isinstance(base, ConstantExpressionNode)
+            and base.value == 0
+        )
 
     def visit(self, visitor):
         # No need to visit ctype because it isn't actually used
@@ -309,15 +310,13 @@ class UnsupportedExpressionNode(ExpressionNode):
     def __init__(self, message):
         ExpressionNode.__init__(self)
         self.message = message
-        self.error(message, 'unsupported-type')
+        self.error(message, "unsupported-type")
 
     def evaluate(self, context):
-        raise ValueError("Tried to evaluate an unsupported expression " \
-                         "node: %s" % self.message)
+        raise ValueError("Tried to evaluate an unsupported expression " "node: %s" % self.message)
 
     def __repr__(self):
         return "<UnsupportedExpressionNode>"
 
     def py_string(self, can_be_ctype):
-        raise ValueError("Called py_string() an unsupported expression " \
-                         "node: %s" % self.message)
+        raise ValueError("Called py_string() an unsupported expression " "node: %s" % self.message)

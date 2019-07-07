@@ -44,12 +44,19 @@ parser, processor, and printer modules use to pass information. They are:
 format.
 """
 
-__version__ = '0.0'
+__version__ = "0.0"
 VERSION = __version__
 
-__all__ = ["parser", "processor", "printer",
-           "descriptions", "ctypedescs", "expressions",
-           "messages", "options"]
+__all__ = [
+    "parser",
+    "processor",
+    "printer",
+    "descriptions",
+    "ctypedescs",
+    "expressions",
+    "messages",
+    "options",
+]
 
 # Workhorse modules
 import parser

@@ -12,8 +12,9 @@ lists of Description objects.
 class DescriptionCollection(object):
     """Represents a collection of Descriptions."""
 
-    def __init__(self, constants, typedefs, structs, enums, functions, variables,
-                 macros, all, output_order):
+    def __init__(
+        self, constants, typedefs, structs, enums, functions, variables, macros, all, output_order
+    ):
         self.constants = constants
         self.typedefs = typedefs
         self.structs = structs
@@ -89,7 +90,7 @@ class ConstantDescription(Description):
         self.value = value
 
     def casual_name(self):
-        return "Constant \"%s\"" % self.name
+        return 'Constant "%s"' % self.name
 
     def py_name(self):
         return self.name
@@ -107,7 +108,7 @@ class TypedefDescription(Description):
         self.ctype = ctype  # The base type as a ctypedescs.CtypeType object
 
     def casual_name(self):
-        return "Typedef \"%s\"" % self.name
+        return 'Typedef "%s"' % self.name
 
     def py_name(self):
         return self.name
@@ -133,7 +134,7 @@ class StructDescription(Description):
         self.ctype = ctype
 
     def casual_name(self):
-        return "%s \"%s\"" % (self.variety.capitalize(), self.tag)
+        return '%s "%s"' % (self.variety.capitalize(), self.tag)
 
     def py_name(self):
         return "%s_%s" % (self.variety, self.tag)
@@ -155,7 +156,7 @@ class EnumDescription(Description):
         self.ctype = ctype
 
     def casual_name(self):
-        return "Enum \"%s\"" % self.tag
+        return 'Enum "%s"' % self.tag
 
     def py_name(self):
         return "enum_%s" % self.tag
@@ -181,7 +182,7 @@ class FunctionDescription(Description):
         self.variadic = variadic
 
     def casual_name(self):
-        return "Function \"%s\"" % self.name
+        return 'Function "%s"' % self.name
 
     def py_name(self):
         return self.name
@@ -203,7 +204,7 @@ class VariableDescription(Description):
         self.ctype = ctype
 
     def casual_name(self):
-        return "Variable \"%s\"" % self.name
+        return 'Variable "%s"' % self.name
 
     def py_name(self):
         return self.name
@@ -222,7 +223,7 @@ class MacroDescription(Description):
         self.expr = expr  # ExpressionNode for the macro's body
 
     def casual_name(self):
-        return "Macro \"%s\"" % self.name
+        return 'Macro "%s"' % self.name
 
     def py_name(self):
         return self.name

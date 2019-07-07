@@ -16,8 +16,7 @@ from tempfile import mkstemp
 import os
 
 
-class DataCollectingParser(ctypesparser.CtypesParser,
-                           ctypesparser.CtypesTypeVisitor):
+class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVisitor):
     """Main class for the Parser component. Steps for use:
     p=DataCollectingParser(names_of_header_files,options)
     p.parse()
@@ -61,11 +60,11 @@ class DataCollectingParser(ctypesparser.CtypesParser,
 
     def parse(self):
         fd, fname = mkstemp(suffix=".h")
-        f = os.fdopen(fd, 'w')
+        f = os.fdopen(fd, "w")
         for header in self.options.other_headers:
-            print >> f, '#include <%s>' % header
+            print("#include <%s>" % header, file=f)
         for header in self.headers:
-            print >> f, '#include "%s"' % os.path.abspath(header)
+            print('#include "%s"' % os.path.abspath(header), file=f)
         f.flush()
         f.close()
         ctypesparser.CtypesParser.parse(self, fname, None)
@@ -82,19 +81,15 @@ class DataCollectingParser(ctypesparser.CtypesParser,
     def handle_define_unparseable(self, name, params, value, filename, lineno):
         # Called by CParser
         if params:
-            original_string = "#define %s(%s) %s" % \
-                              (name, ",".join(params), " ".join(value))
+            original_string = "#define %s(%s) %s" % (name, ",".join(params), " ".join(value))
         else:
-            original_string = "#define %s %s" % \
-                              (name, " ".join(value))
-        macro = MacroDescription(name, params, None,
-                                 src=(filename, lineno))
-        macro.error("Could not parse macro \"%s\"" % original_string,
-                    cls='macro')
+            original_string = "#define %s %s" % (name, " ".join(value))
+        macro = MacroDescription(name, params, None, src=(filename, lineno))
+        macro.error('Could not parse macro "%s"' % original_string, cls="macro")
         macro.original_string = original_string
         self.macros.append(macro)
         self.all.append(macro)
-        self.output_order.append(('macro', macro))
+        self.output_order.append(("macro", macro))
 
     def handle_define_macro(self, name, params, expr, filename, lineno):
         # Called by CParser
@@ -105,13 +100,11 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         # Called by CtypesParser
         ctype.visit(self)
 
-        typedef = TypedefDescription(name,
-                                     ctype,
-                                     src=(filename, repr(lineno)))
+        typedef = TypedefDescription(name, ctype, src=(filename, repr(lineno)))
 
         self.typedefs.append(typedef)
         self.all.append(typedef)
-        self.output_order.append(('typedef', typedef))
+        self.output_order.append(("typedef", typedef))
 
     def handle_ctypes_new_type(self, ctype, filename, lineno):
         # Called by CtypesParser
@@ -120,34 +113,29 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         else:
             self.handle_struct(ctype, filename, lineno)
 
-    def handle_ctypes_function(self, name, restype, argtypes, variadic,
-                               filename, lineno):
+    def handle_ctypes_function(self, name, restype, argtypes, variadic, filename, lineno):
         # Called by CtypesParser
         restype.visit(self)
         for argtype in argtypes:
             argtype.visit(self)
 
-        function = FunctionDescription(name,
-                                       restype,
-                                       argtypes,
-                                       variadic=variadic,
-                                       src=(filename, repr(lineno)))
+        function = FunctionDescription(
+            name, restype, argtypes, variadic=variadic, src=(filename, repr(lineno))
+        )
 
         self.functions.append(function)
         self.all.append(function)
-        self.output_order.append(('function', function))
+        self.output_order.append(("function", function))
 
     def handle_ctypes_variable(self, name, ctype, filename, lineno):
         # Called by CtypesParser
         ctype.visit(self)
 
-        variable = VariableDescription(name,
-                                       ctype,
-                                       src=(filename, repr(lineno)))
+        variable = VariableDescription(name, ctype, src=(filename, repr(lineno)))
 
         self.variables.append(variable)
         self.all.append(variable)
-        self.output_order.append(('variable', variable))
+        self.output_order.append(("variable", variable))
 
     def handle_struct(self, ctypestruct, filename, lineno):
         # Called from within DataCollectingParser
@@ -165,17 +153,19 @@ class DataCollectingParser(ctypesparser.CtypesParser,
 
         if ctypestruct.opaque:
             if name not in self.already_seen_opaque_structs:
-                struct = StructDescription(ctypestruct.tag,
-                                           ctypestruct.variety,
-                                           None,  # No members
-                                           True,  # Opaque
-                                           ctypestruct,
-                                           src=(filename, str(lineno)))
+                struct = StructDescription(
+                    ctypestruct.tag,
+                    ctypestruct.variety,
+                    None,  # No members
+                    True,  # Opaque
+                    ctypestruct,
+                    src=(filename, str(lineno)),
+                )
 
                 self.already_seen_opaque_structs[name] = struct
                 self.structs.append(struct)
                 self.all.append(struct)
-                self.output_order.append(('struct', struct))
+                self.output_order.append(("struct", struct))
 
         else:
             for (membername, ctype) in ctypestruct.members:
@@ -189,21 +179,23 @@ class DataCollectingParser(ctypesparser.CtypesParser,
                 struct.ctype = ctypestruct
                 struct.src = ctypestruct.src
 
-                self.output_order.append(('struct-body', struct))
+                self.output_order.append(("struct-body", struct))
 
                 del self.already_seen_opaque_structs[name]
 
             else:
-                struct = StructDescription(ctypestruct.tag,
-                                           ctypestruct.variety,
-                                           ctypestruct.members,
-                                           False,  # Not opaque
-                                           src=(filename, str(lineno)),
-                                           ctype=ctypestruct)
+                struct = StructDescription(
+                    ctypestruct.tag,
+                    ctypestruct.variety,
+                    ctypestruct.members,
+                    False,  # Not opaque
+                    src=(filename, str(lineno)),
+                    ctype=ctypestruct,
+                )
                 self.structs.append(struct)
                 self.all.append(struct)
-                self.output_order.append(('struct', struct))
-                self.output_order.append(('struct-body', struct))
+                self.output_order.append(("struct", struct))
+                self.output_order.append(("struct-body", struct))
 
             self.already_seen_structs.add(name)
 
@@ -219,16 +211,13 @@ class DataCollectingParser(ctypesparser.CtypesParser,
 
         if ctypeenum.opaque:
             if tag not in self.already_seen_opaque_enums:
-                enum = EnumDescription(ctypeenum.tag,
-                                       None,
-                                       ctypeenum,
-                                       src=(filename, str(lineno)))
+                enum = EnumDescription(ctypeenum.tag, None, ctypeenum, src=(filename, str(lineno)))
                 enum.opaque = True
 
                 self.already_seen_opaque_enums[tag] = enum
                 self.enums.append(enum)
                 self.all.append(enum)
-                self.output_order.append(('enum', enum))
+                self.output_order.append(("enum", enum))
 
         else:
             if tag in self.already_seen_opaque_enums:
@@ -242,25 +231,26 @@ class DataCollectingParser(ctypesparser.CtypesParser,
                 del self.already_seen_opaque_enums[tag]
 
             else:
-                enum = EnumDescription(ctypeenum.tag,
-                                       ctypeenum.enumerators,
-                                       src=(filename, str(lineno)),
-                                       ctype=ctypeenum)
+                enum = EnumDescription(
+                    ctypeenum.tag,
+                    ctypeenum.enumerators,
+                    src=(filename, str(lineno)),
+                    ctype=ctypeenum,
+                )
                 enum.opaque = False
 
                 self.enums.append(enum)
                 self.all.append(enum)
-                self.output_order.append(('enum', enum))
+                self.output_order.append(("enum", enum))
 
             self.already_seen_enums.add(tag)
 
             for (enumname, expr) in ctypeenum.enumerators:
-                constant = ConstantDescription(enumname, expr,
-                                               src=(filename, lineno))
+                constant = ConstantDescription(enumname, expr, src=(filename, lineno))
 
                 self.constants.append(constant)
                 self.all.append(constant)
-                self.output_order.append(('constant', constant))
+                self.output_order.append(("constant", constant))
 
     def handle_macro(self, name, params, expr, filename, lineno):
         # Called from within DataCollectingParser
@@ -278,24 +268,26 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         if isinstance(expr, CtypesType):
             if params:
                 macro = MacroDescription(name, "", src)
-                macro.error("%s has parameters but evaluates to a type. " \
-                            "Ctypesgen does not support it." % macro.casual_name(),
-                            cls='macro')
+                macro.error(
+                    "%s has parameters but evaluates to a type. "
+                    "Ctypesgen does not support it." % macro.casual_name(),
+                    cls="macro",
+                )
                 self.macros.append(macro)
                 self.all.append(macro)
-                self.output_order.append(('macro', macro))
+                self.output_order.append(("macro", macro))
 
             else:
                 typedef = TypedefDescription(name, expr, src)
                 self.typedefs.append(typedef)
                 self.all.append(typedef)
-                self.output_order.append(('typedef', typedef))
+                self.output_order.append(("typedef", typedef))
 
         else:
             macro = MacroDescription(name, params, expr, src)
             self.macros.append(macro)
             self.all.append(macro)
-            self.output_order.append(('macro', macro))
+            self.output_order.append(("macro", macro))
 
         # Macros could possibly contain things like __FILE__, __LINE__, etc...
         # This could be supported, but it would be a lot of work. It would
@@ -303,11 +295,11 @@ class DataCollectingParser(ctypesparser.CtypesParser,
 
     def handle_error(self, message, filename, lineno):
         # Called by CParser
-        error_message("%s:%d: %s" % (filename, lineno, message), cls='cparser')
+        error_message("%s:%d: %s" % (filename, lineno, message), cls="cparser")
 
     def handle_pp_error(self, message):
         # Called by PreprocessorParser
-        error_message("%s: %s" % (self.options.cpp, message), cls='cparser')
+        error_message("%s: %s" % (self.options.cpp, message), cls="cparser")
 
     def handle_status(self, message):
         # Called by CParser
@@ -320,12 +312,14 @@ class DataCollectingParser(ctypesparser.CtypesParser,
         self.handle_enum(enum, enum.src[0], enum.src[1])
 
     def data(self):
-        return DescriptionCollection(self.constants,
-                                     self.typedefs,
-                                     self.structs,
-                                     self.enums,
-                                     self.functions,
-                                     self.variables,
-                                     self.macros,
-                                     self.all,
-                                     self.output_order)
+        return DescriptionCollection(
+            self.constants,
+            self.typedefs,
+            self.structs,
+            self.enums,
+            self.functions,
+            self.variables,
+            self.macros,
+            self.all,
+            self.output_order,
+        )

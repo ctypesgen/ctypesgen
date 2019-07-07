@@ -25,7 +25,7 @@ import logging
 
 __all__ = ["error_message", "warning_message", "status_message"]
 
-log = logging.getLogger('ctypesgen')
+log = logging.getLogger("ctypesgen")
 ch = logging.StreamHandler()  # use stdio
 logging_fmt_str = "%(levelname)s: %(message)s"
 formatter = logging.Formatter(logging_fmt_str)
@@ -35,12 +35,12 @@ log.setLevel(logging.INFO)  # default level that ctypesgen was using with origin
 
 
 def error_message(msg, cls=None):
-    log.error('%s', msg)
+    log.error("%s", msg)
 
 
 def warning_message(msg, cls=None):
-    log.warn('%s', msg)
+    log.warn("%s", msg)
 
 
 def status_message(msg):
-    log.info('Status: %s', msg)
+    log.info("Status: %s", msg)
