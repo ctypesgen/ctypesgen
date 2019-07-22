@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+from __future__ import print_function
 import os, sys, time
 from ctypesgencore.descriptions import *
 from ctypesgencore.ctypedescs import *
@@ -21,7 +22,10 @@ class WrapperPrinter:
         self.file = outpath and file(outpath, "w") or sys.stdout
         self.options = options
 
-        if self.options.strip_build_path and self.options.strip_build_path[-1] != os.path.sep:
+        if (
+            self.options.strip_build_path
+            and self.options.strip_build_path[-1] != os.path.sep
+        ):
             self.options.strip_build_path += os.path.sep
 
         self.print_header()
@@ -52,7 +56,9 @@ class WrapperPrinter:
                 method_table[kind](desc)
                 print(file=self.file)
 
-        self.print_group(self.options.inserted_files, "inserted files", self.insert_file)
+        self.print_group(
+            self.options.inserted_files, "inserted files", self.insert_file
+        )
 
     def print_group(self, list, name, function):
         if list:
@@ -80,11 +86,14 @@ class WrapperPrinter:
                 ):
                     filename = filename[len(self.options.strip_build_path) :]
                 print("# %s: %s" % (filename, lineno), file=self.file)
+        return ""
 
     def template_subs(self):
         template_subs = {
             "date": time.ctime(),
-            "argv": " ".join([x for x in sys.argv if not x.startswith("--strip-build-path")]),
+            "argv": " ".join(
+                [x for x in sys.argv if not x.startswith("--strip-build-path")]
+            ),
             "name": os.path.basename(self.options.headers[0]),
         }
 
@@ -205,7 +214,9 @@ class WrapperPrinter:
         print("]", file=self.file)
 
         if len(unnamed_fields) > 0:
-            print("%s_%s._anonymous_ = [" % (struct.variety, struct.tag), file=self.file)
+            print(
+                "%s_%s._anonymous_ = [" % (struct.variety, struct.tag), file=self.file
+            )
             for name in unnamed_fields:
                 print("    '%s'," % name, file=self.file)
             print("]", file=self.file)
@@ -239,7 +250,8 @@ class WrapperPrinter:
         # Otherwise, check all the libraries.
         if function.source_library:
             print(
-                "if hasattr(_libs[%r], %r):" % (function.source_library, function.c_name()),
+                "if hasattr(_libs[%r], %r):"
+                % (function.source_library, function.c_name()),
                 file=self.file,
             )
             print(
@@ -251,28 +263,42 @@ class WrapperPrinter:
             print("for _lib in _libs.itervalues():", file=self.file)
             print("    if not hasattr(_lib, %r):" % function.c_name(), file=self.file)
             print("        continue", file=self.file)
-            print("    %s = _lib.%s" % (function.py_name(), function.c_name()), file=self.file)
+            print(
+                "    %s = _lib.%s" % (function.py_name(), function.c_name()),
+                file=self.file,
+            )
 
         # Argument types
         print(
             "    %s.argtypes = [%s]"
-            % (function.py_name(), ", ".join([a.py_string() for a in function.argtypes])),
+            % (
+                function.py_name(),
+                ", ".join([a.py_string() for a in function.argtypes]),
+            ),
             file=self.file,
         )
 
         # Return value
         if function.restype.py_string() == "String":
             print("    if sizeof(c_int) == sizeof(c_void_p):", file=self.file)
-            print("        %s.restype = ReturnString" % (function.py_name()), file=self.file)
-            print("    else:", file=self.file)
             print(
-                "        %s.restype = %s" % (function.py_name(), function.restype.py_string()),
+                "        %s.restype = ReturnString" % (function.py_name()),
                 file=self.file,
             )
-            print("        %s.errcheck = ReturnString" % (function.py_name()), file=self.file)
+            print("    else:", file=self.file)
+            print(
+                "        %s.restype = %s"
+                % (function.py_name(), function.restype.py_string()),
+                file=self.file,
+            )
+            print(
+                "        %s.errcheck = ReturnString" % (function.py_name()),
+                file=self.file,
+            )
         else:
             print(
-                "    %s.restype = %s" % (function.py_name(), function.restype.py_string()),
+                "    %s.restype = %s"
+                % (function.py_name(), function.restype.py_string()),
                 file=self.file,
             )
 
@@ -283,33 +309,41 @@ class WrapperPrinter:
         self.srcinfo(function.src)
         if function.source_library:
             print(
-                "if hasattr(_libs[%r], %r):" % (function.source_library, function.c_name()),
+                "if hasattr(_libs[%r], %r):"
+                % (function.source_library, function.c_name()),
                 file=self.file,
             )
             print(
-                "    _func = _libs[%r].%s" % (function.source_library, function.c_name()),
+                "    _func = _libs[%r].%s"
+                % (function.source_library, function.c_name()),
                 file=self.file,
             )
             print("    _restype = %s" % function.restype.py_string(), file=self.file)
             print(
-                "    _argtypes = [%s]" % ", ".join([a.py_string() for a in function.argtypes]),
+                "    _argtypes = [%s]"
+                % ", ".join([a.py_string() for a in function.argtypes]),
                 file=self.file,
             )
             print(
-                "    %s = _variadic_function(_func,_restype,_argtypes)" % function.py_name(),
+                "    %s = _variadic_function(_func,_restype,_argtypes)"
+                % function.py_name(),
                 file=self.file,
             )
         else:
             print("for _lib in _libs.values():", file=self.file)
             print("    if hasattr(_lib, %r):" % function.c_name(), file=self.file)
             print("        _func = _lib.%s" % (function.c_name()), file=self.file)
-            print("        _restype = %s" % function.restype.py_string(), file=self.file)
             print(
-                "        _argtypes = [%s]" % ", ".join([a.py_string() for a in function.argtypes]),
+                "        _restype = %s" % function.restype.py_string(), file=self.file
+            )
+            print(
+                "        _argtypes = [%s]"
+                % ", ".join([a.py_string() for a in function.argtypes]),
                 file=self.file,
             )
             print(
-                "        %s = _variadic_function(_func,_restype,_argtypes)" % function.py_name(),
+                "        %s = _variadic_function(_func,_restype,_argtypes)"
+                % function.py_name(),
                 file=self.file,
             )
 
@@ -366,7 +400,9 @@ class WrapperPrinter:
         try:
             inserted_file = file(filename, "r")
         except IOError:
-            error_message('Cannot open file "%s". Skipped it.' % filename, cls="missing-file")
+            error_message(
+                'Cannot open file "%s". Skipped it.' % filename, cls="missing-file"
+            )
 
         print('# Begin "%s"' % filename, file=self.file)
         print(file=self.file)

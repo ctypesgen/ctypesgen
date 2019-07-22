@@ -127,7 +127,11 @@ class DarwinLibraryLoader(LibraryLoader):
 
         dyld_fallback_library_path = _environ_path("DYLD_FALLBACK_LIBRARY_PATH")
         if not dyld_fallback_library_path:
-            dyld_fallback_library_path = [os.path.expanduser("~/lib"), "/usr/local/lib", "/usr/lib"]
+            dyld_fallback_library_path = [
+                os.path.expanduser("~/lib"),
+                "/usr/local/lib",
+                "/usr/lib",
+            ]
 
         dirs = []
 
@@ -191,7 +195,10 @@ class PosixLibraryLoader(LibraryLoader):
                 unix_lib_dirs_list += ["/lib/i386-linux-gnu", "/usr/lib/i386-linux-gnu"]
             elif bitage.startswith("64"):
                 # Assume Intel/AMD x86 compat
-                unix_lib_dirs_list += ["/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu"]
+                unix_lib_dirs_list += [
+                    "/lib/x86_64-linux-gnu",
+                    "/usr/lib/x86_64-linux-gnu",
+                ]
             else:
                 # guess...
                 unix_lib_dirs_list += glob.glob("/lib/*linux-gnu")

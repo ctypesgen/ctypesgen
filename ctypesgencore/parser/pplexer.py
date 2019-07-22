@@ -8,6 +8,8 @@ Reference is C99:
 
 """
 
+from __future__ import print_function
+
 __docformat__ = "restructuredtext"
 
 import os, re, shlex, sys, tokenize, lex, yacc, traceback
@@ -62,7 +64,7 @@ subs = {
     "L": "[a-zA-Z_]",
     "H": "[a-fA-F0-9]",
     "E": "[Ee][+-]?\s*{D}+",
-    "FS": "[FflL]",
+    "FS": "([FfLl]|d[dfl]|D[DFL]|[fFdD][0-9]+x?)",
     "IS": "[uUlL]*",
 }
 # Helper: substitute {foo} with subs[foo] in string (makes regexes more lexy)
@@ -226,6 +228,7 @@ FLOAT_LITERAL = sub(
 def t_ANY_float(t):
     t.type = "PP_NUMBER"
     m = t.lexer.lexmatch
+    print("FLOAT MATCH:", t, t.lexer, m, m.groupdict(), file=sys.stderr)
 
     p1 = m.group("p1")
     dp = m.group("dp")
@@ -233,10 +236,12 @@ def t_ANY_float(t):
     exp = m.group("exp")
     suf = m.group("suf")
 
-    if dp or exp or (suf and suf in ("Ff")):
+    if dp or exp or (suf and suf not in ("Ll")):
         s = m.group(0)
+        print("First s", s, file=sys.stderr)
         if suf:
-            s = s[:-1]
+            s = s[: -len(suf)]
+        print("Second s", s, file=sys.stderr)
         # Attach a prefix so the parser can figure out if should become an
         # integer, float, or long
         t.value = "f" + s
@@ -245,10 +250,12 @@ def t_ANY_float(t):
     else:
         t.value = "i" + p1
 
+    print("t_ANY_float returning", t, t.value, file=sys.stderr)
     return t
 
 
 INT_LITERAL = sub(r"(?P<p1>(?:0x{H}+)|(?:{D}+))(?P<suf>{IS})")
+INT_LITERAL = sub(r"(?P<p1>(?:0x{H}+)|(?:0[0-7]*)|(?:[1-9]{D}*))(?P<suf>{IS})")
 
 
 @TOKEN(INT_LITERAL)

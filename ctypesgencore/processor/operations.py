@@ -198,7 +198,8 @@ def fix_conflicting_names(data, opts):
             if not description.dependents:
                 description.warning(
                     "%s has been renamed to %s due to a name "
-                    "conflict with %s." % (original_name, description.casual_name(), conflict_name),
+                    "conflict with %s."
+                    % (original_name, description.casual_name(), conflict_name),
                     cls="rename",
                 )
             else:
@@ -206,7 +207,12 @@ def fix_conflicting_names(data, opts):
                     "%s has been renamed to %s due to a name "
                     "conflict with %s. Other objects depend on %s - those "
                     "objects will be skipped."
-                    % (original_name, description.casual_name(), conflict_name, original_name),
+                    % (
+                        original_name,
+                        description.casual_name(),
+                        conflict_name,
+                        original_name,
+                    ),
                     cls="rename",
                 )
 

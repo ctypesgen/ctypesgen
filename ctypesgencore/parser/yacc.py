@@ -52,6 +52,9 @@
 # own risk!
 # ----------------------------------------------------------------------------
 
+from __future__ import print_function
+import importlib
+
 __version__ = "2.2"
 
 # -----------------------------------------------------------------------------
@@ -171,7 +174,8 @@ class YaccProduction:
             raise ValueError("Expected a positive value")
         if n > (len(self.slice) - 1):
             raise ValueError(
-                "Can't push %d tokens. Only %d are available." % (n, len(self.slice) - 1)
+                "Can't push %d tokens. Only %d are available."
+                % (n, len(self.slice) - 1)
             )
         for i in range(0, n):
             self.pbstack.append(self.slice[-i - 1])
@@ -280,7 +284,8 @@ class Parser:
                     lookahead.parser = self  # <tm> 25 June 2008
             if debug:
                 errorlead = (
-                    "%s . %s" % (" ".join([xx.type for xx in symstack][1:]), str(lookahead))
+                    "%s . %s"
+                    % (" ".join([xx.type for xx in symstack][1:]), str(lookahead))
                 ).lstrip()
 
             # Check the action table
@@ -328,9 +333,13 @@ class Parser:
                         try:
                             sym.lineno = targ[1].lineno
                             sym.filename = targ[1].filename
-                            sym.endlineno = getattr(targ[-1], "endlineno", targ[-1].lineno)
+                            sym.endlineno = getattr(
+                                targ[-1], "endlineno", targ[-1].lineno
+                            )
                             sym.lexpos = targ[1].lexpos
-                            sym.endlexpos = getattr(targ[-1], "endlexpos", targ[-1].lexpos)
+                            sym.endlexpos = getattr(
+                                targ[-1], "endlexpos", targ[-1].lexpos
+                            )
                         except AttributeError:
                             sym.lineno = 0
                         del symstack[-plen:]
@@ -382,7 +391,9 @@ class Parser:
 
                     if self.errorfunc:
                         global errok, token, restart
-                        errok = self.errok  # Set some special functions available in error recovery
+                        errok = (
+                            self.errok
+                        )  # Set some special functions available in error recovery
                         token = get_token
                         restart = self.restart
                         tok = self.errorfunc(errtoken)
@@ -407,7 +418,9 @@ class Parser:
                                     % (lineno, errtoken.type)
                                 )
                             else:
-                                sys.stderr.write("yacc: Syntax error, token=%s" % errtoken.type)
+                                sys.stderr.write(
+                                    "yacc: Syntax error, token=%s" % errtoken.type
+                                )
                         else:
                             sys.stderr.write("yacc: Parse error in input. EOF\n")
                             return
@@ -697,12 +710,14 @@ _is_identifier = re.compile(r"^[a-zA-Z0-9_-]+$")
 def add_production(f, file, line, prodname, syms):
     if prodname in Terminals:
         sys.stderr.write(
-            "%s:%d: Illegal rule name '%s'. Already defined as a token.\n" % (file, line, prodname)
+            "%s:%d: Illegal rule name '%s'. Already defined as a token.\n"
+            % (file, line, prodname)
         )
         return -1
     if prodname == "error":
         sys.stderr.write(
-            "%s:%d: Illegal rule name '%s'. error is a reserved word.\n" % (file, line, prodname)
+            "%s:%d: Illegal rule name '%s'. error is a reserved word.\n"
+            % (file, line, prodname)
         )
         return -1
 
@@ -728,7 +743,9 @@ def add_production(f, file, line, prodname, syms):
             except SyntaxError:
                 pass
         if not _is_identifier.match(s) and s != "%prec":
-            sys.stderr.write("%s:%d: Illegal name '%s' in rule '%s'\n" % (file, line, s, prodname))
+            sys.stderr.write(
+                "%s:%d: Illegal name '%s' in rule '%s'\n" % (file, line, s, prodname)
+            )
             return -1
 
     # See if the rule is already in the rulemap
@@ -736,7 +753,9 @@ def add_production(f, file, line, prodname, syms):
     if map in Prodmap:
         m = Prodmap[map]
         sys.stderr.write("%s:%d: Duplicate rule %s.\n" % (file, line, m))
-        sys.stderr.write("%s:%d: Previous definition at %s:%d\n" % (file, line, m.file, m.line))
+        sys.stderr.write(
+            "%s:%d: Previous definition at %s:%d\n" % (file, line, m.file, m.line)
+        )
         return -1
 
     p = Production()
@@ -825,11 +844,15 @@ def add_function(f):
         reqdargs = 1
 
     if f.func_code.co_argcount > reqdargs:
-        sys.stderr.write("%s:%d: Rule '%s' has too many arguments.\n" % (file, line, f.__name__))
+        sys.stderr.write(
+            "%s:%d: Rule '%s' has too many arguments.\n" % (file, line, f.__name__)
+        )
         return -1
 
     if f.func_code.co_argcount < reqdargs:
-        sys.stderr.write("%s:%d: Rule '%s' requires an argument.\n" % (file, line, f.__name__))
+        sys.stderr.write(
+            "%s:%d: Rule '%s' requires an argument.\n" % (file, line, f.__name__)
+        )
         return -1
 
     if f.__doc__:
@@ -862,18 +885,23 @@ def add_function(f):
                     else:
                         syms = []
                     if assign != ":" and assign != "::=":
-                        sys.stderr.write("%s:%d: Syntax error. Expected ':'\n" % (file, dline))
+                        sys.stderr.write(
+                            "%s:%d: Syntax error. Expected ':'\n" % (file, dline)
+                        )
                         return -1
 
                 e = add_production(f, file, dline, prodname, syms)
                 error += e
 
             except Exception:
-                sys.stderr.write("%s:%d: Syntax error in rule '%s'\n" % (file, dline, ps))
+                sys.stderr.write(
+                    "%s:%d: Syntax error in rule '%s'\n" % (file, dline, ps)
+                )
                 error -= 1
     else:
         sys.stderr.write(
-            "%s:%d: No documentation string specified in function '%s'\n" % (file, line, f.__name__)
+            "%s:%d: No documentation string specified in function '%s'\n"
+            % (file, line, f.__name__)
         )
     return error
 
@@ -974,7 +1002,9 @@ def compute_terminates():
                 # so it would be overkill to say that it's also non-terminating.
                 pass
             else:
-                sys.stderr.write("yacc: Infinite recursion detected for symbol '%s'.\n" % s)
+                sys.stderr.write(
+                    "yacc: Infinite recursion detected for symbol '%s'.\n" % s
+                )
                 some_error = 1
 
     return some_error
@@ -1023,7 +1053,8 @@ def verify_productions(cycle_check=1):
         if not v:
             p = Prodnames[s][0]
             sys.stderr.write(
-                "%s:%d: Warning. Rule '%s' defined, but not used.\n" % (p.file, p.line, s)
+                "%s:%d: Warning. Rule '%s' defined, but not used.\n"
+                % (p.file, p.line, s)
             )
             unused_prod += 1
 
@@ -1113,7 +1144,9 @@ def add_precedence(plist):
                 return -1
             for t in terms:
                 if t in Precedence:
-                    sys.stderr.write("yacc: Precedence already specified for terminal '%s'\n" % t)
+                    sys.stderr.write(
+                        "yacc: Precedence already specified for terminal '%s'\n" % t
+                    )
                     error += 1
                     continue
                 Precedence[t] = (prec, plevel)
@@ -1821,7 +1854,9 @@ def lr_parse_table(method):
                         else:
                             laheads = Follow[p.name]
                         for a in laheads:
-                            actlist.append((a, p, "reduce using rule %d (%s)" % (p.number, p)))
+                            actlist.append(
+                                (a, p, "reduce using rule %d (%s)" % (p.number, p))
+                            )
                             r = action.get((st, a), None)
                             if r is not None:
                                 # Whoa. Have a shift/reduce or reduce/reduce conflict
@@ -1829,7 +1864,9 @@ def lr_parse_table(method):
                                     # Need to decide on shift or reduce here
                                     # By default we favor shifting. Need to add
                                     # some precedence rules here.
-                                    sprec, slevel = Productions[actionp[st, a].number].prec
+                                    sprec, slevel = Productions[
+                                        actionp[st, a].number
+                                    ].prec
                                     rprec, rlevel = Precedence.get(a, ("right", 0))
                                     if (slevel < rlevel) or (
                                         (slevel == rlevel) and (rprec == "left")
@@ -1873,14 +1910,18 @@ def lr_parse_table(method):
                                     n_rrconflict += 1
                                     _vfc.write(
                                         "reduce/reduce conflict in state %d resolved using rule "
-                                        "%d (%s).\n" % (st, actionp[st, a].number, actionp[st, a])
+                                        "%d (%s).\n"
+                                        % (st, actionp[st, a].number, actionp[st, a])
                                     )
                                     _vf.write(
                                         "  ! reduce/reduce conflict for %s resolved using rule %d "
-                                        "(%s).\n" % (a, actionp[st, a].number, actionp[st, a])
+                                        "(%s).\n"
+                                        % (a, actionp[st, a].number, actionp[st, a])
                                     )
                                 else:
-                                    sys.stderr.write("Unknown conflict in state %d\n" % st)
+                                    sys.stderr.write(
+                                        "Unknown conflict in state %d\n" % st
+                                    )
                             else:
                                 action[st, a] = -p.number
                                 actionp[st, a] = p
@@ -1898,14 +1939,18 @@ def lr_parse_table(method):
                                 # Whoa have a shift/reduce or shift/shift conflict
                                 if r > 0:
                                     if r != j:
-                                        sys.stderr.write("Shift/shift conflict in state %d\n" % st)
+                                        sys.stderr.write(
+                                            "Shift/shift conflict in state %d\n" % st
+                                        )
                                 elif r < 0:
                                     # Do a precedence check.
                                     #   -  if precedence of reduce rule is higher, we reduce.
                                     #   -  if precedence of reduce is same and left assoc,
                                     #   we reduce.
                                     #   -  otherwise we shift
-                                    rprec, rlevel = Productions[actionp[st, a].number].prec
+                                    rprec, rlevel = Productions[
+                                        actionp[st, a].number
+                                    ].prec
                                     sprec, slevel = Precedence.get(a, ("right", 0))
                                     if (slevel > rlevel) or (
                                         (slevel == rlevel) and (rprec != "left")
@@ -1939,7 +1984,9 @@ def lr_parse_table(method):
                                             )
 
                                 else:
-                                    sys.stderr.write("Unknown conflict in state %d\n" % st)
+                                    sys.stderr.write(
+                                        "Unknown conflict in state %d\n" % st
+                                    )
                             else:
                                 action[st, a] = j
                                 actionp[st, a] = p
@@ -2108,7 +2155,8 @@ del _lr_goto_items
             if p:
                 if p.func:
                     f.write(
-                        "  (%r,%d,%r,%r,%d),\n" % (p.name, p.len, p.func.__name__, p.file, p.line)
+                        "  (%r,%d,%r,%r,%d),\n"
+                        % (p.name, p.len, p.func.__name__, p.file, p.line)
                     )
                 else:
                     f.write("  (%r,%d,None,None,None),\n" % (p.name, p.len))
@@ -2127,8 +2175,7 @@ del _lr_goto_items
 def lr_read_tables(module=tab_module, optimize=0):
     global _lr_action, _lr_goto, _lr_productions, _lr_method
     try:
-        exec
-        "import %s as parsetab" % module
+        parsetab = importlib.import_module(module)
 
         if (optimize) or (Signature.digest() == parsetab._lr_signature):
             _lr_action = parsetab._lr_action
@@ -2243,7 +2290,9 @@ def yacc(
 
         if not tokens:
             raise YaccError("module does not define a list 'tokens'")
-        if not (isinstance(tokens, types.ListType) or isinstance(tokens, types.TupleType)):
+        if not (
+            isinstance(tokens, types.ListType) or isinstance(tokens, types.TupleType)
+        ):
             raise YaccError("tokens must be a list or tuple.")
 
         # Check to see if a requires dictionary is defined.
@@ -2282,7 +2331,9 @@ def yacc(
         # Get the precedence map (if any)
         prec = ldict.get("precedence", None)
         if prec:
-            if not (isinstance(prec, types.ListType) or isinstance(prec, types.TupleType)):
+            if not (
+                isinstance(prec, types.ListType) or isinstance(prec, types.TupleType)
+            ):
                 raise YaccError("precedence must be a list or tuple.")
             add_precedence(prec)
             Signature.update(repr(prec))
@@ -2305,7 +2356,9 @@ def yacc(
             files[efile] = None
 
             if ef.func_code.co_argcount != 1 + ismethod:
-                raise YaccError("%s:%d: p_error() requires 1 argument." % (efile, eline))
+                raise YaccError(
+                    "%s:%d: p_error() requires 1 argument." % (efile, eline)
+                )
             global Errorfunc
             Errorfunc = ef
         else:
@@ -2327,7 +2380,9 @@ def yacc(
             raise YaccError("no rules of the form p_rulename are defined.")
 
         # Sort the symbols by line number
-        symbols.sort(lambda x, y: cmp(x.func_code.co_firstlineno, y.func_code.co_firstlineno))
+        symbols.sort(
+            lambda x, y: cmp(x.func_code.co_firstlineno, y.func_code.co_firstlineno)
+        )
 
         # Add all of the symbols to the grammar
         for f in symbols:

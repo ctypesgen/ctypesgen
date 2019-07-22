@@ -7,6 +7,7 @@ After parsing is complete, a DescriptionCollection object can be retrieved by
 calling DataCollectingParser.data().
 """
 
+from __future__ import print_function
 import ctypesparser
 from ctypesgencore.descriptions import *
 from ctypesgencore.ctypedescs import *
@@ -81,7 +82,11 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
     def handle_define_unparseable(self, name, params, value, filename, lineno):
         # Called by CParser
         if params:
-            original_string = "#define %s(%s) %s" % (name, ",".join(params), " ".join(value))
+            original_string = "#define %s(%s) %s" % (
+                name,
+                ",".join(params),
+                " ".join(value),
+            )
         else:
             original_string = "#define %s %s" % (name, " ".join(value))
         macro = MacroDescription(name, params, None, src=(filename, lineno))
@@ -113,7 +118,9 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
         else:
             self.handle_struct(ctype, filename, lineno)
 
-    def handle_ctypes_function(self, name, restype, argtypes, variadic, filename, lineno):
+    def handle_ctypes_function(
+        self, name, restype, argtypes, variadic, filename, lineno
+    ):
         # Called by CtypesParser
         restype.visit(self)
         for argtype in argtypes:
@@ -211,7 +218,9 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
 
         if ctypeenum.opaque:
             if tag not in self.already_seen_opaque_enums:
-                enum = EnumDescription(ctypeenum.tag, None, ctypeenum, src=(filename, str(lineno)))
+                enum = EnumDescription(
+                    ctypeenum.tag, None, ctypeenum, src=(filename, str(lineno))
+                )
                 enum.opaque = True
 
                 self.already_seen_opaque_enums[tag] = enum

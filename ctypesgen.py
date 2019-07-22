@@ -25,7 +25,9 @@ def option_callback_W(option, opt, value, parser):
         raise optparse.BadOptionError("not in '-Wl,<opt>' form: %s%s" % (opt, value))
     opt = value[2:]
     if opt not in ["-L", "-R", "--rpath"]:
-        raise optparse.BadOptionError("-Wl option must be -L, -R" " or --rpath, not " + value[2:])
+        raise optparse.BadOptionError(
+            "-Wl option must be -L, -R" " or --rpath, not " + value[2:]
+        )
     # Push the linker option onto the list for further parsing.
     parser.rargs.insert(0, value)
 
@@ -294,7 +296,9 @@ if __name__ == "__main__":
     elif options.output_language == "json":
         printer = ctypesgencore.printer_json.WrapperPrinter
     else:
-        msgs.error_message("No such output language `" + options.output_language + "'", cls="usage")
+        msgs.error_message(
+            "No such output language `" + options.output_language + "'", cls="usage"
+        )
         sys.exit(1)
 
     # Step 1: Parse

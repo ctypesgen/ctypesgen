@@ -74,7 +74,10 @@ class _TraceLibrary(object):
 
 class _WindowsLibrary(object):
     def __init__(self, path):
-        self._libraries = [ctypes.cdll.LoadLibrary(path), ctypes.windll.LoadLibrary(path)]
+        self._libraries = [
+            ctypes.cdll.LoadLibrary(path),
+            ctypes.windll.LoadLibrary(path),
+        ]
 
     def __getattr__(self, name):
         for i in range(len(self._libraries)):
@@ -157,7 +160,9 @@ class MachOLibraryLoader(LibraryLoader):
             self.dyld_library_path = []
 
         if "DYLD_FALLBACK_LIBRARY_PATH" in os.environ:
-            self.dyld_fallback_library_path = os.environ["DYLD_FALLBACK_LIBRARY_PATH"].split(":")
+            self.dyld_fallback_library_path = os.environ[
+                "DYLD_FALLBACK_LIBRARY_PATH"
+            ].split(":")
         else:
             self.dyld_fallback_library_path = [
                 os.path.expanduser("~/lib"),
@@ -185,14 +190,22 @@ class MachOLibraryLoader(LibraryLoader):
             )
 
         if "/" in path:
-            search_path.extend([os.path.join(p, libname) for p in self.dyld_library_path])
+            search_path.extend(
+                [os.path.join(p, libname) for p in self.dyld_library_path]
+            )
             search_path.append(path)
-            search_path.extend([os.path.join(p, libname) for p in self.dyld_fallback_library_path])
+            search_path.extend(
+                [os.path.join(p, libname) for p in self.dyld_fallback_library_path]
+            )
         else:
             search_path.extend([os.path.join(p, libname) for p in self.ld_library_path])
-            search_path.extend([os.path.join(p, libname) for p in self.dyld_library_path])
+            search_path.extend(
+                [os.path.join(p, libname) for p in self.dyld_library_path]
+            )
             search_path.append(path)
-            search_path.extend([os.path.join(p, libname) for p in self.dyld_fallback_library_path])
+            search_path.extend(
+                [os.path.join(p, libname) for p in self.dyld_fallback_library_path]
+            )
 
         for path in search_path:
             if os.path.exists(path):

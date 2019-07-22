@@ -19,6 +19,7 @@ representing an array of four integers could be created using:
 str(ctype) would evaluate to "c_int * 4".
 """
 
+from __future__ import print_function
 import warnings
 
 __docformat__ = "restructuredtext"

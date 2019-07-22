@@ -1,4 +1,9 @@
 # lextab.py. This file automatically created by PLY (version 2.2). Don't edit!
+FLOAT_REGEX = (
+    r"(?P<t_ANY_float>(?P<p1>[0-9]+)?(?P<dp>[.]?)(?P<p2>(?(p1)[0-9]*|[0-9]+))"
+    r"(?P<exp>(?:[Ee][+-]?[0-9]+)?)"
+    r"(?P<suf>([FfLl]|d[dfl]|D[DFL]|[fFdD][0-9]+[Xx]?)?)(?!\\w))"
+)
 _lextokens = {
     "RIGHT_OP": None,
     "RIGHT_ASSIGN": None,
@@ -61,8 +66,7 @@ _lexstatere = {
             [None, ("t_INITIAL_identifier", "INITIAL_identifier")],
         ),
         (
-            "(?P<t_ANY_float>(?P<p1>[0-9]+)?(?P<dp>[.]?)(?P<p2>(?(p1)[0-9]*|["
-            "0-9]+))(?P<exp>(?:[Ee][+-]?[0-9]+)?)(?P<suf>[FflL]?)(?!\\w))",
+            FLOAT_REGEX,
             [None, ("t_ANY_float", "ANY_float"), None, None, None, None, None],
         ),
         (
@@ -101,7 +105,7 @@ _lexstatere = {
             [None, ("t_DEFINE_identifier", "DEFINE_identifier")],
         ),
         (
-            "(?P<t_ANY_float>(?P<p1>[0-9]+)?(?P<dp>[.]?)(?P<p2>(?(p1)[0-9]*|[0-9]+))(?P<exp>(?:[Ee][+-]?[0-9]+)?)(?P<suf>[FflL]?)(?!\\w))",
+            FLOAT_REGEX,
             [None, ("t_ANY_float", "ANY_float"), None, None, None, None, None],
         ),
         (

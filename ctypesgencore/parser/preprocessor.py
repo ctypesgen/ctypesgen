@@ -121,7 +121,11 @@ class PreprocessorParser(object):
         # On OSX, explicitly add these defines to keep from getting syntax
         # errors in the OSX standard headers.
         if sys.platform == "darwin":
-            self.defines += ["__uint16_t=uint16_t", "__uint32_t=uint32_t", "__uint64_t=uint64_t"]
+            self.defines += [
+                "__uint16_t=uint16_t",
+                "__uint32_t=uint32_t",
+                "__uint64_t=uint64_t",
+            ]
 
         self.matches = []
         self.output = []
@@ -156,7 +160,11 @@ class PreprocessorParser(object):
         self.cparser.handle_status(cmd)
 
         pp = subprocess.Popen(
-            cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            cmd,
+            shell=True,
+            universal_newlines=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         ppout, pperr = pp.communicate()
 
@@ -194,7 +202,8 @@ class PreprocessorParser(object):
 
         if self.options.save_preprocessed_headers:
             self.cparser.handle_status(
-                "Saving preprocessed headers to %s." % self.options.save_preprocessed_headers
+                "Saving preprocessed headers to %s."
+                % self.options.save_preprocessed_headers
             )
             try:
                 f = file(self.options.save_preprocessed_headers, "w")

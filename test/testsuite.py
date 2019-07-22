@@ -52,7 +52,9 @@ class StdlibTest(unittest.TestCase):
             libraries = ["libc.so.6"]
         else:
             libraries = ["libc"]
-        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
+        self.module, output = ctypesgentest.test(
+            header_str, libraries=libraries, all_headers=True
+        )
 
     def tearDown(self):
         del self.module
@@ -83,7 +85,7 @@ class StdlibTest(unittest.TestCase):
             expect_result = "WORLD"
 
         result = module.getenv(env_var_name)
-        self.failUnlessEqual(expect_result, result)
+        self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
         """Related to issue 8. Test getenv of unset variable.
@@ -97,7 +99,7 @@ class StdlibTest(unittest.TestCase):
         except KeyError:
             pass
         result = module.getenv(env_var_name)
-        self.failUnlessEqual(expect_result, result)
+        self.assertEqual(expect_result, result)
 
 
 class StdBoolTest(unittest.TestCase):
@@ -127,7 +129,9 @@ struct foo
         """Test is bool is correctly parsed"""
         module = self.module
         struct_foo = module.struct_foo
-        self.failUnlessEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
+        self.assertEqual(
+            struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)]
+        )
 
 
 class SimpleMacrosTest(unittest.TestCase):
@@ -161,73 +165,73 @@ class SimpleMacrosTest(unittest.TestCase):
         """
         module = self.module
 
-        self.failUnlessEqual(module.A, 1)
+        self.assertEqual(module.A, 1)
 
     def test_macro_addition(self):
         """Tests from simple_macros.py
         """
         module = self.module
 
-        self.failUnlessEqual(module.B(2, 2), 4)
+        self.assertEqual(module.B(2, 2), 4)
 
     def test_macro_ternary_true(self):
         """Tests from simple_macros.py
         """
         module = self.module
 
-        self.failUnlessEqual(module.C(True, 1, 2), 1)
+        self.assertEqual(module.C(True, 1, 2), 1)
 
     def test_macro_ternary_false(self):
         """Tests from simple_macros.py
         """
         module = self.module
 
-        self.failUnlessEqual(module.C(False, 1, 2), 2)
+        self.assertEqual(module.C(False, 1, 2), 2)
 
     def test_macro_ternary_true_complex(self):
         """Test ?: with true, using values that can not be confused between True and 1
         """
         module = self.module
 
-        self.failUnlessEqual(module.C(True, 99, 100), 99)
+        self.assertEqual(module.C(True, 99, 100), 99)
 
     def test_macro_ternary_false_complex(self):
         """Test ?: with false, using values that can not be confused between True and 1
         """
         module = self.module
 
-        self.failUnlessEqual(module.C(False, 99, 100), 100)
+        self.assertEqual(module.C(False, 99, 100), 100)
 
     def test_macro_string_compose(self):
         """Tests from simple_macros.py
         """
         module = self.module
 
-        self.failUnlessEqual(module.funny("bunny"), "funnybunny")
+        self.assertEqual(module.funny("bunny"), "funnybunny")
 
     def test_macro_math_multipler(self):
         module = self.module
 
         x, y = 2, 5
-        self.failUnlessEqual(module.multipler_macro(x, y), x * y)
+        self.assertEqual(module.multipler_macro(x, y), x * y)
 
     def test_macro_math_minus(self):
         module = self.module
 
         x, y = 2, 5
-        self.failUnlessEqual(module.minus_macro(x, y), x - y)
+        self.assertEqual(module.minus_macro(x, y), x - y)
 
     def test_macro_math_divide(self):
         module = self.module
 
         x, y = 2, 5
-        self.failUnlessEqual(module.divide_macro(x, y), x / y)
+        self.assertEqual(module.divide_macro(x, y), x / y)
 
     def test_macro_math_mod(self):
         module = self.module
 
         x, y = 2, 5
-        self.failUnlessEqual(module.mod_macro(x, y), x % y)
+        self.assertEqual(module.mod_macro(x, y), x % y)
 
 
 class StructuresTest(unittest.TestCase):
@@ -260,8 +264,9 @@ struct foo
         module = self.module
 
         struct_foo = module.struct_foo
-        self.failUnlessEqual(
-            struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)]
+        self.assertEqual(
+            struct_foo._fields_,
+            [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)],
         )
 
 
@@ -282,7 +287,9 @@ class MathTest(unittest.TestCase):
             libraries = ["libm.so.6"]
         else:
             libraries = ["libc"]
-        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
+        self.module, output = ctypesgentest.test(
+            header_str, libraries=libraries, all_headers=True
+        )
 
     def tearDown(self):
         del self.module
@@ -292,18 +299,18 @@ class MathTest(unittest.TestCase):
         """Based on math_functions.py"""
         module = self.module
 
-        self.failUnlessEqual(module.sin(2), math.sin(2))
+        self.assertEqual(module.sin(2), math.sin(2))
 
     def test_sqrt(self):
         """Based on math_functions.py"""
         module = self.module
 
-        self.failUnlessEqual(module.sqrt(4), 2)
+        self.assertEqual(module.sqrt(4), 2)
 
         def local_test():
             module.sin("foobar")
 
-        self.failUnlessRaises(ctypes.ArgumentError, local_test)
+        self.assertRaises(ctypes.ArgumentError, local_test)
 
     def test_bad_args_string_not_number(self):
         """Based on math_functions.py"""
@@ -312,14 +319,20 @@ class MathTest(unittest.TestCase):
         def local_test():
             module.sin("foobar")
 
-        self.failUnlessRaises(ctypes.ArgumentError, local_test)
+        self.assertRaises(ctypes.ArgumentError, local_test)
 
 
 def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    ctypesgentest.ctypesgencore.messages.log.setLevel(logging.CRITICAL)  # do not log anything
+    print(ctypesgentest)
+    print(ctypesgentest.ctypesgencore)
+    print(ctypesgentest.ctypesgencore.messages)
+    print(dir(ctypesgentest.ctypesgencore.messages))
+    from ctypesgencore.messages import log
+
+    log.setLevel(logging.CRITICAL)  # do not log anything
     unittest.main()
 
     return 0

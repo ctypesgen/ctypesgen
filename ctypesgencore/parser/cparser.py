@@ -7,8 +7,9 @@ To use, subclass CParser and override its handle_* methods.  Then instantiate
 the class with a string to parse.
 """
 
-__docformat__ = "restructuredtext"
+from __future__ import print_function
 
+__docformat__ = "restructuredtext"
 import operator
 import os.path
 import re

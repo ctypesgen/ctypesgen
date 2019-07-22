@@ -89,7 +89,9 @@ class CtypesParser(CParser):
         else:
             members = None
 
-        return CtypesStruct(tag, variety, members, src=(specifier.filename, specifier.lineno))
+        return CtypesStruct(
+            tag, variety, members, src=(specifier.filename, specifier.lineno)
+        )
 
     def get_ctypes_type(self, typ, declarator, check_qualifiers=False):
         signed = True
@@ -205,9 +207,13 @@ class CtypesParser(CParser):
             declarator = declarator.pointer
         name = declarator.identifier
         if declaration.storage == "typedef":
-            self.handle_ctypes_typedef(name, remove_function_pointer(t), filename, lineno)
+            self.handle_ctypes_typedef(
+                name, remove_function_pointer(t), filename, lineno
+            )
         elif type(t) == CtypesFunction:
-            self.handle_ctypes_function(name, t.restype, t.argtypes, t.variadic, filename, lineno)
+            self.handle_ctypes_function(
+                name, t.restype, t.argtypes, t.variadic, filename, lineno
+            )
         elif declaration.storage != "static":
             self.handle_ctypes_variable(name, t, filename, lineno)
 
