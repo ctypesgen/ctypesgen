@@ -49,7 +49,7 @@ If you want JSON output (e.g. for generating Lua bindings), use
 License
 -------
 
-ctypesgen is distributed under the New (2-clause) BSD License:
+ctypesgen is distributed under the New (3-clause) BSD License:
 http://www.opensource.org/licenses/bsd-license.php
 
 libffi is a portable Foreign Function Interface library:
