@@ -18,7 +18,7 @@ setup(
     maintainer_email="alanr@unix.sh",
     version=ctypesgencore.VERSION,
     description="Python wrapper generator for ctypes",
-    url="http://code.google.com/p/ctypesgen/",
+    url="https://github.com/Alan-R/ctypesgen",
     license="BSD License",
     packages=[
         "ctypesgencore",
