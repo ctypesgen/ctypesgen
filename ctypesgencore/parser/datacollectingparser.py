@@ -8,11 +8,22 @@ calling DataCollectingParser.data().
 """
 
 from __future__ import print_function
-from ctypesgencore.parser.ctypesparser import (CtypesParser, CtypesTypeVisitor, CtypesEnum)
-from ctypesgencore.descriptions import *
-from ctypesgencore.ctypedescs import *
-from ctypesgencore.expressions import *
-from ctypesgencore.messages import *
+from ctypesgencore.parser.ctypesparser import CtypesParser
+from ctypesgencore.ctypedescs import CtypesEnum, CtypesType, CtypesTypeVisitor
+from ctypesgencore.expressions import ConstantExpressionNode
+from ctypesgencore.descriptions import (
+    ConstantDescription,
+    DescriptionCollection,
+    EnumDescription,
+    FunctionDescription,
+    MacroDescription,
+    StructDescription,
+    TypedefDescription,
+    VariableDescription,
+)
+
+# from ctypesgencore.expressions import
+from ctypesgencore.messages import error_message, status_message
 from tempfile import mkstemp
 import os
 
@@ -332,6 +343,7 @@ class DataCollectingParser(CtypesParser, CtypesTypeVisitor):
             self.all,
             self.output_order,
         )
+
 
 def parse(headers, options):
     parser = DataCollectingParser(headers, options)

@@ -14,6 +14,8 @@ import ctypesgencore
 
 setup(
     name="ctypesgen",
+    maintainer="Alan Robertson",
+    maintainer_email="alanr@unix.sh",
     version=ctypesgencore.VERSION,
     description="Python wrapper generator for ctypes",
     url="http://code.google.com/p/ctypesgen/",
@@ -24,6 +26,7 @@ setup(
         "ctypesgencore.printer_python",
         "ctypesgencore.printer_json",
         "ctypesgencore.processor",
+        "ctypesgencore.test",
     ],
     scripts=["ctypesgen.py"],
 )

@@ -1,48 +1,43 @@
 # lextab.py. This file automatically created by PLY (version 2.2). Don't edit!
-FLOAT_REGEX = (
-    r"(?P<t_ANY_float>(?P<p1>[0-9]+)?(?P<dp>[.]?)(?P<p2>(?(p1)[0-9]*|[0-9]+))"
-    r"(?P<exp>(?:[Ee][+-]?[0-9]+)?)"
-    r"(?P<suf>([FfLl]|d[dfl]|D[DFL]|[fFdD][0-9]+[Xx]?)?)(?!\\w))"
-)
 _lextokens = {
-    "RIGHT_OP": None,
-    "RIGHT_ASSIGN": None,
-    "DEC_OP": None,
-    "PP_MACRO_PARAM": None,
-    "DIV_ASSIGN": None,
-    "PP_DEFINE": None,
-    "PP_END_DEFINE": None,
-    "PP_DEFINE_MACRO_NAME": None,
     "HEADER_NAME": None,
-    "NEWLINE": None,
-    "CHARACTER_CONSTANT": None,
-    "PP_STRINGIFY": None,
-    "AND_ASSIGN": None,
-    "PTR_OP": None,
-    "ELLIPSIS": None,
     "IDENTIFIER": None,
-    "ADD_ASSIGN": None,
-    "PERIOD": None,
-    "AND_OP": None,
-    "OTHER": None,
-    "LPAREN": None,
-    "LEFT_OP": None,
-    "LE_OP": None,
-    "OR_OP": None,
-    "SUB_ASSIGN": None,
-    "MOD_ASSIGN": None,
-    "STRING_LITERAL": None,
-    "PP_IDENTIFIER_PASTE": None,
     "PP_NUMBER": None,
-    "PP_DEFINE_NAME": None,
+    "CHARACTER_CONSTANT": None,
+    "STRING_LITERAL": None,
+    "OTHER": None,
+    "PTR_OP": None,
+    "INC_OP": None,
+    "DEC_OP": None,
+    "LEFT_OP": None,
+    "RIGHT_OP": None,
+    "LE_OP": None,
+    "GE_OP": None,
+    "EQ_OP": None,
+    "NE_OP": None,
+    "AND_OP": None,
+    "OR_OP": None,
+    "MUL_ASSIGN": None,
+    "DIV_ASSIGN": None,
+    "MOD_ASSIGN": None,
+    "ADD_ASSIGN": None,
+    "SUB_ASSIGN": None,
+    "LEFT_ASSIGN": None,
+    "RIGHT_ASSIGN": None,
+    "AND_ASSIGN": None,
     "XOR_ASSIGN": None,
     "OR_ASSIGN": None,
-    "GE_OP": None,
-    "MUL_ASSIGN": None,
-    "LEFT_ASSIGN": None,
-    "INC_OP": None,
-    "NE_OP": None,
-    "EQ_OP": None,
+    "PERIOD": None,
+    "ELLIPSIS": None,
+    "LPAREN": None,
+    "NEWLINE": None,
+    "PP_DEFINE": None,
+    "PP_DEFINE_NAME": None,
+    "PP_DEFINE_MACRO_NAME": None,
+    "PP_MACRO_PARAM": None,
+    "PP_STRINGIFY": None,
+    "PP_IDENTIFIER_PASTE": None,
+    "PP_END_DEFINE": None,
 }
 _lexreflags = 0
 _lexliterals = ""
@@ -50,9 +45,7 @@ _lexstateinfo = {"INITIAL": "inclusive", "DEFINE": "exclusive"}
 _lexstatere = {
     "INITIAL": [
         (
-            '(?P<t_ANY_directive>\\#\\s+(\\d+)\\s+"([^"]+)"[ \\d]*\\n)|('
-            "?P<t_ANY_punctuator>("
-            "\\.\\.\\.|\\|\\||\\+\\+|\\*=|\\^=|<<=|>>=|\\|=|\\+=|>=|>>|<<|<=|<:|%=|:>|<%|!=|\\)|\\+|\\*|\\.|\\?|==|&=|&&|\\[|\\^|--|/=|%>|-=|->|\\||!|%|&|-|,|/|;|:|=|>|]|<|{|}|~))",
+            '(?P<t_ANY_directive>\\#\\s+(\\d+)\\s+"([^"]+)"[ \\d]*\\n)|(?P<t_ANY_punctuator>(\\.\\.\\.|\\+\\+|\\|\\||>>=|<<=|\\+=|\\*=|\\^=|\\|=|-=|/=|%=|&=|>>|<<|--|->|&&|<=|>=|==|!=|<:|:>|<%|%>|\\)|\\[|\\.|\\+|\\*|\\^|\\||\\?|;|{|}|,|:|=|]|&|!|~|-|/|%|<|>))',
             [
                 None,
                 ("t_ANY_directive", "ANY_directive"),
@@ -66,17 +59,15 @@ _lexstatere = {
             [None, ("t_INITIAL_identifier", "INITIAL_identifier")],
         ),
         (
-            FLOAT_REGEX,
+            "(?P<t_ANY_float>(?P<p1>[0-9]+)?(?P<dp>[.]?)(?P<p2>(?(p1)[0-9]*|[0-9]+))(?P<exp>(?:[Ee][+-]?[0-9]+)?)(?P<suf>([FfLl]|d[dfl]|D[DFL]|[fFdD][0-9]+x?)?)(?!\\w))",
             [None, ("t_ANY_float", "ANY_float"), None, None, None, None, None],
         ),
         (
-            "(?P<t_ANY_int>(?P<p1>(?:0x[a-fA-F0-9]+)|(?:[0-9]+))(?P<suf>[uUlL]*))",
+            "(?P<t_ANY_int>(?P<p1>(?:0x[a-fA-F0-9]+)|(?:0[0-7]*)|(?:[1-9][0-9]*))(?P<suf>[uUlL]*))",
             [None, ("t_ANY_int", "ANY_int"), None, None],
         ),
         (
-            "(?P<t_ANY_character_constant>L?'(\\\\.|[^\\\\'])+')|("
-            '?P<t_ANY_string_literal>L?"(\\\\.|[^\\\\"])*")|(?P<t_ANY_lparen>\\('
-            ")|(?P<t_INITIAL_newline>\\n)|(?P<t_INITIAL_pp_define>\\#define)",
+            "(?P<t_ANY_character_constant>L?'(\\\\.|[^\\\\'])+')|(?P<t_ANY_string_literal>L?\"(\\\\.|[^\\\\\"])*\")|(?P<t_ANY_lparen>\\()|(?P<t_INITIAL_newline>\\n)|(?P<t_INITIAL_pp_define>\\#define)",
             [
                 None,
                 ("t_ANY_character_constant", "ANY_character_constant"),
@@ -91,7 +82,7 @@ _lexstatere = {
     ],
     "DEFINE": [
         (
-            '(?P<t_ANY_directive>\\#\\s+(\\d+)\\s+"([^"]+)"[ \\d]*\\n)|(?P<t_ANY_punctuator>(\\.\\.\\.|\\|\\||\\+\\+|\\*=|\\^=|<<=|>>=|\\|=|\\+=|>=|>>|<<|<=|<:|%=|:>|<%|!=|\\)|\\+|\\*|\\.|\\?|==|&=|&&|\\[|\\^|--|/=|%>|-=|->|\\||!|%|&|-|,|/|;|:|=|>|]|<|{|}|~))',
+            '(?P<t_ANY_directive>\\#\\s+(\\d+)\\s+"([^"]+)"[ \\d]*\\n)|(?P<t_ANY_punctuator>(\\.\\.\\.|\\+\\+|\\|\\||>>=|<<=|\\+=|\\*=|\\^=|\\|=|-=|/=|%=|&=|>>|<<|--|->|&&|<=|>=|==|!=|<:|:>|<%|%>|\\)|\\[|\\.|\\+|\\*|\\^|\\||\\?|;|{|}|,|:|=|]|&|!|~|-|/|%|<|>))',
             [
                 None,
                 ("t_ANY_directive", "ANY_directive"),
@@ -105,11 +96,11 @@ _lexstatere = {
             [None, ("t_DEFINE_identifier", "DEFINE_identifier")],
         ),
         (
-            FLOAT_REGEX,
+            "(?P<t_ANY_float>(?P<p1>[0-9]+)?(?P<dp>[.]?)(?P<p2>(?(p1)[0-9]*|[0-9]+))(?P<exp>(?:[Ee][+-]?[0-9]+)?)(?P<suf>([FfLl]|d[dfl]|D[DFL]|[fFdD][0-9]+x?)?)(?!\\w))",
             [None, ("t_ANY_float", "ANY_float"), None, None, None, None, None],
         ),
         (
-            "(?P<t_ANY_int>(?P<p1>(?:0x[a-fA-F0-9]+)|(?:[0-9]+))(?P<suf>[uUlL]*))",
+            "(?P<t_ANY_int>(?P<p1>(?:0x[a-fA-F0-9]+)|(?:0[0-7]*)|(?:[1-9][0-9]*))(?P<suf>[uUlL]*))",
             [None, ("t_ANY_int", "ANY_int"), None, None],
         ),
         (

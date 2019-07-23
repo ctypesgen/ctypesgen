@@ -317,9 +317,9 @@ class String(MutableString, Union):
     _fields_ = [("raw", POINTER(c_char)), ("data", c_char_p)]
 
     def __init__(self, obj=""):
-        print('STRING INIT', type(obj), obj, file=sys.stderr)
+        print("STRING INIT", type(obj), obj, file=sys.stderr)
         if isinstance(obj, (six.string_types, UserString)):
-            self.data = str(obj) if six.PY2 else bytes(obj, 'utf8')
+            self.data = str(obj) if six.PY2 else bytes(obj, "utf8")
         else:
             self.raw = obj
 
@@ -328,10 +328,10 @@ class String(MutableString, Union):
 
     @classmethod
     def from_param(cls, obj):
-        print('FROM_PARAM', type(obj), obj, file=sys.stderr)
+        print("FROM_PARAM", type(obj), obj, file=sys.stderr)
         # Convert None or 0
         if obj is None or obj == 0:
-            raise TypeError('NULL POINTER')
+            raise TypeError("NULL POINTER")
             return cls(POINTER(c_char)())
 
         # Convert from String
@@ -340,15 +340,15 @@ class String(MutableString, Union):
 
         # Convert from Bytes
         elif isinstance(obj, bytes):
-            obj = obj.decode('utf8')
-            print('GOT BYTES', obj, file=sys.stderr)
+            obj = obj.decode("utf8")
+            print("GOT BYTES", obj, file=sys.stderr)
             # print('GOT BYTES', cls, type(obj.decode('utf8')), file=sys.stderr)
-            result = cls(obj.decode('utf8'))
-            print('GOT BYTES result', type(result), result, file=sys.stderr)
+            result = cls(obj.decode("utf8"))
+            print("GOT BYTES result", type(result), result, file=sys.stderr)
             return result
 
         # Convert from str
-        elif isinstance(obj, str):
+        elif isinstance(obj, six.string_types):
             return cls(obj)
 
         # Convert from c_char_p
@@ -368,20 +368,19 @@ class String(MutableString, Union):
             return String.from_param(obj._as_parameter_)
 
 
-
 def ReturnString(obj, func=None, arguments=None):
     if obj is None:
         return None
-    if obj is not None and str(obj) == 'None':
-        raise ValueError('None as string: %s' % type(obj))
-    print('GOT BYTES pre-return', type(obj), obj, file=sys.stderr)
+    if obj is not None and str(obj) == "None":
+        raise ValueError("None as string: %s" % type(obj))
+    print("GOT BYTES pre-return", type(obj), obj, file=sys.stderr)
     if isinstance(obj, bytes):
-        obj = obj.decode('utf8')
+        obj = obj.decode("utf8")
     if isinstance(obj, six.string_types):
         return obj
-    print('GOT BYTES return', type(obj), obj, file=sys.stderr)
+    print("GOT BYTES return", type(obj), obj, file=sys.stderr)
     result = String(obj)
-    print('GOT BYTES return result', type(result), result, file=sys.stderr)
+    print("GOT BYTES return result", type(result), result, file=sys.stderr)
     return result
 
 

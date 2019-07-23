@@ -12,10 +12,31 @@ __docformat__ = "restructuredtext"
 
 __all__ = ["CtypesParser"]
 
-from ctypesgencore.parser.cparser import *
-from ctypesgencore.ctypedescs import *
-from ctypesgencore.parser.cdeclarations import *
-from ctypesgencore.expressions import *
+from ctypesgencore.expressions import (
+    BinaryExpressionNode,
+    ConstantExpressionNode,
+    IdentifierExpressionNode,
+)
+from ctypesgencore.ctypedescs import (
+    ctypes_type_map,
+    ctypes_type_map_python_builtin,
+    remove_function_pointer,
+    CtypesEnum,
+    CtypesArray,
+    CtypesSimple,
+    CtypesBitfield,
+    CtypesFunction,
+    CtypesPointer,
+    CtypesSpecial,
+    CtypesStruct,
+    CtypesTypedef,
+)
+from ctypesgencore.parser.cdeclarations import (
+    Pointer,
+    StructTypeSpecifier,
+    EnumSpecifier,
+)
+from ctypesgencore.parser.cparser import CParser
 
 
 def make_enum_from_specifier(specifier):
@@ -225,7 +246,9 @@ class CtypesParser(CParser):
     def handle_ctypes_typedef(self, name, ctype, filename, lineno):
         pass
 
-    def handle_ctypes_function(self, name, restype, argtypes, filename, lineno):
+    def handle_ctypes_function(
+        self, name, restype, argtypes, variadic, filename, lineno
+    ):
         pass
 
     def handle_ctypes_variable(self, name, ctype, filename, lineno):

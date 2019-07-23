@@ -2241,7 +2241,7 @@ def yacc(
         debug = 0
 
     # Add parsing method to signature
-    Signature.update(method.encode('utf8'))
+    Signature.update(method.encode("utf8"))
 
     # If a "module" parameter was supplied, extract its dictionary.
     # Note: a module may in fact be an instance as well.
@@ -2269,7 +2269,7 @@ def yacc(
     if not start:
         start = ldict.get("start", None)
     if start:
-        Signature.update(start.encode('utf8'))
+        Signature.update(start.encode("utf8"))
 
     # If running in optimized mode.  We're going to
 
@@ -2340,7 +2340,7 @@ def yacc(
             if not isinstance(prec, (list, tuple)):
                 raise YaccError("precedence must be a list or tuple.")
             add_precedence(prec)
-            Signature.update(repr(prec).encode('utf8'))
+            Signature.update(repr(prec).encode("utf8"))
 
         for n in tokens:
             if n not in Precedence:
@@ -2396,7 +2396,7 @@ def yacc(
         # Make a signature of the docstrings
         for f in symbols:
             if f.__doc__:
-                Signature.update(f.__doc__.encode('utf8'))
+                Signature.update(f.__doc__.encode("utf8"))
 
         lr_init_vars()
 

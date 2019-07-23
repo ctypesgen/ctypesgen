@@ -48,21 +48,23 @@ __version__ = "0.0"
 VERSION = __version__
 
 __all__ = [
-    "parser",
-    "processor",
-    "printer",
-    "descriptions",
     "ctypedescs",
+    "descriptions",
     "expressions",
     "messages",
     "options",
+    "parser",
+    "printer",
     "printer_python",
+    "processor",
 ]
 
 # Workhorse modules
+import ctypesgencore.parser as parser
 import parser
 import ctypesgencore.processor as processor
 import ctypesgencore.printer_python
+
 #
 
 try:

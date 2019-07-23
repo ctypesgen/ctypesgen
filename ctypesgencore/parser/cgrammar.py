@@ -187,7 +187,7 @@ def p_constant(p):
         prefix = constant[0]
         constant = constant[1:]
         if prefix in ("i", "l"):
-            value = int(constant) # No longs in Python any more...
+            value = int(constant)  # No longs in Python any more...
         else:
             value = float(constant)
 

@@ -7,20 +7,14 @@ To use, subclass CParser and override its handle_* methods.  Then instantiate
 the class with a string to parse.
 """
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals, absolute_import
 
 __docformat__ = "restructuredtext"
-import operator
 import os.path
-import re
 import sys
-import time
-import warnings
 
 from ctypesgencore.parser import preprocessor
 from ctypesgencore.parser import yacc
-from ctypesgencore.parser import cgrammar
-from ctypesgencore.parser import cgrammar
 
 
 # --------------------------------------------------------------------------
@@ -39,6 +33,8 @@ class CLexer(object):
         self.pos = 0
 
     def token(self):
+        from ctypesgencore.parser import cgrammar
+
         while self.pos < len(self.tokens):
             t = self.tokens[self.pos]
 
@@ -87,6 +83,8 @@ class CParser(object):
     """
 
     def __init__(self, options):
+        from ctypesgencore.parser import cgrammar
+
         self.preprocessor_parser = preprocessor.PreprocessorParser(options, self)
         self.parser = yacc.Parser()
         prototype = yacc.yacc(

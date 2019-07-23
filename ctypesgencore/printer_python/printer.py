@@ -8,6 +8,7 @@ from ctypesgencore.messages import *
 
 import ctypesgencore.libraryloader  # So we can get the path to it
 from ctypesgencore.printer_python import test as test_module
+
 # So we can find the path to local files in the printer package
 
 
@@ -232,8 +233,8 @@ class WrapperPrinter:
                 )
             else:
                 ctype_str = ctype.py_string()
-                if '/' in ctype_str:
-                    print('CTYPE_STR:', type(ctype), ctype, ctype_str, file=sys.stderr)
+                if "/" in ctype_str:
+                    print("CTYPE_STR:", type(ctype), ctype, ctype_str, file=sys.stderr)
                 print("    ('%s', %s)," % (name, ctype.py_string()), file=self.file)
         print("]", file=self.file)
 
@@ -284,11 +285,10 @@ class WrapperPrinter:
 
         # Return value
         if function.restype.py_string() == "String":
+            print("    %s.restype = c_char_p" % (function.py_name()), file=self.file)
             print(
-                "    %s.restype = c_char_p" % (function.py_name()),
-                file=self.file,
+                "    %s.errcheck = ReturnString" % (function.py_name()), file=self.file
             )
-            print("    %s.errcheck = ReturnString" % (function.py_name()), file=self.file )
         else:
             print(
                 "    %s.restype = %s"

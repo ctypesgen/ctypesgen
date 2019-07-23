@@ -207,7 +207,7 @@ class PreprocessorParser(object):
                 % self.options.save_preprocessed_headers
             )
             try:
-                with open (self.options.save_preprocessed_headers, "w") as f:
+                with open(self.options.save_preprocessed_headers, "w") as f:
                     f.write(text)
             except IOError:
                 self.cparser.handle_error("Couldn't save headers.")
