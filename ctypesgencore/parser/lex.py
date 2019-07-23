@@ -283,27 +283,8 @@ class Lexer:
             # Look for a regular expression match
             for lexre, lexindexfunc in self.lexre:
                 m = lexre.match(lexdata, lexpos)
-                print(
-                    "TRYING ",
-                    lexre.pattern,
-                    "against",
-                    lexdata[lexpos : lexpos + 80].split("\n", 1)[0],
-                    file=sys.stderr,
-                )
                 if not m:
-                    print("NO MATCH", file=sys.stderr)
                     continue
-                print("YAY! GOT A MATCH:", m.groupdict(), lexindexfunc, file=sys.stderr)
-                print(
-                    "MATCH TUPLE:",
-                    lexpos,
-                    m.span(),
-                    m.start(),
-                    m.end(),
-                    file=sys.stderr,
-                )
-                print("MATCH: '%s'" % lexdata[m.start() : m.end()], file=sys.stderr)
-                # print ('MATCH: "%s"' % lexdata[m.start():m.end()], file=sys.stderr)
 
                 # Set last match in lexer so that rules can access it if they want
                 self.lexmatch = m
@@ -332,7 +313,6 @@ class Lexer:
                     break
 
                 # If token is processed by a function, call it
-                print("token function", func, tok, file=sys.stderr)
                 newtok = func(tok)
 
                 # Every function must return a token, if nothing, we just move to next token

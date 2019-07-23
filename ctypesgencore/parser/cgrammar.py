@@ -1210,10 +1210,6 @@ def p_define(p):
     filename = p.slice[1].filename
     lineno = p.slice[1].lineno
 
-    print("p.slice", p, p.slice, file=sys.stderr)
-    print(0, p.slice[0], p.slice[0].value, file=sys.stderr)
-    print(1, p.slice[1], p.slice[1].value, file=sys.stderr)
-    print(2, p.slice[2], p.slice[2].value, file=sys.stderr)
     if p[3] != "(":
         if len(p) == 4:
             p.parser.cparser.handle_define_constant(p[2], None, filename, lineno)

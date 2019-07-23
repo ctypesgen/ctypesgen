@@ -377,8 +377,9 @@ class Parser:
 
                 if t == 0:
                     n = symstack[-1]
+                    if debug:
+                        sys.stderr.write(errorlead, "\n")
                     return getattr(n, "value", None)
-                    sys.stderr.write(errorlead, "\n")
 
             if t == None:
                 if debug:

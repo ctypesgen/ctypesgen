@@ -232,9 +232,6 @@ class WrapperPrinter:
                     file=self.file,
                 )
             else:
-                ctype_str = ctype.py_string()
-                if "/" in ctype_str:
-                    print("CTYPE_STR:", type(ctype), ctype, ctype_str, file=sys.stderr)
                 print("    ('%s', %s)," % (name, ctype.py_string()), file=self.file)
         print("]", file=self.file)
 
