@@ -8,7 +8,7 @@ calling DataCollectingParser.data().
 """
 
 from __future__ import print_function
-import ctypesparser
+from ctypesgencore.parser.ctypesparser import (CtypesParser, CtypesTypeVisitor, CtypesEnum)
 from ctypesgencore.descriptions import *
 from ctypesgencore.ctypedescs import *
 from ctypesgencore.expressions import *
@@ -17,7 +17,7 @@ from tempfile import mkstemp
 import os
 
 
-class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVisitor):
+class DataCollectingParser(CtypesParser, CtypesTypeVisitor):
     """Main class for the Parser component. Steps for use:
     p=DataCollectingParser(names_of_header_files,options)
     p.parse()
@@ -25,7 +25,7 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
     """
 
     def __init__(self, headers, options):
-        ctypesparser.CtypesParser.__init__(self, options)
+        CtypesParser.__init__(self, options)
         self.headers = headers
         self.options = options
 
@@ -68,7 +68,7 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
             print('#include "%s"' % os.path.abspath(header), file=f)
         f.flush()
         f.close()
-        ctypesparser.CtypesParser.parse(self, fname, None)
+        CtypesParser.parse(self, fname, None)
         os.unlink(fname)
 
         for name, params, expr, (filename, lineno) in self.saved_macros:
@@ -113,7 +113,7 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
 
     def handle_ctypes_new_type(self, ctype, filename, lineno):
         # Called by CtypesParser
-        if isinstance(ctype, ctypesparser.CtypesEnum):
+        if isinstance(ctype, CtypesEnum):
             self.handle_enum(ctype, filename, lineno)
         else:
             self.handle_struct(ctype, filename, lineno)
@@ -332,3 +332,8 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
             self.all,
             self.output_order,
         )
+
+def parse(headers, options):
+    parser = DataCollectingParser(headers, options)
+    parser.parse()
+    return parser.data()

@@ -20,6 +20,7 @@ str(ctype) would evaluate to "c_int * 4".
 """
 
 from __future__ import print_function
+import sys
 import warnings
 
 __docformat__ = "restructuredtext"
@@ -219,9 +220,9 @@ class CtypesArray(CtypesType):
         if self.count is None:
             return "POINTER(%s)" % self.base.py_string()
         if type(self.base) == CtypesArray:
-            return "(%s) * %s" % (self.base.py_string(), self.count.py_string(False))
+            return "(%s) * int(%s)" % (self.base.py_string(), self.count.py_string(False))
         else:
-            return "%s * %s" % (self.base.py_string(), self.count.py_string(False))
+            return "%s * int(%s)" % (self.base.py_string(), self.count.py_string(False))
 
 
 class CtypesFunction(CtypesType):

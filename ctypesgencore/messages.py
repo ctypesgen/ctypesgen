@@ -41,7 +41,7 @@ def error_message(msg, cls=None):
 
 
 def warning_message(msg, cls=None):
-    log.warn("%s", msg)
+    log.warning("%s", msg)
 
 
 def status_message(msg):

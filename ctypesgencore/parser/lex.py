@@ -24,10 +24,11 @@
 # See the file LICENSE for a complete copy of the LGPL.
 # -----------------------------------------------------------------------------
 
-from __future__ import print_function
+from __future__ import print_function, unicode_literals
 
 __version__ = "2.2"
 
+import six
 import re, sys, types, os.path
 
 # Regular expression used to match valid token names
@@ -36,14 +37,6 @@ _is_identifier = re.compile(r"^[a-zA-Z0-9_]+$")
 # Available instance types.  This is used when lexers are defined by a class.
 # It's a little funky because I want to preserve backwards compatibility
 # with Python 2.0 where types.ObjectType is undefined.
-
-try:
-    _INSTANCETYPE = (types.InstanceType, types.ObjectType)
-except AttributeError:
-    _INSTANCETYPE = types.InstanceType
-
-    class object:
-        pass  # Note: needed if no new-style classes present
 
 
 # Exception thrown when invalid token encountered and no default error
@@ -223,7 +216,7 @@ class Lexer:
     # input() - Push a new string into the lexer
     # ------------------------------------------------------------
     def input(self, s):
-        if not (isinstance(s, types.StringType) or isinstance(s, types.UnicodeType)):
+        if not isinstance(s, six.string_types):
             raise ValueError("Expected a string")
         self.lexdata = s
         self.lexpos = 0
@@ -362,8 +355,8 @@ class Lexer:
                         raise LexError(
                             "%s:%d: Rule '%s' returned an unknown token type '%s'"
                             % (
-                                func.func_code.co_filename,
-                                func.func_code.co_firstlineno,
+                                func.__code__.co_filename,
+                                func.__code__.co_firstlineno,
                                 func.__name__,
                                 newtok.type,
                             ),
@@ -609,11 +602,6 @@ def lex(
         # User supplied a module object.
         if isinstance(module, types.ModuleType):
             ldict = module.__dict__
-        elif isinstance(module, _INSTANCETYPE):
-            _items = [(k, getattr(module, k)) for k in dir(module)]
-            ldict = {}
-            for (i, v) in _items:
-                ldict[i] = v
         else:
             raise ValueError("Expected a module or instance")
         lexobj.lexmodule = module
@@ -640,7 +628,7 @@ def lex(
             pass
 
     # Get the tokens, states, and literals variables (if any)
-    if module and isinstance(module, _INSTANCETYPE):
+    if module and isinstance(module, types.ModuleType):
         tokens = getattr(module, "tokens", None)
         states = getattr(module, "states", None)
         literals = getattr(module, "literals", "")
@@ -651,7 +639,7 @@ def lex(
 
     if not tokens:
         raise SyntaxError("lex: module does not define 'tokens'")
-    if not (isinstance(tokens, types.ListType) or isinstance(tokens, types.TupleType)):
+    if not isinstance(tokens, (list, tuple)):
         raise SyntaxError("lex: tokens must be a list or tuple.")
 
     # Build a dictionary of valid token names
@@ -673,12 +661,7 @@ def lex(
 
     try:
         for c in literals:
-            if (
-                not (
-                    isinstance(c, types.StringType) or isinstance(c, types.UnicodeType)
-                )
-                or len(c) > 1
-            ):
+            if (not isinstance(c, six.string_types)) or len(c) > 1:
                 print("lex: Invalid literal %s. Must be a single character" % repr(c))
                 error = 1
                 continue
@@ -693,14 +676,12 @@ def lex(
 
     # Build statemap
     if states:
-        if not (
-            isinstance(states, types.TupleType) or isinstance(states, types.ListType)
-        ):
+        if not isinstance(states, (tuple, list)):
             print("lex: states must be defined as a tuple or list.")
             error = 1
         else:
             for s in states:
-                if not isinstance(s, types.TupleType) or len(s) != 2:
+                if not isinstance(s, tuple) or len(s) != 2:
                     print(
                         "lex: invalid state specifier %s. Must be a tuple (statename,"
                         "'exclusive|inclusive')" % repr(s),
@@ -709,7 +690,7 @@ def lex(
                     error = 1
                     continue
                 name, statetype = s
-                if not isinstance(name, types.StringType):
+                if not isinstance(name, six.string_types):
                     print("lex: state name %s must be a string" % repr(name))
                     error = 1
                     continue
@@ -753,7 +734,7 @@ def lex(
         if hasattr(t, "__call__"):
             for s in states:
                 funcsym[s].append((f, t))
-        elif isinstance(t, types.StringType) or isinstance(t, types.UnicodeType):
+        elif isinstance(t, six.string_types):
             for s in states:
                 strsym[s].append((f, t))
         else:
@@ -762,15 +743,11 @@ def lex(
 
     # Sort the functions by line number
     for f in funcsym.values():
-        f.sort(
-            lambda x, y: cmp(
-                x[1].func_code.co_firstlineno, y[1].func_code.co_firstlineno
-            )
-        )
+        f.sort(key=lambda x: x[1].__code__.co_firstlineno)
 
     # Sort the strings by regular expression length
     for s in strsym.values():
-        s.sort(lambda x, y: (len(x[1]) < len(y[1])) - (len(x[1]) > len(y[1])))
+        s.sort(key=lambda x: -(len(x[1])))
 
     regexs = {}
 
@@ -780,15 +757,15 @@ def lex(
 
         # Add rules defined by functions first
         for fname, f in funcsym[state]:
-            line = f.func_code.co_firstlineno
-            file = f.func_code.co_filename
+            line = f.__code__.co_firstlineno
+            file = f.__code__.co_filename
             files[file] = None
             tokname = toknames[fname]
 
             ismethod = isinstance(f, types.MethodType)
 
             if not optimize:
-                nargs = f.func_code.co_argcount
+                nargs = f.__code__.co_argcount
                 if ismethod:
                     reqargs = 2
                 else:

@@ -27,7 +27,7 @@ def todict(obj, classkey="Klass"):
         data = dict(
             [
                 (key, todict(value, classkey))
-                for key, value in obj.__dict__.iteritems()
+                for key, value in obj.__dict__.items()
                 if not callable(value) and not key.startswith("_")
             ]
         )
@@ -42,7 +42,7 @@ class WrapperPrinter:
     def __init__(self, outpath, options, data):
         status_message("Writing to %s." % (outpath or "stdout"))
 
-        self.file = outpath and file(outpath, "w") or sys.stdout
+        self.file = outpath and open(outpath, "w") or sys.stdout
         self.options = options
 
         if (
@@ -70,7 +70,8 @@ class WrapperPrinter:
                 item = method_table[kind](desc)
                 if item:
                     res.append(item)
-        print >>self.file, json.dumps(res, sort_keys=True, indent=4)
+        json.dump(self.file, res, sort_keys=True, indent=4)
+        self.file.close()
 
     def print_group(self, list, name, function):
         if list:

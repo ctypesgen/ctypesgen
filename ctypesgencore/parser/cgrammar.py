@@ -22,11 +22,11 @@ import sys
 import time
 import warnings
 
-import preprocessor
-import yacc
-import ctypesparser
+from ctypesgencore.parser import preprocessor
+from ctypesgencore.parser import ctypesparser
+from ctypesgencore.parser import yacc
+from ctypesgencore.parser import cdeclarations
 import ctypesgencore.expressions as expressions
-import cdeclarations
 
 tokens = (
     "PP_DEFINE",
@@ -186,10 +186,8 @@ def p_constant(p):
         # if it should be converted into an integer, long or float.
         prefix = constant[0]
         constant = constant[1:]
-        if prefix == "i":
-            value = int(constant)
-        elif prefix == "l":
-            value = long(constant)
+        if prefix in ("i", "l"):
+            value = int(constant) # No longs in Python any more...
         else:
             value = float(constant)
 

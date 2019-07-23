@@ -17,10 +17,10 @@ import sys
 import time
 import warnings
 
-import preprocessor
-import yacc
-import cgrammar
-import cdeclarations
+from ctypesgencore.parser import preprocessor
+from ctypesgencore.parser import yacc
+from ctypesgencore.parser import cgrammar
+from ctypesgencore.parser import cgrammar
 
 
 # --------------------------------------------------------------------------

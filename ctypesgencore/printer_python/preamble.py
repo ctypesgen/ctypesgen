@@ -1,5 +1,8 @@
+import six
 import ctypes, os, sys
 from ctypes import *
+
+bigint = 4000000000
 
 _int_types = (c_int16, c_int32)
 if hasattr(ctypes, "c_int64"):
@@ -118,7 +121,7 @@ class UserString:
     def center(self, width, *args):
         return self.__class__(self.data.center(width, *args))
 
-    def count(self, sub, start=0, end=sys.maxint):
+    def count(self, sub, start=0, end=bigint):
         return self.data.count(sub, start, end)
 
     def decode(self, encoding=None, errors=None):  # XXX improve this?
@@ -139,16 +142,16 @@ class UserString:
         else:
             return self.__class__(self.data.encode())
 
-    def endswith(self, suffix, start=0, end=sys.maxint):
+    def endswith(self, suffix, start=0, end=bigint):
         return self.data.endswith(suffix, start, end)
 
     def expandtabs(self, tabsize=8):
         return self.__class__(self.data.expandtabs(tabsize))
 
-    def find(self, sub, start=0, end=sys.maxint):
+    def find(self, sub, start=0, end=bigint):
         return self.data.find(sub, start, end)
 
-    def index(self, sub, start=0, end=sys.maxint):
+    def index(self, sub, start=0, end=bigint):
         return self.data.index(sub, start, end)
 
     def isalpha(self):
@@ -196,10 +199,10 @@ class UserString:
     def replace(self, old, new, maxsplit=-1):
         return self.__class__(self.data.replace(old, new, maxsplit))
 
-    def rfind(self, sub, start=0, end=sys.maxint):
+    def rfind(self, sub, start=0, end=bigint):
         return self.data.rfind(sub, start, end)
 
-    def rindex(self, sub, start=0, end=sys.maxint):
+    def rindex(self, sub, start=0, end=bigint):
         return self.data.rindex(sub, start, end)
 
     def rjust(self, width, *args):
@@ -220,7 +223,7 @@ class UserString:
     def splitlines(self, keepends=0):
         return self.data.splitlines(keepends)
 
-    def startswith(self, prefix, start=0, end=sys.maxint):
+    def startswith(self, prefix, start=0, end=bigint):
         return self.data.startswith(prefix, start, end)
 
     def strip(self, chars=None):
@@ -314,22 +317,35 @@ class String(MutableString, Union):
     _fields_ = [("raw", POINTER(c_char)), ("data", c_char_p)]
 
     def __init__(self, obj=""):
-        if isinstance(obj, (str, unicode, UserString)):
-            self.data = str(obj)
+        print('STRING INIT', type(obj), obj, file=sys.stderr)
+        if isinstance(obj, (six.string_types, UserString)):
+            self.data = str(obj) if six.PY2 else bytes(obj, 'utf8')
         else:
             self.raw = obj
 
     def __len__(self):
         return self.data and len(self.data) or 0
 
+    @classmethod
     def from_param(cls, obj):
+        print('FROM_PARAM', type(obj), obj, file=sys.stderr)
         # Convert None or 0
         if obj is None or obj == 0:
+            raise TypeError('NULL POINTER')
             return cls(POINTER(c_char)())
 
         # Convert from String
         elif isinstance(obj, String):
             return obj
+
+        # Convert from Bytes
+        elif isinstance(obj, bytes):
+            obj = obj.decode('utf8')
+            print('GOT BYTES', obj, file=sys.stderr)
+            # print('GOT BYTES', cls, type(obj.decode('utf8')), file=sys.stderr)
+            result = cls(obj.decode('utf8'))
+            print('GOT BYTES result', type(result), result, file=sys.stderr)
+            return result
 
         # Convert from str
         elif isinstance(obj, str):
@@ -351,11 +367,22 @@ class String(MutableString, Union):
         else:
             return String.from_param(obj._as_parameter_)
 
-    from_param = classmethod(from_param)
 
 
 def ReturnString(obj, func=None, arguments=None):
-    return String.from_param(obj)
+    if obj is None:
+        return None
+    if obj is not None and str(obj) == 'None':
+        raise ValueError('None as string: %s' % type(obj))
+    print('GOT BYTES pre-return', type(obj), obj, file=sys.stderr)
+    if isinstance(obj, bytes):
+        obj = obj.decode('utf8')
+    if isinstance(obj, six.string_types):
+        return obj
+    print('GOT BYTES return', type(obj), obj, file=sys.stderr)
+    result = String(obj)
+    print('GOT BYTES return result', type(result), result, file=sys.stderr)
+    return result
 
 
 # As of ctypes 1.0, ctypes does not support custom error-checking

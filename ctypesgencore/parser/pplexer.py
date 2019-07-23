@@ -12,9 +12,9 @@ from __future__ import print_function
 
 __docformat__ = "restructuredtext"
 
-import os, re, shlex, sys, tokenize, lex, yacc, traceback
-import ctypes
-from lex import TOKEN
+import sys
+import re
+from ctypesgencore.parser.lex import TOKEN
 
 tokens = (
     "HEADER_NAME",
@@ -91,7 +91,9 @@ class StringLiteral(str):
     def __new__(cls, value):
         assert value[0] == '"' and value[-1] == '"'
         # Unescaping probably not perfect but close enough.
-        value = value[1:-1].decode("string_escape")
+        # value = value[1:-1].decode("string_escape")
+        # FIXME: This doesn't exist in python3 apparently...
+        value = value[1:-1]
         return str.__new__(cls, value)
 
 
@@ -155,7 +157,7 @@ punctuators = {
 
 def punctuator_regex(punctuators):
     punctuator_regexes = [v[0] for v in punctuators.values()]
-    punctuator_regexes.sort(lambda a, b: -cmp(len(a), len(b)))
+    punctuator_regexes.sort(key=lambda a: -(len(a)))
     return "(%s)" % "|".join(punctuator_regexes)
 
 
@@ -271,10 +273,10 @@ def t_ANY_int(t):
     g1 = m.group(2)
     if g1.startswith("0x"):
         # Convert base from hexadecimal
-        g1 = str(long(g1[2:], 16))
+        g1 = str(int(g1[2:], 16))
     elif g1[0] == "0":
         # Convert base from octal
-        g1 = str(long(g1, 8))
+        g1 = str(int(g1, 8))
 
     t.value = prefix + g1
 

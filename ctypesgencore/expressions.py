@@ -8,7 +8,7 @@ which returns a Python string representing that expression.
 
 import sys
 
-from ctypedescs import *
+from ctypesgencore.ctypedescs import *
 import keyword
 
 

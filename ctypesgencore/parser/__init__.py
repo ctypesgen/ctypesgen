@@ -14,13 +14,14 @@ for more information.
 
 """
 
-from datacollectingparser import DataCollectingParser
+from ctypesgencore.parser import cdeclarations
+from ctypesgencore.parser import cgrammar
+from ctypesgencore.parser import lex
+from ctypesgencore.parser.datacollectingparser import parse
+from ctypesgencore.parser import pplexer
+from ctypesgencore.parser import preprocessor
+from ctypesgencore.parser import yacc
+__all__ = ["cdeclarations", "cgrammar", "lex", "parse", "pplexer", "preprocessor", "yacc"]
 
 
-def parse(headers, options):
-    parser = DataCollectingParser(headers, options)
-    parser.parse()
-    return parser.data()
 
-
-__all__ = ["parse"]

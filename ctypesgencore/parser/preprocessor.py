@@ -10,10 +10,11 @@ Reference is C99:
 
 __docformat__ = "restructuredtext"
 
-import os, re, shlex, sys, tokenize, lex, yacc, traceback, subprocess
+import os, re, shlex, sys, tokenize, traceback, subprocess
 import ctypes
-from lex import TOKEN
-import pplexer
+from ctypesgencore.parser.yacc import YaccSymbol
+from ctypesgencore.parser.lex import TOKEN, Lexer, LexToken, lex
+from ctypesgencore.parser import pplexer
 
 
 # --------------------------------------------------------------------------
@@ -21,9 +22,9 @@ import pplexer
 # --------------------------------------------------------------------------
 
 
-class PreprocessorLexer(lex.Lexer):
+class PreprocessorLexer(Lexer):
     def __init__(self):
-        lex.Lexer.__init__(self)
+        Lexer.__init__(self)
         self.filename = "<input>"
         self.in_define = False
 
@@ -33,7 +34,7 @@ class PreprocessorLexer(lex.Lexer):
         self.lasttoken = None
         self.input_stack = []
 
-        lex.Lexer.input(self, data)
+        Lexer.input(self, data)
 
     def push_input(self, data, filename):
         self.input_stack.append((self.lexdata, self.lexpos, self.filename, self.lineno))
@@ -48,10 +49,10 @@ class PreprocessorLexer(lex.Lexer):
         self.lexlen = len(self.lexdata)
 
     def token(self):
-        result = lex.Lexer.token(self)
+        result = Lexer.token(self)
         while result is None and self.input_stack:
             self.pop_input()
-            result = lex.Lexer.token(self)
+            result = Lexer.token(self)
 
         if result:
             self.lasttoken = result.type
@@ -77,9 +78,9 @@ class TokenListLexer(object):
 
 
 def symbol_to_token(sym):
-    if isinstance(sym, yacc.YaccSymbol):
+    if isinstance(sym, YaccSymbol):
         return sym.value
-    elif isinstance(sym, lex.LexToken):
+    elif isinstance(sym, LexToken):
         return sym
     else:
         assert False, "Not a symbol: %r" % sym
@@ -88,7 +89,7 @@ def symbol_to_token(sym):
 def create_token(type, value, production=None):
     """Create a token of type and value, at the position where 'production'
     was reduced.  Don't specify production if the token is built-in"""
-    t = lex.LexToken()
+    t = LexToken()
     t.type = type
     t.value = value
     t.lexpos = -1
@@ -129,7 +130,7 @@ class PreprocessorParser(object):
 
         self.matches = []
         self.output = []
-        self.lexer = lex.lex(
+        self.lexer = lex(
             cls=PreprocessorLexer,
             optimize=1,
             lextab="lextab",
@@ -206,9 +207,8 @@ class PreprocessorParser(object):
                 % self.options.save_preprocessed_headers
             )
             try:
-                f = file(self.options.save_preprocessed_headers, "w")
-                f.write(text)
-                f.close()
+                with open (self.options.save_preprocessed_headers, "w") as f:
+                    f.write(text)
             except IOError:
                 self.cparser.handle_error("Couldn't save headers.")
 

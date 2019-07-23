@@ -84,6 +84,8 @@ class StdlibTest(unittest.TestCase):
             os.environ[env_var_name] = "WORLD"  # This doesn't work under win32
             expect_result = "WORLD"
 
+        print('type(env_var_name)', type(env_var_name), file=sys.stderr)
+        print('type(getenv)', type(module.getenv), file=sys.stderr)
         result = module.getenv(env_var_name)
         self.assertEqual(expect_result, result)
 
@@ -92,14 +94,19 @@ class StdlibTest(unittest.TestCase):
         """
         module = self.module
         env_var_name = "NOT SET"
-        expect_result = None
         try:
             # ensure variable is not set, ignoring not set errors
             del os.environ[env_var_name]
         except KeyError:
             pass
+        print('type(env_var_name)', type(env_var_name), file=sys.stderr)
+        print('type(getenv)', type(module.getenv), file=sys.stderr)
+        print('dir(getenv)', dir(module.getenv), file=sys.stderr)
+        print('(getenv.argtypes)', (module.getenv.argtypes), file=sys.stderr)
+        print('(getenv.restype)', (module.getenv.restype), file=sys.stderr)
         result = module.getenv(env_var_name)
-        self.assertEqual(expect_result, result)
+        print('result', type(result), result, file=sys.stderr)
+        self.assertIsNone(result)
 
 
 class StdBoolTest(unittest.TestCase):

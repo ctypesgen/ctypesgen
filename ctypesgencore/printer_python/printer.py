@@ -7,10 +7,11 @@ from ctypesgencore.ctypedescs import *
 from ctypesgencore.messages import *
 
 import ctypesgencore.libraryloader  # So we can get the path to it
-import test  # So we can find the path to local files in the printer package
+from ctypesgencore.printer_python import test as test_module
+# So we can find the path to local files in the printer package
 
 
-def path_to_local_file(name, known_local_module=test):
+def path_to_local_file(name, known_local_module=test_module):
     basedir = os.path.dirname(known_local_module.__file__)
     return os.path.join(basedir, name)
 
@@ -19,7 +20,7 @@ class WrapperPrinter:
     def __init__(self, outpath, options, data):
         status_message("Writing to %s." % (outpath or "stdout"))
 
-        self.file = outpath and file(outpath, "w") or sys.stdout
+        self.file = outpath and open(outpath, "w") or sys.stdout
         self.options = options
 
         if (
@@ -97,7 +98,7 @@ class WrapperPrinter:
             "name": os.path.basename(self.options.headers[0]),
         }
 
-        for opt, value in self.options.__dict__.iteritems():
+        for opt, value in self.options.__dict__.items():
             if type(value) == str:
                 template_subs[opt] = value
             elif isinstance(value, (list, tuple)):
@@ -113,7 +114,7 @@ class WrapperPrinter:
         if self.options.header_template:
             path = self.options.header_template
             try:
-                template_file = file(path, "r")
+                template_file = open(path, "r")
             except IOError:
                 error_message(
                     'Cannot load header template from file "%s" '
@@ -123,7 +124,7 @@ class WrapperPrinter:
 
         if not template_file:
             path = path_to_local_file("defaultheader.py")
-            template_file = file(path, "r")
+            template_file = open(path, "r")
 
         template_subs = self.template_subs()
         self.file.write(template_file.read() % template_subs)
@@ -135,7 +136,7 @@ class WrapperPrinter:
 
         print("# Begin preamble", file=self.file)
         print(file=self.file)
-        preamble_file = file(path, "r")
+        preamble_file = open(path, "r")
         self.file.write(preamble_file.read())
         preamble_file.close()
         print(file=self.file)
@@ -148,7 +149,7 @@ class WrapperPrinter:
         print("# Begin loader", file=self.file)
         print(file=self.file)
         path = path_to_local_file("libraryloader.py", ctypesgencore.libraryloader)
-        loader_file = file(path, "r")
+        loader_file = open(path, "r")
         self.file.write(loader_file.read())
         loader_file.close()
         print(file=self.file)
@@ -230,6 +231,9 @@ class WrapperPrinter:
                     file=self.file,
                 )
             else:
+                ctype_str = ctype.py_string()
+                if '/' in ctype_str:
+                    print('CTYPE_STR:', type(ctype), ctype, ctype_str, file=sys.stderr)
                 print("    ('%s', %s)," % (name, ctype.py_string()), file=self.file)
         print("]", file=self.file)
 
@@ -260,7 +264,7 @@ class WrapperPrinter:
                 file=self.file,
             )
         else:
-            print("for _lib in _libs.itervalues():", file=self.file)
+            print("for _lib in _libs.values():", file=self.file)
             print("    if not hasattr(_lib, %r):" % function.c_name(), file=self.file)
             print("        continue", file=self.file)
             print(
@@ -280,21 +284,11 @@ class WrapperPrinter:
 
         # Return value
         if function.restype.py_string() == "String":
-            print("    if sizeof(c_int) == sizeof(c_void_p):", file=self.file)
             print(
-                "        %s.restype = ReturnString" % (function.py_name()),
+                "    %s.restype = c_char_p" % (function.py_name()),
                 file=self.file,
             )
-            print("    else:", file=self.file)
-            print(
-                "        %s.restype = %s"
-                % (function.py_name(), function.restype.py_string()),
-                file=self.file,
-            )
-            print(
-                "        %s.errcheck = ReturnString" % (function.py_name()),
-                file=self.file,
-            )
+            print("    %s.errcheck = ReturnString" % (function.py_name()), file=self.file )
         else:
             print(
                 "    %s.restype = %s"
@@ -398,7 +392,7 @@ class WrapperPrinter:
 
     def insert_file(self, filename):
         try:
-            inserted_file = file(filename, "r")
+            inserted_file = open(filename, "r")
         except IOError:
             error_message(
                 'Cannot open file "%s". Skipped it.' % filename, cls="missing-file"

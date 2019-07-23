@@ -56,12 +56,14 @@ __all__ = [
     "expressions",
     "messages",
     "options",
+    "printer_python",
 ]
 
 # Workhorse modules
 import parser
-import processor
-import printer_python
+import ctypesgencore.processor as processor
+import ctypesgencore.printer_python
+#
 
 try:
     import printer_json
@@ -69,12 +71,13 @@ except ImportError:
     pass
 
 # Modules describing internal format
-import descriptions
-import ctypedescs
-import expressions
+from ctypesgencore import descriptions
+from ctypesgencore import ctypedescs
+from ctypesgencore import expressions
 
 # Helper modules
-import messages
-import options
+from ctypesgencore import messages
+from ctypesgencore import options
+from ctypesgencore import printer_python
 
 printer = printer_python  # Default the printer to generating Python
