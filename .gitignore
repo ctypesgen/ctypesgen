@@ -3,6 +3,9 @@
 ctypesgencore/test/gen-parser-outputs
 ctypesgencore/test/test-headers
 ctypesgencore/test/test-parser
+build/
+ctypesgen.egg-info/
+dist/
 foo
 foo.*
 MANIFEST
