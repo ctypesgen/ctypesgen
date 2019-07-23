@@ -1,0 +1,10 @@
+*.pyc
+.idea/workspace.xml
+ctypesgencore/test/gen-parser-outputs
+ctypesgencore/test/test-headers
+ctypesgencore/test/test-parser
+foo
+foo.*
+MANIFEST
+.tox/
+*.out

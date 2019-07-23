@@ -12,14 +12,21 @@ from distutils.core import setup
 
 import ctypesgencore
 
-setup(name='ctypesgen',
+setup(
+    name="ctypesgen",
+    maintainer="Alan Robertson",
+    maintainer_email="alanr@unix.sh",
     version=ctypesgencore.VERSION,
-    description='Python wrapper generator for ctypes',
-    url='http://code.google.com/p/ctypesgen/',
-    license='BSD License',
-    packages=['ctypesgencore',
-        'ctypesgencore.parser',
-        'ctypesgencore.printer_python',
-        'ctypesgencore.printer_json',
-        'ctypesgencore.processor'],
-    scripts=['ctypesgen.py'])
+    description="Python wrapper generator for ctypes",
+    url="https://github.com/Alan-R/ctypesgen",
+    license="BSD License",
+    packages=[
+        "ctypesgencore",
+        "ctypesgencore.parser",
+        "ctypesgencore.printer_python",
+        "ctypesgencore.printer_json",
+        "ctypesgencore.processor",
+        "ctypesgencore.test",
+    ],
+    scripts=["ctypesgen.py"],
+)
