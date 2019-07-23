@@ -1,8 +1,8 @@
                               ctypesgen
                               ---------
 
-                  (c) Ctypesgen developers 2007-2015
-                 https://github.com/davidjamesca/ctypesgen
+                  (c) Ctypesgen developers 2007-2019
+                  https://github.com/Alan-R/ctypesgen
 
 ctypesgen is a pure-python ctypes wrapper generator. It can also
 output JSON, which can be used with Mork, which generates bindings for
