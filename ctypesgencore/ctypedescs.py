@@ -220,10 +220,7 @@ class CtypesArray(CtypesType):
         if self.count is None:
             return "POINTER(%s)" % self.base.py_string()
         if type(self.base) == CtypesArray:
-            return "(%s) * int(%s)" % (
-                self.base.py_string(),
-                self.count.py_string(False),
-            )
+            return "(%s) * int(%s)" % (self.base.py_string(), self.count.py_string(False))
         else:
             return "%s * int(%s)" % (self.base.py_string(), self.count.py_string(False))
 

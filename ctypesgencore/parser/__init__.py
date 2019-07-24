@@ -22,12 +22,4 @@ from ctypesgencore.parser import pplexer
 from ctypesgencore.parser import preprocessor
 from ctypesgencore.parser import yacc
 
-__all__ = [
-    "cdeclarations",
-    "cgrammar",
-    "lex",
-    "parse",
-    "pplexer",
-    "preprocessor",
-    "yacc",
-]
+__all__ = ["cdeclarations", "cgrammar", "lex", "parse", "pplexer", "preprocessor", "yacc"]

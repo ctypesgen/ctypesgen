@@ -54,9 +54,7 @@ class StdlibTest(unittest.TestCase):
             libraries = ["libc.so.6"]
         else:
             libraries = ["libc"]
-        self.module, output = ctypesgentest.test(
-            header_str, libraries=libraries, all_headers=True
-        )
+        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
 
     def tearDown(self):
         del self.module
@@ -131,9 +129,7 @@ struct foo
         """Test is bool is correctly parsed"""
         module = self.module
         struct_foo = module.struct_foo
-        self.assertEqual(
-            struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)]
-        )
+        self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
 
 
 class SimpleMacrosTest(unittest.TestCase):
@@ -267,8 +263,7 @@ struct foo
 
         struct_foo = module.struct_foo
         self.assertEqual(
-            struct_foo._fields_,
-            [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)],
+            struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)]
         )
 
 
@@ -289,9 +284,7 @@ class MathTest(unittest.TestCase):
             libraries = ["libm.so.6"]
         else:
             libraries = ["libc"]
-        self.module, output = ctypesgentest.test(
-            header_str, libraries=libraries, all_headers=True
-        )
+        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
 
     def tearDown(self):
         del self.module

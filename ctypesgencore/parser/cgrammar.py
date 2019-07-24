@@ -209,12 +209,7 @@ def p_multi_string_literal(p):
         p[0] = p[1]
     else:
         p[0] = expressions.BinaryExpressionNode(
-            "string concatenation",
-            (lambda x, y: x + y),
-            "(%s + %s)",
-            (False, False),
-            p[1],
-            p[2],
+            "string concatenation", (lambda x, y: x + y), "(%s + %s)", (False, False), p[1], p[2]
         )
 
 
@@ -405,9 +400,7 @@ def p_multiplicative_expression(p):
         p[0] = p[1]
     else:
         name, op, format = mult_ops_dict[p[2]]
-        p[0] = expressions.BinaryExpressionNode(
-            name, op, format, (False, False), p[1], p[3]
-        )
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False, False), p[1], p[3])
 
 
 add_ops_dict = {
@@ -425,9 +418,7 @@ def p_additive_expression(p):
         p[0] = p[1]
     else:
         name, op, format = add_ops_dict[p[2]]
-        p[0] = expressions.BinaryExpressionNode(
-            name, op, format, (False, False), p[1], p[3]
-        )
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False, False), p[1], p[3])
 
 
 shift_ops_dict = {
@@ -445,9 +436,7 @@ def p_shift_expression(p):
         p[0] = p[1]
     else:
         name, op, format = shift_ops_dict[p[2]]
-        p[0] = expressions.BinaryExpressionNode(
-            name, op, format, (False, False), p[1], p[3]
-        )
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False, False), p[1], p[3])
 
 
 rel_ops_dict = {
@@ -469,9 +458,7 @@ def p_relational_expression(p):
         p[0] = p[1]
     else:
         name, op, format = rel_ops_dict[p[2]]
-        p[0] = expressions.BinaryExpressionNode(
-            name, op, format, (False, False), p[1], p[3]
-        )
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False, False), p[1], p[3])
 
 
 equality_ops_dict = {
@@ -489,9 +476,7 @@ def p_equality_expression(p):
         p[0] = p[1]
     else:
         name, op, format = equality_ops_dict[p[2]]
-        p[0] = expressions.BinaryExpressionNode(
-            name, op, format, (False, False), p[1], p[3]
-        )
+        p[0] = expressions.BinaryExpressionNode(name, op, format, (False, False), p[1], p[3])
 
 
 def p_and_expression(p):
@@ -538,12 +523,7 @@ def p_logical_and_expression(p):
         p[0] = p[1]
     else:
         p[0] = expressions.BinaryExpressionNode(
-            "logical and",
-            (lambda x, y: x and y),
-            "(%s and %s)",
-            (True, True),
-            p[1],
-            p[3],
+            "logical and", (lambda x, y: x and y), "(%s and %s)", (True, True), p[1], p[3]
         )
 
 
@@ -596,9 +576,7 @@ def p_assignment_expression(p):
             p[0] = p[3]
         else:
             name, op, format = assign_ops_dict[p[2]]
-            p[0] = expressions.BinaryExpressionNode(
-                name, op, format, (True, True), p[1], p[3]
-            )
+            p[0] = expressions.BinaryExpressionNode(name, op, format, (True, True), p[1], p[3])
 
 
 def p_assignment_operator(p):
@@ -1253,17 +1231,13 @@ def p_define_error(p):
         end_of_param_list = start
         while clexdata[end_of_param_list].value != ")" and end_of_param_list < end:
             end_of_param_list += 1
-        params = [
-            t.value for t in clexdata[start + 3 : end_of_param_list] if t.value != ","
-        ]
+        params = [t.value for t in clexdata[start + 3 : end_of_param_list] if t.value != ","]
         contents = [t.value for t in clexdata[end_of_param_list + 1 : end]]
 
     filename = p.slice[1].filename
     lineno = p.slice[1].lineno
 
-    p[2].lexer.cparser.handle_define_unparseable(
-        name, params, contents, filename, lineno
-    )
+    p[2].lexer.cparser.handle_define_unparseable(name, params, contents, filename, lineno)
 
 
 def p_macro_parameter_list(p):
@@ -1285,9 +1259,7 @@ def p_error(t):
         if t.type == "$end":
             t.parser.cparser.handle_error("Syntax error at end of file.", t.filename, 0)
         else:
-            t.lexer.cparser.handle_error(
-                "Syntax error at %r" % t.value, t.filename, t.lineno
-            )
+            t.lexer.cparser.handle_error("Syntax error at %r" % t.value, t.filename, t.lineno)
     # Don't alter lexer: default behaviour is to pass error production
     # up until it hits the catch-all at declaration, at which point
     # parsing continues (synchronisation).

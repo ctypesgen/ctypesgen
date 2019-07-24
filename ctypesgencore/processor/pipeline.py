@@ -128,15 +128,12 @@ def print_errors_encountered(data, opts):
                             "for %s" % (numerrs, numwarns, desc.casual_name())
                         )
                     else:
-                        error_message(
-                            "%d more errors for %s " % (numerrs, desc.casual_name())
-                        )
+                        error_message("%d more errors for %s " % (numerrs, desc.casual_name()))
                 else:
                     warning1, cls1 = desc.warnings[0]
                     warning_message(warning1, cls1)
                     warning_message(
-                        "%d more errors for %s"
-                        % (len(desc.warnings) - 1, desc.casual_name())
+                        "%d more errors for %s" % (len(desc.warnings) - 1, desc.casual_name())
                     )
         if desc.errors:
             # process() will recalculate to take this into account

@@ -13,7 +13,7 @@ from setuptools import setup
 import six
 import ctypesgencore
 
-with open('README', 'r') as fh:
+with open("README", "r") as fh:
     long_description = fh.read()
 description = "Python wrapper generator for ctypes"
 if six.PY2:
@@ -29,7 +29,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/plain",
     url="https://github.com/Alan-R/ctypesgen",
-    platforms=['any'],
+    platforms=["any"],
     license="BSD 3-clause License",
     packages=[
         "ctypesgencore",

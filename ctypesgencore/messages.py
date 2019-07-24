@@ -31,9 +31,7 @@ logging_fmt_str = "%(levelname)s: %(message)s"
 formatter = logging.Formatter(logging_fmt_str)
 ch.setFormatter(formatter)
 log.addHandler(ch)
-log.setLevel(
-    logging.INFO
-)  # default level that ctypesgen was using with original version
+log.setLevel(logging.INFO)  # default level that ctypesgen was using with original version
 
 
 def error_message(msg, cls=None):
