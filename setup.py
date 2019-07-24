@@ -3,9 +3,8 @@
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 """Examples:
 
-        setup.py sdist
+        setup.py sdist bdist_wheel
         setup.py bdist_wininst
-
 """
 
 from setuptools import setup

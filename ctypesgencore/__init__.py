@@ -44,7 +44,7 @@ parser, processor, and printer modules use to pass information. They are:
 format.
 """
 
-__version__ = "1.0.1.dev5"
+__version__ = "1.0.1.dev6"
 VERSION = __version__
 
 __all__ = [
