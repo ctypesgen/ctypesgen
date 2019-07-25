@@ -3,4 +3,4 @@
 set -e
 set -u
 
-pip install tox;
+pip install tox

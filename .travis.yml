@@ -1,15 +1,22 @@
 dist: bionic
 language: python
 
-matrix:
+jobs:
   include:
     - python: 2.7
       env: TOXENV=py27
     - python: 3.7
       env: TOXENV=py37
+    - name: code formatter
+      python: 3.6
+      env: TOXENV=black
+      install:
+        - pip install black
+      script:
+        - black --check .
 
 install:
-  - .travis/install
+  - ci/install
 
 script:
-  - .travis/run tox
+  - ci/run tox
