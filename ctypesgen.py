@@ -2,6 +2,9 @@
 # -*- coding: us-ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 
+import sys
+import optparse
+from ctypesgencore.parser import parse
 
 def find_names_in_modules(modules):
     names = set()
@@ -15,7 +18,6 @@ def find_names_in_modules(modules):
     return names
 
 
-import optparse, sys
 
 
 def option_callback_W(option, opt, value, parser):
@@ -298,7 +300,7 @@ if __name__ == "__main__":
         sys.exit(1)
 
     # Step 1: Parse
-    descriptions = ctypesgencore.parser.parse(options.headers, options)
+    descriptions = parse(options.headers, options)
 
     # Step 2: Process
     ctypesgencore.processor.process(descriptions, options)
