@@ -6,6 +6,7 @@ import sys
 import optparse
 from ctypesgencore.parser import parse
 
+
 def find_names_in_modules(modules):
     names = set()
     for module in modules:
@@ -16,8 +17,6 @@ def find_names_in_modules(modules):
         else:
             names.union(dir(module))
     return names
-
-
 
 
 def option_callback_W(option, opt, value, parser):
