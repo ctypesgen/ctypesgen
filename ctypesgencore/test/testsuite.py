@@ -143,6 +143,7 @@ class SimpleMacrosTest(unittest.TestCase):
         """
         header_str = """
 #define A 1
+#define BIGNUMBER 4000000000000L
 #define B(x,y) x+y
 #define C(a,b,c) a?b:c
 #define funny(x) "funny" #x
@@ -164,6 +165,14 @@ class SimpleMacrosTest(unittest.TestCase):
         module = self.module
 
         self.assertEqual(module.A, 1)
+
+    def test_macro_big_int(self):
+        """Tests from simple_macros.py
+        """
+        module = self.module
+
+        # Handle big numbers - L suffix not required in Python 2.7 or allowed in Python3
+        self.assertEqual(module.BIGNUMBER, 4000000000000)
 
     def test_macro_addition(self):
         """Tests from simple_macros.py

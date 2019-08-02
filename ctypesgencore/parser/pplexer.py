@@ -244,8 +244,9 @@ def t_ANY_float(t):
         # Attach a prefix so the parser can figure out if should become an
         # integer, float, or long
         t.value = "f" + s
-    elif suf and suf in ("Ll"):
-        t.value = "l" + p1
+    # Python 2 doesn't need L suffix, and python 3 doesn't support it...
+    # elif suf and suf in ("Ll"):
+    #     t.value = "l" + p1
     else:
         t.value = "i" + p1
     return t
@@ -260,10 +261,12 @@ def t_ANY_int(t):
     t.type = "PP_NUMBER"
     m = t.lexer.lexmatch
 
-    if "L" in m.group(3) or "l" in m.group(2):
-        prefix = "l"
-    else:
-        prefix = "i"
+    # Python 2 doesn't need L suffix, and python 3 doesn't support it...
+    # if "L" in m.group(3) or "l" in m.group(2):
+    #     prefix = "l"
+    # else:
+    #     prefix = "i"
+    prefix = "i"
 
     g1 = m.group(2)
     if g1.startswith("0x"):
