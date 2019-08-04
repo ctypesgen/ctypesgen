@@ -1,9 +1,14 @@
 dist: bionic
 language: python
+python: 3.7
+
+install:
+  - pip install tox
+script:
+  - tox
 
 stages:
-  - name: unit tests
-  - name: code formatter
+  - name: tox
   - name: publish to test.pypi.org
     if: env(publish) = true AND type = api
     # to publish, go to https://travis-ci.com/Alan-R/ctypesgen/
@@ -15,41 +20,24 @@ stages:
     if: env(publish) = true AND type = api
 
 jobs:
-  allow_failures:
-    - python: 3.6
+  include:
+    - stage: tox
+      env: TOXENV=py27
+
+    - stage: tox
+      env: TOXENV=py37
+
+    - stage: tox
       env: TOXENV=black
 
-  include:
-    - stage: unit tests
-      python: 2.7
-      env: TOXENV=py27
-      install:
-        - pip install tox
-      script:
-        - tox
-    - stage: unit tests
-      python: 3.7
-      env: TOXENV=py37
-      install:
-        - pip install tox
-      script:
-        - tox
-    - stage: code formatter
-      python: 3.6
-      env: TOXENV=black
-      install:
-        - pip install black
-      script:
-        - black --check .
     - stage: publish to test.pypi.org
-      python: 3.7
       install:
         - pip install --upgrade setuptools wheel twine
       script:
         - python setup.py sdist bdist_wheel
         - python -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
+
     - stage: verify
-      python: 3.7
       install:
         - pip install --index-url https://test.pypi.org/simple/ --no-deps ctypesgen
       script:
