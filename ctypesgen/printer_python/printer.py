@@ -177,7 +177,7 @@ class WrapperPrinter:
         self.file.write('_libs["%s"] = load_library("%s")\n' % (library, library))
 
     def print_module(self, module):
-        self.file.write("from %s import *\n" % name)
+        self.file.write("from %s import *\n" % module)
 
     def print_constant(self, constant):
         self.file.write("%s = %s" % (constant.name, constant.value.py_string(False)))
