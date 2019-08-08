@@ -59,6 +59,11 @@ def remove_descriptions_in_system_headers(data, opts):
                     description.include_rule = "if_needed"
 
 
+def add_kpoman_constants(data, options):
+    for constant in data.constants:
+        constant.include_rule = "yes"
+
+
 def remove_macros(data, opts):
     """remove_macros() removes macros if --no-macros is set."""
     if not opts.include_macros:

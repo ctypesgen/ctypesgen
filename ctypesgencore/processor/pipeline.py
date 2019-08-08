@@ -54,6 +54,7 @@ def process(data, options):
         # this function is python specific
         fix_conflicting_names(data, options)
     find_source_libraries(data, options)
+    add_kpoman_constants(data, options)
 
     calculate_final_inclusion(data, options)
     print_errors_encountered(data, options)
