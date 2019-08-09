@@ -7,11 +7,11 @@ By clach04 (Chris Clark).
 
 Calling:
 
-    python test/testsuite.py 
+    python test/testsuite.py
 
 or
     cd test
-    ./testsuite.py 
+    ./testsuite.py
 
 Could use any unitest compatible test runner (nose, etc.)
 
@@ -324,6 +324,30 @@ class MathTest(unittest.TestCase):
             module.sin("foobar")
 
         self.assertRaises(ctypes.ArgumentError, local_test)
+
+
+class EnumTest(unittest.TestCase):
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = """
+        typedef enum {
+            TEST_1 = 0,
+            TEST_2
+        } test_status_t;
+        """
+        libraries = None
+        self.module, output = ctypesgentest.test(header_str)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+
+    def test_enum(self):
+        self.assertEqual(self.module.TEST_1, 0)
+        self.assertEqual(self.module.TEST_2, 1)
 
 
 def main(argv=None):
