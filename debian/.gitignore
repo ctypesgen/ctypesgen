@@ -1,0 +1,9 @@
+changelog
+ctypesgen/
+*.log
+*.substvars
+files
+debhelper-build-stamp
+*.postinst.debhelper
+*.prerm.debhelper
+*.swp

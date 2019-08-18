@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: us-ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 """
@@ -22,9 +22,9 @@ def do_demo():
     a = 1
     b = 2
     result = pydemolib.trivial_add(a, b)
-    print "a", a
-    print "b", b
-    print "result", result
+    print("a", a)
+    print("b", b)
+    print("result", result)
 
 
 def main(argv=None):

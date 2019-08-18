@@ -1,0 +1,100 @@
+#!/usr/bin/env python3
+
+from subprocess import Popen, PIPE
+import re, io
+from datetime import datetime
+
+class GitVersion(object):
+  def __init__(self, tag=None):
+    self.date = None
+
+    if tag is None:
+      p = Popen(['git', 'describe'], stdout=PIPE)
+      self.current_git_version = p.communicate()[0].decode().strip()
+
+      p = Popen(['git', 'describe', '--abbrev=0'], stdout=PIPE)
+      self.current_git_tag = p.communicate()[0].decode().strip()
+
+      # let's set the date for this version to the last commit
+      p = Popen(['git','log','-1','--format=%cD',self.current_git_version],
+                stdout=PIPE)
+      self.date = p.communicate()[0].decode().strip()
+    else:
+      self.current_git_version = self.current_git_tag = tag
+
+    p = Popen(['git', 'describe', self.current_git_version + '~1', '--abbrev=0'],
+              stdout=PIPE, stderr=PIPE)
+    self.last_git_version = p.communicate()[0].decode().strip()
+
+    p = Popen(['git','show',self.current_git_tag], stdout=PIPE)
+    tag_commit = p.communicate()[0].decode()
+    m = re.search('\nTagger:\s*(?P<name>[^\n]*)\nDate:\s*(?P<date>[^\n]*)\n', tag_commit)
+    self.maintainer = m.groupdict()['name']
+    date = datetime.strptime(m.groupdict()['date'], '%a %b %d %H:%M:%S %Y %z')
+    if not self.date:
+      self.date = date.strftime('%a, %d %b %Y %H:%M:%S %z')
+
+  @property
+  def version_number(self):
+    v = self.current_git_version.partition('-')[-1]
+    if '-g' in v:
+      return v.rpartition('-g')[0]
+    else:
+      return v
+
+  @property
+  def package_name(self):
+    return self.current_git_version.partition('-')[0]
+
+  @property
+  def changes(self):
+    if self.last_git_version:
+      p = Popen(['git','log',self.last_git_version+'..'+self.current_git_version,
+                 '--format=  * %s%n    %b'], stdout=PIPE)
+      psed = Popen(['sed','-e','s/^\([^ ]\)/    \\1/'], stdin=p.stdout, stdout=PIPE)
+      return psed.communicate()[0].decode()
+    else:
+      return '  * Initial version\n'
+
+  @property
+  def chlog_first_line(self):
+    return '{} ({}) unstable; urgency=low' \
+      .format(self.package_name, self.version_number)
+
+  @property
+  def chlog_last_line(self):
+    return ' -- {}  {}\n'.format(self.maintainer, self.date)
+
+  def __call__(self):
+    return '{}\n{}{}\n' \
+      .format(self.chlog_first_line, self.changes, self.chlog_last_line)
+
+
+class GitVersionCollection(object):
+  def __init__(self):
+    p = Popen(['git', 'tag'], stdout=PIPE)
+    self.tags = p.communicate()[0].decode().splitlines()
+    self.tags.reverse()
+
+    self.has_untagged_changes = False
+    p = Popen(['git', 'describe'], stdout=PIPE)
+    current = p.communicate()[0].decode().strip()
+    if current not in self.tags:
+      self.has_untagged_changes = True
+
+  def __call__(self):
+    out = io.StringIO()
+    if self.has_untagged_changes:
+      out.write(GitVersion()())
+    for tag in self.tags:
+      out.write(GitVersion(tag)())
+
+    return out.getvalue()
+
+
+def main():
+  c = GitVersionCollection()
+  print(c())
+
+if __name__=='__main__':
+  main()

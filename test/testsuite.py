@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 #
@@ -7,11 +7,11 @@ By clach04 (Chris Clark).
 
 Calling:
 
-    python test/testsuite.py 
+    python test/testsuite.py
 
 or
     cd test
-    ./testsuite.py 
+    ./testsuite.py
 
 Could use any unitest compatible test runner (nose, etc.)
 
@@ -38,7 +38,7 @@ import ctypesgentest  # TODO consider moving test() from ctypesgentest into this
 
 
 class StdlibTest(unittest.TestCase):
-    
+
     def setUp(self):
         """NOTE this is called once for each test* method
         (it is not called once per class).
@@ -65,12 +65,12 @@ class StdlibTest(unittest.TestCase):
         Test that we get a valid (non-NULL, non-empty) string back
         """
         module = self.module
-        
+
         if sys.platform == "win32":
             # Check a variable that is already set
             env_var_name = 'USERNAME'  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
             expect_result = os.environ[env_var_name]
-            self.assert_(expect_result, 'this should not be None or empty')
+            self.assertTrue(expect_result, 'this should not be None or empty')
             # reason for using an existing OS variable is that unless the
             # MSVCRT dll imported is the exact same one that Python was
             # built with you can't share structures, see
@@ -80,9 +80,9 @@ class StdlibTest(unittest.TestCase):
             env_var_name = 'HELLO'
             os.environ[env_var_name] = 'WORLD'  # This doesn't work under win32
             expect_result = 'WORLD'
-        
-        result = module.getenv(env_var_name)
-        self.failUnlessEqual(expect_result, result)
+
+        result = str(module.getenv(env_var_name))
+        self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
         """Related to issue 8. Test getenv of unset variable.
@@ -96,7 +96,7 @@ class StdlibTest(unittest.TestCase):
         except KeyError:
             pass
         result = module.getenv(env_var_name)
-        self.failUnlessEqual(expect_result, result)
+        self.assertEqual(expect_result, result)
 
 
 class StdBoolTest(unittest.TestCase):
@@ -121,18 +121,18 @@ struct foo
     def tearDown(self):
         del self.module
         ctypesgentest.cleanup()
-        
+
     def test_stdbool_type(self):
         """Test is bool is correctly parsed"""
         module = self.module
         struct_foo = module.struct_foo
-        self.failUnlessEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
+        self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
 
 
 class SimpleMacrosTest(unittest.TestCase):
     """Based on simple_macros.py
     """
-    
+
     def setUp(self):
         """NOTE this is called once for each test* method
         (it is not called once per class).
@@ -147,6 +147,10 @@ class SimpleMacrosTest(unittest.TestCase):
 #define minus_macro(x,y) x-y
 #define divide_macro(x,y) x/y
 #define mod_macro(x,y) x%y
+#define subcall_macro_simple(x) (A)
+#define subcall_macro_simple_plus(x) (A) + (x)
+#define subcall_macro_minus(x,y) minus_macro(x,y)
+#define subcall_macro_minus_plus(x,y,z) (minus_macro(x,y)) + (z)
 '''
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
@@ -159,92 +163,154 @@ class SimpleMacrosTest(unittest.TestCase):
         """Tests from simple_macros.py
         """
         module = self.module
-        
-        self.failUnlessEqual(module.A, 1)
+
+        self.assertEqual(module.A, 1)
 
     def test_macro_addition(self):
         """Tests from simple_macros.py
         """
         module = self.module
-        
-        self.failUnlessEqual(module.B(2, 2), 4)
+
+        self.assertEqual(module.B(2, 2), 4)
 
     def test_macro_ternary_true(self):
         """Tests from simple_macros.py
         """
         module = self.module
-        
-        self.failUnlessEqual(module.C(True, 1, 2), 1)
+
+        self.assertEqual(module.C(True, 1, 2), 1)
 
     def test_macro_ternary_false(self):
         """Tests from simple_macros.py
         """
         module = self.module
-        
-        self.failUnlessEqual(module.C(False, 1, 2), 2)
+
+        self.assertEqual(module.C(False, 1, 2), 2)
 
     def test_macro_ternary_true_complex(self):
         """Test ?: with true, using values that can not be confused between True and 1
         """
         module = self.module
-        
-        self.failUnlessEqual(module.C(True, 99, 100), 99)
+
+        self.assertEqual(module.C(True, 99, 100), 99)
 
     def test_macro_ternary_false_complex(self):
         """Test ?: with false, using values that can not be confused between True and 1
         """
         module = self.module
-        
-        self.failUnlessEqual(module.C(False, 99, 100), 100)
+
+        self.assertEqual(module.C(False, 99, 100), 100)
 
     def test_macro_string_compose(self):
         """Tests from simple_macros.py
         """
         module = self.module
-        
-        self.failUnlessEqual(module.funny("bunny"), "funnybunny")
-        
+
+        self.assertEqual(module.funny("bunny"), "funnybunny")
+
     def test_macro_math_multipler(self):
         module = self.module
-        
+
         x, y = 2, 5
-        self.failUnlessEqual(module.multipler_macro(x, y), x * y)
+        self.assertEqual(module.multipler_macro(x, y), x * y)
 
     def test_macro_math_minus(self):
         module = self.module
-        
+
         x, y = 2, 5
-        self.failUnlessEqual(module.minus_macro(x, y), x - y)
+        self.assertEqual(module.minus_macro(x, y), x - y)
 
     def test_macro_math_divide(self):
         module = self.module
-        
+
         x, y = 2, 5
-        self.failUnlessEqual(module.divide_macro(x, y), x / y)
+        self.assertEqual(module.divide_macro(x, y), x / y)
 
     def test_macro_math_mod(self):
         module = self.module
-        
+
         x, y = 2, 5
-        self.failUnlessEqual(module.mod_macro(x, y), x % y)
+        self.assertEqual(module.mod_macro(x, y), x % y)
+
+    def test_macro_subcall_simple(self):
+        """Test use of a constant valued macro within a macro"""
+        module = self.module
+
+        self.assertEqual(module.subcall_macro_simple(2), 1)
+
+    def test_macro_subcall_simple_plus(self):
+        """Test math with constant valued macro within a macro"""
+        module = self.module
+
+        self.assertEqual(module.subcall_macro_simple_plus(2), 1 + 2)
+
+    def test_macro_subcall_minus(self):
+        """Test use of macro function within a macro"""
+        module = self.module
+
+        x, y = 2, 5
+        self.assertEqual(module.subcall_macro_minus(x, y), x - y)
+
+    def test_macro_subcall_minus_plus(self):
+        """Test math with a macro function within a macro"""
+        module = self.module
+
+        x, y, z = 2, 5, 1
+        self.assertEqual(module.subcall_macro_minus_plus(x, y, z), (x - y) + z)
 
 
 class StructuresTest(unittest.TestCase):
     """Based on structures.py
     """
-    
+
     def setUp(self):
         """NOTE this is called once for each test* method
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
         header_str = '''
+
 struct foo
 {
         int a;
-        int b;
+        char b;
         int c;
+        int d : 15;
+        int   : 17;
 };
+
+struct __attribute__((packed)) packed_foo
+{
+        int a;
+        char b;
+        int c;
+        int d : 15;
+        int   : 17;
+};
+
+typedef struct
+{
+        int a;
+        char b;
+        int c;
+        int d : 15;
+        int   : 17;
+} foo_t;
+
+typedef struct __attribute__((packed))
+{
+        int a;
+        char b;
+        int c;
+        int d : 15;
+        int   : 17;
+} packed_foo_t;
+
+typedef int Int;
+
+typedef struct {
+        int Int;
+} id_struct_t;
 '''
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
@@ -253,24 +319,57 @@ struct foo
         del self.module
         ctypesgentest.cleanup()
 
-    def test_structures(self):
-        """Tests from structures.py
+    def test_fields(self):
+        """Test whether fields are built correctly.
         """
-        module = self.module
-        
-        struct_foo = module.struct_foo
-        self.failUnlessEqual(struct_foo._fields_, [("a", ctypes.c_int), ("b", ctypes.c_int), ("c", ctypes.c_int)])
+        struct_foo = self.module.struct_foo
+        self.assertEqual(struct_foo._fields_,
+            [("a", ctypes.c_int), ("b", ctypes.c_char), ("c", ctypes.c_int),
+             ("d", ctypes.c_int, 15), ("unnamed_1", ctypes.c_int, 17)
+            ]
+        )
+
+    def test_pack(self):
+        """Test whether gcc __attribute__((packed)) is interpreted correctly.
+        """
+        unpacked_size = ctypes.sizeof(ctypes.c_int)*4
+        packed_size = ctypes.sizeof(ctypes.c_int)*3 + ctypes.sizeof(ctypes.c_char)
+
+        struct_foo          = self.module.struct_foo
+        struct_packed_foo   = self.module.struct_packed_foo
+        foo_t               = self.module.foo_t
+        packed_foo_t        = self.module.packed_foo_t
+        self.assertEqual(getattr(struct_foo, '_pack_', 0), 0)
+        self.assertEqual(getattr(struct_packed_foo, '_pack_', 0), 1)
+        self.assertEqual(getattr(foo_t, '_pack_', 0), 0)
+        self.assertEqual(getattr(packed_foo_t, '_pack_', -1), 1)
+        self.assertEqual(ctypes.sizeof(struct_foo),         unpacked_size)
+        self.assertEqual(ctypes.sizeof(foo_t),              unpacked_size)
+        self.assertEqual(ctypes.sizeof(struct_packed_foo),  packed_size)
+        self.assertEqual(ctypes.sizeof(packed_foo_t),       packed_size)
+
+    def test_typedef_vs_field_id(self):
+        """Test whether local field identifier names can override external
+        typedef names.
+        """
+        Int = self.module.Int
+        id_struct_t = self.module.id_struct_t
+        self.assertEqual(Int, ctypes.c_int)
+        self.assertEqual(id_struct_t._fields_, [("Int", ctypes.c_int)])
 
 
 class MathTest(unittest.TestCase):
     """Based on math_functions.py"""
-    
+
     def setUp(self):
         """NOTE this is called once for each test* method
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '#include <math.h>\n'
+        header_str = '''
+#include <math.h>
+#define sin_plus_y(x,y) (sin(x) + (y))
+'''
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
             libraries = ["msvcrt.dll"]
@@ -288,37 +387,43 @@ class MathTest(unittest.TestCase):
     def test_sin(self):
         """Based on math_functions.py"""
         module = self.module
-        
-        self.failUnlessEqual(module.sin(2), math.sin(2))
+
+        self.assertEqual(module.sin(2), math.sin(2))
 
     def test_sqrt(self):
         """Based on math_functions.py"""
         module = self.module
-        
-        self.failUnlessEqual(module.sqrt(4), 2)
+
+        self.assertEqual(module.sqrt(4), 2)
 
         def local_test():
             module.sin("foobar")
-        
-        self.failUnlessRaises(ctypes.ArgumentError, local_test)
+
+        self.assertRaises(ctypes.ArgumentError, local_test)
 
     def test_bad_args_string_not_number(self):
         """Based on math_functions.py"""
         module = self.module
-        
+
         def local_test():
             module.sin("foobar")
-        
-        self.failUnlessRaises(ctypes.ArgumentError, local_test)
+
+        self.assertRaises(ctypes.ArgumentError, local_test)
+
+    def test_subcall_sin(self):
+        """Test math with sin(x) in a macro"""
+        module = self.module
+
+        self.assertEqual(module.sin_plus_y(2,1), math.sin(2) + 1)
 
 
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    
-    ctypesgentest.ctypesgencore.messages.log.setLevel(logging.CRITICAL)  # do not log anything
+
+    ctypesgentest.ctypesgen.messages.log.setLevel(logging.CRITICAL)  # do not log anything
     unittest.main()
-    
+
     return 0
 
 

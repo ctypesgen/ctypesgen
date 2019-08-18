@@ -1,0 +1,27 @@
+Source: ctypesgen
+Section: universe/python
+Priority: optional
+Build-Depends: debhelper (>= 9), dh-python,
+ python3-all (>=3.2), python3-setuptools
+#python-all (>=2.6.6-3~)
+Maintainer: Spencer E. Olson <olsonse@umich.edu>
+Homepage: https://github.com/olsonse/ctypesgen
+Vcs-Git: https://github.com/olsonse/ctypesgen.git
+Standards-Version: 3.9.2
+#X-Python-Version: >= 2.7
+#XS-Python-Version: >= 2.7
+X-Python3-Version: >= 3.2
+XS-Python3-Version: >= 3.2
+
+Package: ctypesgen
+Architecture: all
+Depends: ${python3:Depends}, ${misc:Depends}
+Description: Python ctypes wrapper generator
+ ctypesgen reads parses c header files and creates a wrapper for libraries base
+ on what it finds.  Preprocessor macros are handled in a manner consistent with
+ typical c code.  Preprocessor macro functions are translated into Python
+ functions that are then made available to the user of the newly-generated
+ Python wrapper library.
+ .
+ ctypesgen can also output JSON, which can be used with Mork, which generates
+ bindings for Lua, using the alien module (which binds libffi to Lua).
