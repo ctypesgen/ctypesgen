@@ -117,8 +117,9 @@ class PreprocessorParser(object):
 
         self.matches = []
         self.output = []
+        optimize = options.optimize_lexer if hasattr(options, 'optimize_lexer') else False
         self.lexer = lex.lex(cls=PreprocessorLexer,
-                             optimize=options.optimize_lexer,
+                             optimize=optimize,
                              lextab='lextab',
                              outputdir=os.path.dirname(__file__),
                              module=pplexer)
