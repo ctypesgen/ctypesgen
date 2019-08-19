@@ -32,19 +32,18 @@ import logging
 
 test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
-sys.path.append(os.path.join(test_directory, '..'))
+sys.path.append(os.path.join(test_directory, ".."))
 
 import ctypesgentest  # TODO consider moving test() from ctypesgentest into this module
 
 
 class StdlibTest(unittest.TestCase):
-
     def setUp(self):
         """NOTE this is called once for each test* method
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '#include <stdlib.h>\n'
+        header_str = "#include <stdlib.h>\n"
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
             libraries = ["msvcrt.dll"]
@@ -68,18 +67,20 @@ class StdlibTest(unittest.TestCase):
 
         if sys.platform == "win32":
             # Check a variable that is already set
-            env_var_name = 'USERNAME'  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
+            env_var_name = (
+                "USERNAME"
+            )  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
             expect_result = os.environ[env_var_name]
-            self.assertTrue(expect_result, 'this should not be None or empty')
+            self.assertTrue(expect_result, "this should not be None or empty")
             # reason for using an existing OS variable is that unless the
             # MSVCRT dll imported is the exact same one that Python was
             # built with you can't share structures, see
             # http://msdn.microsoft.com/en-us/library/ms235460.aspx
             # "Potential Errors Passing CRT Objects Across DLL Boundaries"
         else:
-            env_var_name = 'HELLO'
-            os.environ[env_var_name] = 'WORLD'  # This doesn't work under win32
-            expect_result = 'WORLD'
+            env_var_name = "HELLO"
+            os.environ[env_var_name] = "WORLD"  # This doesn't work under win32
+            expect_result = "WORLD"
 
         result = str(module.getenv(env_var_name))
         self.assertEqual(expect_result, result)
@@ -88,7 +89,7 @@ class StdlibTest(unittest.TestCase):
         """Related to issue 8. Test getenv of unset variable.
         """
         module = self.module
-        env_var_name = 'NOT SET'
+        env_var_name = "NOT SET"
         expect_result = None
         try:
             # ensure variable is not set, ignoring not set errors
@@ -107,7 +108,7 @@ class StdBoolTest(unittest.TestCase):
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '''
+        header_str = """
 #include <stdbool.h>
 
 struct foo
@@ -115,8 +116,8 @@ struct foo
     bool is_bar;
     int a;
 };
-'''
-        self.module, _ = ctypesgentest.test(header_str)#, all_headers=True)
+"""
+        self.module, _ = ctypesgentest.test(header_str)  # , all_headers=True)
 
     def tearDown(self):
         del self.module
@@ -138,7 +139,7 @@ class SimpleMacrosTest(unittest.TestCase):
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '''
+        header_str = """
 #define A 1
 #define B(x,y) x+y
 #define C(a,b,c) a?b:c
@@ -151,7 +152,7 @@ class SimpleMacrosTest(unittest.TestCase):
 #define subcall_macro_simple_plus(x) (A) + (x)
 #define subcall_macro_minus(x,y) minus_macro(x,y)
 #define subcall_macro_minus_plus(x,y,z) (minus_macro(x,y)) + (z)
-'''
+"""
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
 
@@ -268,7 +269,7 @@ class StructuresTest(unittest.TestCase):
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '''
+        header_str = """
 
 struct foo
 {
@@ -311,7 +312,7 @@ typedef int Int;
 typedef struct {
         int Int;
 } id_struct_t;
-'''
+"""
         libraries = None
         self.module, output = ctypesgentest.test(header_str)
 
@@ -323,30 +324,35 @@ typedef struct {
         """Test whether fields are built correctly.
         """
         struct_foo = self.module.struct_foo
-        self.assertEqual(struct_foo._fields_,
-            [("a", ctypes.c_int), ("b", ctypes.c_char), ("c", ctypes.c_int),
-             ("d", ctypes.c_int, 15), ("unnamed_1", ctypes.c_int, 17)
-            ]
+        self.assertEqual(
+            struct_foo._fields_,
+            [
+                ("a", ctypes.c_int),
+                ("b", ctypes.c_char),
+                ("c", ctypes.c_int),
+                ("d", ctypes.c_int, 15),
+                ("unnamed_1", ctypes.c_int, 17),
+            ],
         )
 
     def test_pack(self):
         """Test whether gcc __attribute__((packed)) is interpreted correctly.
         """
-        unpacked_size = ctypes.sizeof(ctypes.c_int)*4
-        packed_size = ctypes.sizeof(ctypes.c_int)*3 + ctypes.sizeof(ctypes.c_char)
+        unpacked_size = ctypes.sizeof(ctypes.c_int) * 4
+        packed_size = ctypes.sizeof(ctypes.c_int) * 3 + ctypes.sizeof(ctypes.c_char)
 
-        struct_foo          = self.module.struct_foo
-        struct_packed_foo   = self.module.struct_packed_foo
-        foo_t               = self.module.foo_t
-        packed_foo_t        = self.module.packed_foo_t
-        self.assertEqual(getattr(struct_foo, '_pack_', 0), 0)
-        self.assertEqual(getattr(struct_packed_foo, '_pack_', 0), 1)
-        self.assertEqual(getattr(foo_t, '_pack_', 0), 0)
-        self.assertEqual(getattr(packed_foo_t, '_pack_', -1), 1)
-        self.assertEqual(ctypes.sizeof(struct_foo),         unpacked_size)
-        self.assertEqual(ctypes.sizeof(foo_t),              unpacked_size)
-        self.assertEqual(ctypes.sizeof(struct_packed_foo),  packed_size)
-        self.assertEqual(ctypes.sizeof(packed_foo_t),       packed_size)
+        struct_foo = self.module.struct_foo
+        struct_packed_foo = self.module.struct_packed_foo
+        foo_t = self.module.foo_t
+        packed_foo_t = self.module.packed_foo_t
+        self.assertEqual(getattr(struct_foo, "_pack_", 0), 0)
+        self.assertEqual(getattr(struct_packed_foo, "_pack_", 0), 1)
+        self.assertEqual(getattr(foo_t, "_pack_", 0), 0)
+        self.assertEqual(getattr(packed_foo_t, "_pack_", -1), 1)
+        self.assertEqual(ctypes.sizeof(struct_foo), unpacked_size)
+        self.assertEqual(ctypes.sizeof(foo_t), unpacked_size)
+        self.assertEqual(ctypes.sizeof(struct_packed_foo), packed_size)
+        self.assertEqual(ctypes.sizeof(packed_foo_t), packed_size)
 
     def test_typedef_vs_field_id(self):
         """Test whether local field identifier names can override external
@@ -366,10 +372,10 @@ class MathTest(unittest.TestCase):
         (it is not called once per class).
         FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
         """
-        header_str = '''
+        header_str = """
 #include <math.h>
 #define sin_plus_y(x,y) (sin(x) + (y))
-'''
+"""
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
             libraries = ["msvcrt.dll"]
@@ -414,7 +420,7 @@ class MathTest(unittest.TestCase):
         """Test math with sin(x) in a macro"""
         module = self.module
 
-        self.assertEqual(module.sin_plus_y(2,1), math.sin(2) + 1)
+        self.assertEqual(module.sin_plus_y(2, 1), math.sin(2) + 1)
 
 
 def main(argv=None):

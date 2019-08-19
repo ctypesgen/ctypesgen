@@ -2,7 +2,7 @@ import ctypes, os, sys
 from ctypes import *
 
 _int_types = (c_int16, c_int32)
-if hasattr(ctypes, 'c_int64'):
+if hasattr(ctypes, "c_int64"):
     # Some builds of ctypes apparently do not have c_int64
     # defined; it's a pretty good bet that these builds do not
     # have 64-bit pointers.
@@ -13,6 +13,7 @@ for t in _int_types:
 del t
 del _int_types
 
+
 class UserString:
     def __init__(self, seq):
         if isinstance(seq, bytes):
@@ -21,45 +22,67 @@ class UserString:
             self.data = seq.data[:]
         else:
             self.data = str(seq).encode()
-    def __bytes__(self): return self.data
-    def __str__(self): return self.data.decode()
-    def __repr__(self): return repr(self.data)
-    def __int__(self): return int(self.data.decode())
-    def __long__(self): return int(self.data.decode())
-    def __float__(self): return float(self.data.decode())
-    def __complex__(self): return complex(self.data.decode())
-    def __hash__(self): return hash(self.data)
+
+    def __bytes__(self):
+        return self.data
+
+    def __str__(self):
+        return self.data.decode()
+
+    def __repr__(self):
+        return repr(self.data)
+
+    def __int__(self):
+        return int(self.data.decode())
+
+    def __long__(self):
+        return int(self.data.decode())
+
+    def __float__(self):
+        return float(self.data.decode())
+
+    def __complex__(self):
+        return complex(self.data.decode())
+
+    def __hash__(self):
+        return hash(self.data)
 
     def __cmp__(self, string):
         if isinstance(string, UserString):
             return cmp(self.data, string.data)
         else:
             return cmp(self.data, string)
+
     def __le__(self, string):
         if isinstance(string, UserString):
             return self.data <= string.data
         else:
             return self.data <= string
+
     def __lt__(self, string):
         if isinstance(string, UserString):
             return self.data < string.data
         else:
             return self.data < string
+
     def __ge__(self, string):
         if isinstance(string, UserString):
             return self.data >= string.data
         else:
             return self.data >= string
+
     def __gt__(self, string):
         if isinstance(string, UserString):
             return self.data > string.data
         else:
             return self.data > string
+
     def __eq__(self, string):
         if isinstance(string, UserString):
             return self.data == string.data
         else:
             return self.data == string
+
     def __ne__(self, string):
         if isinstance(string, UserString):
             return self.data != string.data
@@ -69,10 +92,15 @@ class UserString:
     def __contains__(self, char):
         return char in self.data
 
-    def __len__(self): return len(self.data)
-    def __getitem__(self, index): return self.__class__(self.data[index])
+    def __len__(self):
+        return len(self.data)
+
+    def __getitem__(self, index):
+        return self.__class__(self.data[index])
+
     def __getslice__(self, start, end):
-        start = max(start, 0); end = max(end, 0)
+        start = max(start, 0)
+        end = max(end, 0)
         return self.__class__(self.data[start:end])
 
     def __add__(self, other):
@@ -82,24 +110,32 @@ class UserString:
             return self.__class__(self.data + other)
         else:
             return self.__class__(self.data + str(other).encode())
+
     def __radd__(self, other):
         if isinstance(other, bytes):
             return self.__class__(other + self.data)
         else:
             return self.__class__(str(other).encode() + self.data)
+
     def __mul__(self, n):
-        return self.__class__(self.data*n)
+        return self.__class__(self.data * n)
+
     __rmul__ = __mul__
+
     def __mod__(self, args):
         return self.__class__(self.data % args)
 
     # the following methods are defined in alphabetical order:
-    def capitalize(self): return self.__class__(self.data.capitalize())
+    def capitalize(self):
+        return self.__class__(self.data.capitalize())
+
     def center(self, width, *args):
         return self.__class__(self.data.center(width, *args))
+
     def count(self, sub, start=0, end=sys.maxsize):
         return self.data.count(sub, start, end)
-    def decode(self, encoding=None, errors=None): # XXX improve this?
+
+    def decode(self, encoding=None, errors=None):  # XXX improve this?
         if encoding:
             if errors:
                 return self.__class__(self.data.decode(encoding, errors))
@@ -107,7 +143,8 @@ class UserString:
                 return self.__class__(self.data.decode(encoding))
         else:
             return self.__class__(self.data.decode())
-    def encode(self, encoding=None, errors=None): # XXX improve this?
+
+    def encode(self, encoding=None, errors=None):  # XXX improve this?
         if encoding:
             if errors:
                 return self.__class__(self.data.encode(encoding, errors))
@@ -115,55 +152,109 @@ class UserString:
                 return self.__class__(self.data.encode(encoding))
         else:
             return self.__class__(self.data.encode())
+
     def endswith(self, suffix, start=0, end=sys.maxsize):
         return self.data.endswith(suffix, start, end)
+
     def expandtabs(self, tabsize=8):
         return self.__class__(self.data.expandtabs(tabsize))
+
     def find(self, sub, start=0, end=sys.maxsize):
         return self.data.find(sub, start, end)
+
     def index(self, sub, start=0, end=sys.maxsize):
         return self.data.index(sub, start, end)
-    def isalpha(self): return self.data.isalpha()
-    def isalnum(self): return self.data.isalnum()
-    def isdecimal(self): return self.data.isdecimal()
-    def isdigit(self): return self.data.isdigit()
-    def islower(self): return self.data.islower()
-    def isnumeric(self): return self.data.isnumeric()
-    def isspace(self): return self.data.isspace()
-    def istitle(self): return self.data.istitle()
-    def isupper(self): return self.data.isupper()
-    def join(self, seq): return self.data.join(seq)
+
+    def isalpha(self):
+        return self.data.isalpha()
+
+    def isalnum(self):
+        return self.data.isalnum()
+
+    def isdecimal(self):
+        return self.data.isdecimal()
+
+    def isdigit(self):
+        return self.data.isdigit()
+
+    def islower(self):
+        return self.data.islower()
+
+    def isnumeric(self):
+        return self.data.isnumeric()
+
+    def isspace(self):
+        return self.data.isspace()
+
+    def istitle(self):
+        return self.data.istitle()
+
+    def isupper(self):
+        return self.data.isupper()
+
+    def join(self, seq):
+        return self.data.join(seq)
+
     def ljust(self, width, *args):
         return self.__class__(self.data.ljust(width, *args))
-    def lower(self): return self.__class__(self.data.lower())
-    def lstrip(self, chars=None): return self.__class__(self.data.lstrip(chars))
+
+    def lower(self):
+        return self.__class__(self.data.lower())
+
+    def lstrip(self, chars=None):
+        return self.__class__(self.data.lstrip(chars))
+
     def partition(self, sep):
         return self.data.partition(sep)
+
     def replace(self, old, new, maxsplit=-1):
         return self.__class__(self.data.replace(old, new, maxsplit))
+
     def rfind(self, sub, start=0, end=sys.maxsize):
         return self.data.rfind(sub, start, end)
+
     def rindex(self, sub, start=0, end=sys.maxsize):
         return self.data.rindex(sub, start, end)
+
     def rjust(self, width, *args):
         return self.__class__(self.data.rjust(width, *args))
+
     def rpartition(self, sep):
         return self.data.rpartition(sep)
-    def rstrip(self, chars=None): return self.__class__(self.data.rstrip(chars))
+
+    def rstrip(self, chars=None):
+        return self.__class__(self.data.rstrip(chars))
+
     def split(self, sep=None, maxsplit=-1):
         return self.data.split(sep, maxsplit)
+
     def rsplit(self, sep=None, maxsplit=-1):
         return self.data.rsplit(sep, maxsplit)
-    def splitlines(self, keepends=0): return self.data.splitlines(keepends)
+
+    def splitlines(self, keepends=0):
+        return self.data.splitlines(keepends)
+
     def startswith(self, prefix, start=0, end=sys.maxsize):
         return self.data.startswith(prefix, start, end)
-    def strip(self, chars=None): return self.__class__(self.data.strip(chars))
-    def swapcase(self): return self.__class__(self.data.swapcase())
-    def title(self): return self.__class__(self.data.title())
+
+    def strip(self, chars=None):
+        return self.__class__(self.data.strip(chars))
+
+    def swapcase(self):
+        return self.__class__(self.data.swapcase())
+
+    def title(self):
+        return self.__class__(self.data.title())
+
     def translate(self, *args):
         return self.__class__(self.data.translate(*args))
-    def upper(self): return self.__class__(self.data.upper())
-    def zfill(self, width): return self.__class__(self.data.zfill(width))
+
+    def upper(self):
+        return self.__class__(self.data.upper())
+
+    def zfill(self, width):
+        return self.__class__(self.data.zfill(width))
+
 
 class MutableString(UserString):
     """mutable string objects
@@ -180,33 +271,45 @@ class MutableString(UserString):
     errors that would be very hard to track down.
 
     A faster and better solution is to rewrite your program using lists."""
+
     def __init__(self, string=""):
         self.data = string
+
     def __hash__(self):
         raise TypeError("unhashable type (it is mutable)")
+
     def __setitem__(self, index, sub):
         if index < 0:
             index += len(self.data)
-        if index < 0 or index >= len(self.data): raise IndexError
-        self.data = self.data[:index] + sub + self.data[index+1:]
+        if index < 0 or index >= len(self.data):
+            raise IndexError
+        self.data = self.data[:index] + sub + self.data[index + 1 :]
+
     def __delitem__(self, index):
         if index < 0:
             index += len(self.data)
-        if index < 0 or index >= len(self.data): raise IndexError
-        self.data = self.data[:index] + self.data[index+1:]
+        if index < 0 or index >= len(self.data):
+            raise IndexError
+        self.data = self.data[:index] + self.data[index + 1 :]
+
     def __setslice__(self, start, end, sub):
-        start = max(start, 0); end = max(end, 0)
+        start = max(start, 0)
+        end = max(end, 0)
         if isinstance(sub, UserString):
-            self.data = self.data[:start]+sub.data+self.data[end:]
+            self.data = self.data[:start] + sub.data + self.data[end:]
         elif isinstance(sub, bytes):
-            self.data = self.data[:start]+sub+self.data[end:]
+            self.data = self.data[:start] + sub + self.data[end:]
         else:
-            self.data =  self.data[:start]+str(sub).encode()+self.data[end:]
+            self.data = self.data[:start] + str(sub).encode() + self.data[end:]
+
     def __delslice__(self, start, end):
-        start = max(start, 0); end = max(end, 0)
+        start = max(start, 0)
+        end = max(end, 0)
         self.data = self.data[:start] + self.data[end:]
+
     def immutable(self):
         return UserString(self.data)
+
     def __iadd__(self, other):
         if isinstance(other, UserString):
             self.data += other.data
@@ -215,14 +318,15 @@ class MutableString(UserString):
         else:
             self.data += str(other).encode()
         return self
+
     def __imul__(self, n):
         self.data *= n
         return self
 
+
 class String(MutableString, Union):
 
-    _fields_ = [('raw', POINTER(c_char)),
-                ('data', c_char_p)]
+    _fields_ = [("raw", POINTER(c_char)), ("data", c_char_p)]
 
     def __init__(self, obj=""):
         if isinstance(obj, (bytes, UserString)):
@@ -263,16 +367,19 @@ class String(MutableString, Union):
             return cls(cast(obj, POINTER(c_char)))
 
         # Convert from c_char array
-        elif isinstance(obj, c_char*len(obj)):
+        elif isinstance(obj, c_char * len(obj)):
             return obj
 
         # Convert from object
         else:
             return String.from_param(obj._as_parameter_)
+
     from_param = classmethod(from_param)
+
 
 def ReturnString(obj, func=None, arguments=None):
     return String.from_param(obj)
+
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
 # functions on callbacks, nor does it support custom datatypes on
@@ -282,29 +389,31 @@ def ReturnString(obj, func=None, arguments=None):
 # Non-primitive return values wrapped with UNCHECKED won't be
 # typechecked, and will be converted to c_void_p.
 def UNCHECKED(type):
-    if (hasattr(type, "_type_") and isinstance(type._type_, bytes)
-        and type._type_ != "P"):
+    if hasattr(type, "_type_") and isinstance(type._type_, bytes) and type._type_ != "P":
         return type
     else:
         return c_void_p
 
+
 # ctypes doesn't have direct support for variadic functions, so we have to write
 # our own wrapper class
 class _variadic_function(object):
-    def __init__(self,func,restype,argtypes,errcheck):
-        self.func=func
-        self.func.restype=restype
-        self.argtypes=argtypes
+    def __init__(self, func, restype, argtypes, errcheck):
+        self.func = func
+        self.func.restype = restype
+        self.argtypes = argtypes
         if errcheck:
-          self.func.errcheck = errcheck
+            self.func.errcheck = errcheck
+
     def _as_parameter_(self):
         # So we can pass this variadic function as a function pointer
         return self.func
-    def __call__(self,*args):
-        fixed_args=[]
-        i=0
+
+    def __call__(self, *args):
+        fixed_args = []
+        i = 0
         for argtype in self.argtypes:
             # Typecheck what we can
             fixed_args.append(argtype.from_param(args[i]))
-            i+=1
-        return self.func(*fixed_args+list(args[i:]))
+            i += 1
+        return self.func(*fixed_args + list(args[i:]))

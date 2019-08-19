@@ -37,17 +37,19 @@ import platform
 import ctypes
 import ctypes.util
 
+
 def _environ_path(name):
     if name in os.environ:
         return os.environ[name].split(":")
     else:
         return []
 
+
 class LibraryLoader(object):
     def __init__(self):
-        self.other_dirs=[]
+        self.other_dirs = []
 
-    def load_library(self,libname):
+    def load_library(self, libname):
         """Given the name of a library, load it."""
         paths = self.getpaths(libname)
 
@@ -57,21 +59,21 @@ class LibraryLoader(object):
 
         raise ImportError("%s not found." % libname)
 
-    def load(self,path):
+    def load(self, path):
         """Given a path to a library, load it."""
         try:
             # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
             # of the default RTLD_LOCAL.  Without this, you end up with
             # libraries not being loadable, resulting in "Symbol not found"
             # errors
-            if sys.platform == 'darwin':
+            if sys.platform == "darwin":
                 return ctypes.CDLL(path, ctypes.RTLD_GLOBAL)
             else:
                 return ctypes.cdll.LoadLibrary(path)
         except OSError as e:
             raise ImportError(e)
 
-    def getpaths(self,libname):
+    def getpaths(self, libname):
         """Return a list of paths where the library might be found."""
         if os.path.isabs(libname):
             yield libname
@@ -81,18 +83,28 @@ class LibraryLoader(object):
                 yield path
 
             path = ctypes.util.find_library(libname)
-            if path: yield path
+            if path:
+                yield path
 
     def getplatformpaths(self, libname):
         return []
 
+
 # Darwin (Mac OS X)
 
-class DarwinLibraryLoader(LibraryLoader):
-    name_formats = ["lib%s.dylib", "lib%s.so", "lib%s.bundle", "%s.dylib",
-                "%s.so", "%s.bundle", "%s"]
 
-    def getplatformpaths(self,libname):
+class DarwinLibraryLoader(LibraryLoader):
+    name_formats = [
+        "lib%s.dylib",
+        "lib%s.so",
+        "lib%s.bundle",
+        "%s.dylib",
+        "%s.so",
+        "%s.bundle",
+        "%s",
+    ]
+
+    def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
             names = [libname]
         else:
@@ -100,10 +112,10 @@ class DarwinLibraryLoader(LibraryLoader):
 
         for dir in self.getdirs(libname):
             for name in names:
-                yield os.path.join(dir,name)
+                yield os.path.join(dir, name)
 
-    def getdirs(self,libname):
-        '''Implements the dylib search as specified in Apple documentation:
+    def getdirs(self, libname):
+        """Implements the dylib search as specified in Apple documentation:
 
         http://developer.apple.com/documentation/DeveloperTools/Conceptual/
             DynamicLibraries/Articles/DynamicLibraryUsageGuidelines.html
@@ -111,16 +123,15 @@ class DarwinLibraryLoader(LibraryLoader):
         Before commencing the standard search, the method first checks
         the bundle's ``Frameworks`` directory if the application is running
         within a bundle (OS X .app).
-        '''
+        """
 
         dyld_fallback_library_path = _environ_path("DYLD_FALLBACK_LIBRARY_PATH")
         if not dyld_fallback_library_path:
-            dyld_fallback_library_path = [os.path.expanduser('~/lib'),
-                                          '/usr/local/lib', '/usr/lib']
+            dyld_fallback_library_path = [os.path.expanduser("~/lib"), "/usr/local/lib", "/usr/lib"]
 
         dirs = []
 
-        if '/' in libname:
+        if "/" in libname:
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
         else:
             dirs.extend(_environ_path("LD_LIBRARY_PATH"))
@@ -130,17 +141,16 @@ class DarwinLibraryLoader(LibraryLoader):
         dirs.append(".")
         dirs.append(os.path.dirname(__file__))
 
-        if hasattr(sys, 'frozen') and sys.frozen == 'macosx_app':
-            dirs.append(os.path.join(
-                os.environ['RESOURCEPATH'],
-                '..',
-                'Frameworks'))
+        if hasattr(sys, "frozen") and sys.frozen == "macosx_app":
+            dirs.append(os.path.join(os.environ["RESOURCEPATH"], "..", "Frameworks"))
 
         dirs.extend(dyld_fallback_library_path)
 
         return dirs
 
+
 # Posix
+
 
 class PosixLibraryLoader(LibraryLoader):
     _ld_so_cache = None
@@ -154,11 +164,12 @@ class PosixLibraryLoader(LibraryLoader):
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
         directories = []
-        for name in ("LD_LIBRARY_PATH",
-                     "SHLIB_PATH", # HPUX
-                     "LIBPATH", # OS/2, AIX
-                     "LIBRARY_PATH", # BE/OS
-                    ):
+        for name in (
+            "LD_LIBRARY_PATH",
+            "SHLIB_PATH",  # HPUX
+            "LIBPATH",  # OS/2, AIX
+            "LIBRARY_PATH",  # BE/OS
+        ):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
         directories.extend(self.other_dirs)
@@ -166,29 +177,30 @@ class PosixLibraryLoader(LibraryLoader):
         directories.append(os.path.dirname(__file__))
 
         try:
-            with open('/etc/ld.so.conf') as f:
+            with open("/etc/ld.so.conf") as f:
                 directories.extend([dir.strip() for dir in f])
-        except IOError: pass
+        except IOError:
+            pass
 
-        unix_lib_dirs_list = ['/lib', '/usr/lib', '/lib64', '/usr/lib64']
-        if sys.platform.startswith('linux'):
+        unix_lib_dirs_list = ["/lib", "/usr/lib", "/lib64", "/usr/lib64"]
+        if sys.platform.startswith("linux"):
             # Try and support multiarch work in Ubuntu
             # https://wiki.ubuntu.com/MultiarchSpec
             bitage = platform.architecture()[0]
-            if bitage.startswith('32'):
+            if bitage.startswith("32"):
                 # Assume Intel/AMD x86 compat
-                unix_lib_dirs_list += ['/lib/i386-linux-gnu', '/usr/lib/i386-linux-gnu']
-            elif bitage.startswith('64'):
+                unix_lib_dirs_list += ["/lib/i386-linux-gnu", "/usr/lib/i386-linux-gnu"]
+            elif bitage.startswith("64"):
                 # Assume Intel/AMD x86 compat
-                unix_lib_dirs_list += ['/lib/x86_64-linux-gnu', '/usr/lib/x86_64-linux-gnu']
+                unix_lib_dirs_list += ["/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu"]
             else:
                 # guess...
-                unix_lib_dirs_list += glob.glob('/lib/*linux-gnu')
+                unix_lib_dirs_list += glob.glob("/lib/*linux-gnu")
         directories.extend(unix_lib_dirs_list)
 
         cache = {}
-        lib_re = re.compile(r'lib(.*)\.s[ol]')
-        ext_re = re.compile(r'\.s[ol]$')
+        lib_re = re.compile(r"lib(.*)\.s[ol]")
+        ext_re = re.compile(r"\.s[ol]$")
         for dir in directories:
             try:
                 for path in glob.glob("%s/*.s[ol]*" % dir):
@@ -214,12 +226,16 @@ class PosixLibraryLoader(LibraryLoader):
             self._create_ld_so_cache()
 
         result = self._ld_so_cache.get(libname)
-        if result: yield result
+        if result:
+            yield result
 
         path = ctypes.util.find_library(libname)
-        if path: yield os.path.join("/lib",path)
+        if path:
+            yield os.path.join("/lib", path)
+
 
 # Windows
+
 
 class _WindowsLibrary(object):
     def __init__(self, path):
@@ -227,11 +243,14 @@ class _WindowsLibrary(object):
         self.windll = ctypes.windll.LoadLibrary(path)
 
     def __getattr__(self, name):
-        try: return getattr(self.cdll,name)
+        try:
+            return getattr(self.cdll, name)
         except AttributeError:
-            try: return getattr(self.windll,name)
+            try:
+                return getattr(self.windll, name)
             except AttributeError:
                 raise
+
 
 class WindowsLibraryLoader(LibraryLoader):
     name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
@@ -271,18 +290,20 @@ class WindowsLibraryLoader(LibraryLoader):
                 if path:
                     yield path
 
+
 # Platform switching
 
 # If your value of sys.platform does not appear in this dict, please contact
 # the Ctypesgen maintainers.
 
 loaderclass = {
-    "darwin":   DarwinLibraryLoader,
-    "cygwin":   WindowsLibraryLoader,
-    "win32":    WindowsLibraryLoader
+    "darwin": DarwinLibraryLoader,
+    "cygwin": WindowsLibraryLoader,
+    "win32": WindowsLibraryLoader,
 }
 
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
+
 
 def add_library_search_dirs(other_dirs):
     """
@@ -294,6 +315,7 @@ def add_library_search_dirs(other_dirs):
         if not os.path.isabs(F):
             F = os.path.abspath(F)
         loader.other_dirs.append(F)
+
 
 load_library = loader.load_library
 

@@ -10,7 +10,7 @@ for convenience.
 
 import optparse, copy
 
-default_values={
+default_values = {
     "other_headers": [],
     "modules": [],
     "include_search_paths": [],
@@ -36,6 +36,7 @@ default_values={
     "no_gnu_types": False,
     "no_python_types": False,
 }
+
 
 def get_default_options():
     return optparse.Values(copy.deepcopy(default_values))

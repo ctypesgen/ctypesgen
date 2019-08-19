@@ -27,7 +27,7 @@ def test(header, **more_options):
 
     assert isinstance(header, str)
     with open("temp.h", "w") as f:
-      f.write(header)
+        f.write(header)
 
     options = ctypesgen.options.get_default_options()
     options.headers = ["temp.h"]
@@ -53,16 +53,18 @@ def test(header, **more_options):
         sys.stdout.close()
         sys.stdout = sys.__stdout__
     else:
-        output = ''
+        output = ""
 
     # Load the module we have just produced
     module = __import__("temp")
-    reload_module(module)  # import twice, this hack ensure that "temp" is force loaded (there *must* be a better way to do this)
+    reload_module(
+        module
+    )  # import twice, this hack ensure that "temp" is force loaded (there *must* be a better way to do this)
 
     return module, output
 
 
-def cleanup(filepattern='temp.*'):
+def cleanup(filepattern="temp.*"):
     fnames = glob.glob(filepattern)
     for fname in fnames:
         os.unlink(fname)

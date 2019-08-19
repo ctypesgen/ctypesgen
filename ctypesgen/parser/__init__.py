@@ -16,9 +16,11 @@ for more information.
 
 from .datacollectingparser import DataCollectingParser
 
+
 def parse(headers, options):
-    parser=DataCollectingParser(headers, options)
+    parser = DataCollectingParser(headers, options)
     parser.parse()
     return parser.data()
+
 
 __all__ = ["parse"]

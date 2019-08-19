@@ -30,9 +30,9 @@ def do_demo():
 def main(argv=None):
     if argv is None:
         argv = sys.argv
-    
+
     do_demo()
-    
+
     return 0
 
 
