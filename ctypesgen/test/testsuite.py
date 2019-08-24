@@ -422,6 +422,7 @@ class MathTest(unittest.TestCase):
 
         self.assertEqual(module.sin_plus_y(2, 1), math.sin(2) + 1)
 
+
 class EnumTest(unittest.TestCase):
     def setUp(self):
         """NOTE this is called once for each test* method
