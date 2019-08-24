@@ -13,3 +13,4 @@ ctypesgen.egg-info/
 *.swp
 *~
 .pybuild/
+.tox/
