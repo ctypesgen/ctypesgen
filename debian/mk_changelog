@@ -1,18 +1,25 @@
 #!/usr/bin/env python3
+# vim: ts=2:sw=2:et:tw=80:nowrap
 
 from subprocess import Popen, PIPE
 import re, io
 from datetime import datetime
 
 class GitVersion(object):
+  PACKAGE_FMT = '(?P<name>(-[^0-9]|[^-])*)-(?P<version>[0-9].*)'
+  PACKAGE_NAME= 'ctypesgen'
+
+  # basic `git describe` command (add --tags to include un-annotated tags)
+  GIT_DESCRIBE = 'git describe'.split()
+
   def __init__(self, tag=None):
     self.date = None
 
     if tag is None:
-      p = Popen(['git', 'describe'], stdout=PIPE)
+      p = Popen(self.GIT_DESCRIBE, stdout=PIPE)
       self.current_git_version = p.communicate()[0].decode().strip()
 
-      p = Popen(['git', 'describe', '--abbrev=0'], stdout=PIPE)
+      p = Popen(self.GIT_DESCRIBE + ['--abbrev=0'], stdout=PIPE)
       self.current_git_tag = p.communicate()[0].decode().strip()
 
       # let's set the date for this version to the last commit
@@ -22,36 +29,54 @@ class GitVersion(object):
     else:
       self.current_git_version = self.current_git_tag = tag
 
-    p = Popen(['git', 'describe', self.current_git_version + '~1', '--abbrev=0'],
+    p = Popen(self.GIT_DESCRIBE + [self.current_git_version+'~1', '--abbrev=0'],
               stdout=PIPE, stderr=PIPE)
     self.last_git_version = p.communicate()[0].decode().strip()
 
     p = Popen(['git','show',self.current_git_tag], stdout=PIPE)
     tag_commit = p.communicate()[0].decode()
-    m = re.search('\nTagger:\s*(?P<name>[^\n]*)\nDate:\s*(?P<date>[^\n]*)\n', tag_commit)
+    if 'Tagger:' in tag_commit:
+      # this is an annotated tag
+      m = re.search('\nTagger:\s*(?P<name>[^\n]*)\nDate:\s*(?P<date>[^\n]*)\n',
+                    tag_commit)
+    else:
+      # this is a non-annotated tag
+      m = re.search('\nAuthor:\s*(?P<name>[^\n]*)\nDate:\s*(?P<date>[^\n]*)\n',
+                    tag_commit)
+
     self.maintainer = m.groupdict()['name']
-    date = datetime.strptime(m.groupdict()['date'], '%a %b %d %H:%M:%S %Y %z')
     if not self.date:
+      date = datetime.strptime(m.groupdict()['date'], '%a %b %d %H:%M:%S %Y %z')
       self.date = date.strftime('%a, %d %b %Y %H:%M:%S %z')
+
+  def match_version(self):
+    try:
+      D = re.match(self.PACKAGE_FMT, self.current_git_version).groupdict()
+      D.setdefault('name', self.PACKAGE_NAME)
+      return D
+    except:
+      return dict(name='unknown', version='0.0.0')
 
   @property
   def version_number(self):
-    v = self.current_git_version.partition('-')[-1]
-    if '-g' in v:
-      return v.rpartition('-g')[0]
+    m = self.match_version()
+    if '-g' in m['version']:
+      return m['version'].rpartition('-g')[0]
     else:
-      return v
+      return m['version']
 
   @property
   def package_name(self):
-    return self.current_git_version.partition('-')[0]
+    return self.match_version()['name']
 
   @property
   def changes(self):
     if self.last_git_version:
-      p = Popen(['git','log',self.last_git_version+'..'+self.current_git_version,
-                 '--format=  * %s%n    %b'], stdout=PIPE)
-      psed = Popen(['sed','-e','s/^\([^ ]\)/    \\1/'], stdin=p.stdout, stdout=PIPE)
+      p = Popen(['git', 'log',
+                 self.last_git_version + '..' + self.current_git_version,
+                 '--format=<log-header>* %s%n%b'], stdout=PIPE)
+      psed = Popen(['sed','-e','s/^/    /', '-e', 's/\\s*<log-header>\\*/  */'],
+                   stdin=p.stdout, stdout=PIPE)
       return psed.communicate()[0].decode()
     else:
       return '  * Initial version\n'
@@ -77,7 +102,7 @@ class GitVersionCollection(object):
     self.tags.reverse()
 
     self.has_untagged_changes = False
-    p = Popen(['git', 'describe'], stdout=PIPE)
+    p = Popen(GitVersion.GIT_DESCRIBE, stdout=PIPE)
     current = p.communicate()[0].decode().strip()
     if current not in self.tags:
       self.has_untagged_changes = True
