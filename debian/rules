@@ -22,7 +22,10 @@ include /usr/share/dpkg/default.mk
 %:
 	dh $@ --with python3 --buildsystem=pybuild
 
-build clean binary :  $(CURDIR)/debian/changelog
+build binary :  $(CURDIR)/debian/changelog $(CURDIR)/debian/copyright
 
 $(CURDIR)/debian/changelog : $(CURDIR)/debian/mk_changelog
 	$(CURDIR)/debian/mk_changelog > $(CURDIR)/debian/changelog
+
+$(CURDIR)/debian/copyright : $(CURDIR)/LICENSE
+	cp $(CURDIR)/LICENSE $(CURDIR)/debian/copyright
