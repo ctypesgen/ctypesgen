@@ -3,6 +3,8 @@
 # Reuben Thomas 26th September 2011
 # This program is in the public domain.
 
+THIS_DIR=$(dirname $0)
+
 for i in test-headers/*.h; do
-    ../ctypesgen.py --output-language=json $i > ${i%%.h}.json
+    ${THIS_DIR}/../../run.py --output-language=json $i -o ${i%%.h}.json
 done
