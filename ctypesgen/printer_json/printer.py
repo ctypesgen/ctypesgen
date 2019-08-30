@@ -73,6 +73,9 @@ class WrapperPrinter:
         self.file.write(json.dumps(res, sort_keys=True, indent=4))
         self.file.write("\n")
 
+    def __del__(self):
+        self.file.close()
+
     def print_group(self, list, name, function):
         if list:
             return [function(obj) for obj in list]
