@@ -1,8 +1,11 @@
+# -*- coding: ascii -*-
+# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 import os
 import sys
 import io
 import optparse
 import glob
+import json
 
 try:
     # should succeed for py3
@@ -31,8 +34,8 @@ def test(header, **more_options):
 
     options = ctypesgen.options.get_default_options()
     options.headers = ["temp.h"]
-    for opt in more_options:
-        setattr(options, opt, more_options[opt])
+    for opt, val in more_options.items():
+        setattr(options, opt, val)
 
     if redirect_stdout:
         # Redirect output
@@ -45,7 +48,28 @@ def test(header, **more_options):
     ctypesgen.processor.process(descriptions, options)
 
     # Step 3: Print
-    ctypesgen.printer.WrapperPrinter("temp.py", options, descriptions)
+    printer = None
+    if options.output_language.startswith("py"):
+        ctypesgen.printer_python.WrapperPrinter("temp.py", options, descriptions)
+
+        # Load the module we have just produced
+        module = __import__("temp")
+        # import twice, this hack ensure that "temp" is force loaded
+        # (there *must* be a better way to do this)
+        reload_module(module)
+        retval = module
+
+    elif options.output_language == "json":
+        # for ease and consistency with test results, we are going to cheat by
+        # resetting the anonymous tag number
+        ctypesgen.ctypedescs.last_tagnum = 0
+        ctypesgen.printer_json.WrapperPrinter("temp.json", options, descriptions)
+        with open('temp.json') as f:
+            JSON = json.load(f)
+        retval = JSON
+    else:
+        raise RuntimeError(
+            "No such output language `" + options.output_language + "'")
 
     if redirect_stdout:
         # Un-redirect output
@@ -55,13 +79,7 @@ def test(header, **more_options):
     else:
         output = ""
 
-    # Load the module we have just produced
-    module = __import__("temp")
-    reload_module(
-        module
-    )  # import twice, this hack ensure that "temp" is force loaded (there *must* be a better way to do this)
-
-    return module, output
+    return retval, output
 
 
 def cleanup(filepattern="temp.*"):
