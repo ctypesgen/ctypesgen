@@ -21,6 +21,7 @@ VERSION_FILE = os.path.relpath(ctypesgen.version.VERSION_FILE, THIS_DIR)
 f = open("MANIFEST.in", "w")
 f.write("include {}\n".format(VERSION_FILE))
 f.write("graft ctypesgen\n")
+f.write("recursive-exclude ctypesgen .gitignore\n")
 f.close()
 
 try:
