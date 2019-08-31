@@ -10,6 +10,7 @@ from . import options as core_options
 from . import parser as core_parser
 from . import printer_python, printer_json, processor
 from . import messages as msgs
+from . import version
 
 
 def find_names_in_modules(modules):
@@ -46,7 +47,7 @@ def option_callback_libdir(option, opt, value, parser):
 
 def main(givenargs=None):
     usage = "usage: %prog [options] /path/to/header.h ..."
-    op = optparse.OptionParser(usage=usage)
+    op = optparse.OptionParser(usage=usage, version=version.VERSION_NUMBER)
 
     # Parameters
     op.add_option(

@@ -47,6 +47,10 @@ def version():
             return DEFAULT_PREFIX + "-0.0.0"
 
 
+def version_number():
+    return version().partition("-")[-1]
+
+
 def compatible(v0, v1):
     v0 = version_tuple(v0)
     v1 = version_tuple(v1)
@@ -62,6 +66,7 @@ def write_version_file(v=None):
 
 
 VERSION = version()
+VERSION_NUMBER = version_number()
 
 
 if __name__ == "__main__":
