@@ -38,7 +38,7 @@ try:
         "ctypesgen can also output JSON, which can be used with Mork, "
         "which generates bindings for Lua, using the alien module (which "
         "binds libffi to Lua).",
-        url="https://github.com/olsonse/ctypesgen",
+        url="https://github.com/davidjamesca/ctypesgen",
         license="BSD License",
         packages=find_packages(),
         include_package_data=True,
