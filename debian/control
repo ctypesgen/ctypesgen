@@ -2,7 +2,7 @@ Source: ctypesgen
 Section: universe/python
 Priority: optional
 Build-Depends: debhelper (>= 9), dh-python,
- python3-all (>=3.2), python3-setuptools
+ python3-all (>=3.2), python3-setuptools, help2man
 #python-all (>=2.6.6-3~)
 Maintainer: Spencer E. Olson <olsonse@umich.edu>
 Homepage: https://github.com/davidjamesca/ctypesgen

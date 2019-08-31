@@ -1,0 +1,61 @@
+#!/usr/bin/env python3
+"""
+This script generates a manual page.
+"""
+
+from os import path, system, unlink, mkdir, rmdir
+import debian.deb822
+
+THIS_DIR = path.dirname(__file__)
+
+SECTIONS = """\
+[DESCRIPTION]
+{description}
+
+[AVAILABILITY]
+{homepage}
+
+[COPYRIGHT]
+{LICENSE}
+"""
+
+def mkman():
+  D = dict()
+
+  with open(path.join(THIS_DIR, 'control')) as f:
+    Source, P = debian.deb822.Packages.iter_paragraphs(f)
+  desc_paragraphs = P['Description'].splitlines()
+
+  D['homepage'] = Source['Homepage']
+  D['longname'] = desc_paragraphs[0]
+
+  desc = []
+  for di in desc_paragraphs[1:]:
+    dis = di.strip()
+    desc.append('' if dis == '.' else dis)
+
+  D['description'] = '\n'.join(desc)
+
+  with open(path.join(THIS_DIR, path.pardir, 'LICENSE')) as f:
+    D['LICENSE'] = f.read()
+
+  with open(path.join(THIS_DIR, 'ctypesgen.1.input'), 'w') as f:
+    f.write(SECTIONS.format(**D))
+
+  try: mkdir(path.join(THIS_DIR,'tmp.cmdir'))
+  except FileExistsError: pass
+  system('ln -s {} {}'.format(
+    path.abspath(path.join(THIS_DIR,path.pardir, 'run.py')),
+    path.join(THIS_DIR, 'tmp.cmdir', 'ctypesgen')))
+  system('help2man -n "{}" -s 1 -N -i {} -o {} {}'.format(
+    D['longname'],
+    path.join(THIS_DIR, 'ctypesgen.1.input'),
+    path.join(THIS_DIR, 'ctypesgen.1'),
+    path.join(THIS_DIR, 'tmp.cmdir', 'ctypesgen')))
+  # cleanup
+  unlink(path.join(THIS_DIR, 'tmp.cmdir', 'ctypesgen'))
+  unlink(path.join(THIS_DIR, 'ctypesgen.1.input'))
+  rmdir(path.join(THIS_DIR, 'tmp.cmdir'))
+
+if __name__ == '__main__':
+  mkman()

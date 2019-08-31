@@ -8,3 +8,4 @@ debhelper-build-stamp
 *.postinst.debhelper
 *.prerm.debhelper
 *.swp
+ctypesgen.1
