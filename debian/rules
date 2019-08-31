@@ -26,6 +26,13 @@ build binary :  $(CURDIR)/debian/changelog \
 		$(CURDIR)/debian/copyright \
 		$(CURDIR)/debian/ctypesgen.1
 
+override_dh_compress:
+	dh_compress -X.c -X.py
+
+override_dh_installdocs:
+	dh_installdocs
+	$(RM) $(CURDIR)/debian/ctypesgen/usr/share/doc/ctypesgen/demo/.gitignore
+
 $(CURDIR)/debian/changelog : $(CURDIR)/debian/mk_changelog
 	$(CURDIR)/debian/mk_changelog > $(CURDIR)/debian/changelog
 
