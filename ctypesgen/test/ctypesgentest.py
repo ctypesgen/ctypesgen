@@ -64,12 +64,11 @@ def test(header, **more_options):
         # resetting the anonymous tag number
         ctypesgen.ctypedescs.last_tagnum = 0
         ctypesgen.printer_json.WrapperPrinter("temp.json", options, descriptions)
-        with open('temp.json') as f:
+        with open("temp.json") as f:
             JSON = json.load(f)
         retval = JSON
     else:
-        raise RuntimeError(
-            "No such output language `" + options.output_language + "'")
+        raise RuntimeError("No such output language `" + options.output_language + "'")
 
     if redirect_stdout:
         # Un-redirect output
