@@ -1471,6 +1471,34 @@ class PrototypeTest(unittest.TestCase):
         compare_json(self, self.json, json_ans, True)
 
 
+class LongDoubleTest(unittest.TestCase):
+    "Test correct parsing and generation of 'long double' type"
+
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = """
+        struct foo
+        {
+            long double is_bar;
+            int a;
+        };
+        """
+        self.module, _ = ctypesgentest.test(header_str)  # , all_headers=True)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+
+    def test_longdouble_type(self):
+        """Test is long double is correctly parsed"""
+        module = self.module
+        struct_foo = module.struct_foo
+        self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_longdouble), ("a", ctypes.c_int)])
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv

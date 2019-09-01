@@ -36,6 +36,7 @@ ctypes_type_map = {
     ("short", False, 0): "c_ushort",
     ("float", True, 0): "c_float",
     ("double", True, 0): "c_double",
+    ("double", True, 1): "c_longdouble",
     ("int8_t", True, 0): "c_int8",
     ("int16_t", True, 0): "c_int16",
     ("int32_t", True, 0): "c_int32",
