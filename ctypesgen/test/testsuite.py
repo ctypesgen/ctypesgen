@@ -1496,7 +1496,9 @@ class LongDoubleTest(unittest.TestCase):
         """Test is long double is correctly parsed"""
         module = self.module
         struct_foo = module.struct_foo
-        self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_longdouble), ("a", ctypes.c_int)])
+        self.assertEqual(
+            struct_foo._fields_, [("is_bar", ctypes.c_longdouble), ("a", ctypes.c_int)]
+        )
 
 
 def main(argv=None):
