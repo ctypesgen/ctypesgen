@@ -1,0 +1,9 @@
+The best way to document a bug is to create a new test which demonstrates it. You should do that by adding a new test to:
+    ctypesgen/test/testsuite.py
+This is *required* for any patches you might provide. You must provide tests to demonstrate your bug fix or enhancement.
+
+All patches will be have to pass unit tests. You can run the tests by running "tox" with no options.
+
+All our Python code is formatted with using the "black" command with a 100 character line length.
+    black --line-length 100
+You can verify your patch formatting before you submit it by running "tox -e black".
