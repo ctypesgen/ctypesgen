@@ -300,6 +300,7 @@ loaderclass = {
     "darwin": DarwinLibraryLoader,
     "cygwin": WindowsLibraryLoader,
     "win32": WindowsLibraryLoader,
+    "msys": WindowsLibraryLoader,
 }
 
 loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
