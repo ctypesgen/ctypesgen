@@ -7,11 +7,11 @@ Main loop for ctypesgen.
 import sys
 import optparse
 
-from ctypesgen import options as core_options
-from ctypesgen import parser as core_parser
-from ctypesgen import printer_python, printer_json, processor
-from ctypesgen import messages as msgs
-from ctypesgen import version
+from . import options as core_options
+from . import parser as core_parser
+from . import printer_python, printer_json, processor
+from . import messages as msgs
+from . import version
 
 
 def find_names_in_modules(modules):
