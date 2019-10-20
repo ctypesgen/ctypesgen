@@ -1574,31 +1574,6 @@ class UncheckedTest(unittest.TestCase):
         ctypesgentest.cleanup()
 
 
-class UncheckedTest(unittest.TestCase):
-    """Fixing a bug in 1.0.0 - basic type returns of function pointers get treated as pointers"""
-
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
-        header_str = """
-        typedef int (*some_type_of_answer)(void*);
-        """
-        self.module, self.output = ctypesgentest.test(header_str, all_headers=False)
-
-    def test_unchecked_prototype(self):
-        """Test is function type marked UNCHECKED (function pointer returning int) is handled correctly"""
-        module = self.module
-        A = module.some_type_of_answer()
-        self.assertEqual(A.restype, ctypes.c_int)
-        self.assertEqual(A.argtypes, (ctypes.c_void_p,))
-
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
-
-
 def main(argv=None):
     if argv is None:
         argv = sys.argv
