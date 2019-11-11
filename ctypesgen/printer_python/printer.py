@@ -15,15 +15,14 @@ def path_to_local_file(name, known_local_module=test):
 
 
 THIS_DIR = os.path.dirname(__file__)
-PREAMBLE_PATH = os.path.join(THIS_DIR, "preamble", "*.py")
+PREAMBLE_PATH = os.path.join(THIS_DIR, "preamble", "[0-9]_[0-9].py")
 
 
 def get_preamble(major=None, minor=None):
     """get the available preambles"""
-    preamble_pattern = os.path.join("preamble", "(\d)_(\d).py$")
     preambles = dict()
     for fp in glob.glob(PREAMBLE_PATH):
-        m = re.search(preamble_pattern, fp)
+        m = re.search("(\d)_(\d).py$", fp)
         if not m:
             continue
         preambles[(int(m.group(1)), int(m.group(2)))] = fp
