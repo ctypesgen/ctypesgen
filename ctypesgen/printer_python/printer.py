@@ -20,9 +20,10 @@ PREAMBLE_PATH = os.path.join(THIS_DIR, "preamble", "*.py")
 
 def get_preamble(major=None, minor=None):
     """get the available preambles"""
+    preamble_pattern = os.path.join("preamble", "(\d)_(\d).py$")
     preambles = dict()
     for fp in glob.glob(PREAMBLE_PATH):
-        m = re.search("preamble/(\d)_(\d).py$", fp)
+        m = re.search(preamble_pattern, fp)
         if not m:
             continue
         preambles[(int(m.group(1)), int(m.group(2)))] = fp
