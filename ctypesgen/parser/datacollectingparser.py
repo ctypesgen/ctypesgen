@@ -67,7 +67,7 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
             f.write('#include "%s"\n' % os.path.abspath(header))
         f.flush()
         f.close()
-        super(DataCollectingParser, self).parse(fname, 0)
+        super(DataCollectingParser, self).parse(fname, self.options.debug_level)
         os.unlink(fname)
 
         for name, params, expr, (filename, lineno) in self.saved_macros:

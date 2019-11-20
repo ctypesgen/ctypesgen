@@ -35,6 +35,7 @@ default_values = {
     "no_stddef_types": False,
     "no_gnu_types": False,
     "no_python_types": False,
+    "debug_level": 0,
 }
 
 

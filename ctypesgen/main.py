@@ -297,6 +297,14 @@ def main(givenargs=None):
         dest="show_macro_warnings",
         help="Do not print macro warnings.",
     )
+    op.add_option(
+        "",
+        "--debug-level",
+        dest="debug_level",
+        default=0,
+        type="int",
+        help="Run ctypesgen with specified debug level (also applies to yacc parser)",
+    )
 
     op.set_defaults(**core_options.default_values)
 
