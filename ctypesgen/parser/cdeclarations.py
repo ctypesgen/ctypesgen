@@ -18,6 +18,7 @@ class Declaration(object):
         self.declarator = None
         self.type = Type()
         self.storage = None
+        self.attrib = Attrib()
 
     def __repr__(self):
         d = {"declarator": self.declarator, "type": self.type}
@@ -36,6 +37,7 @@ class Declarator(object):
         self.array = None
         self.parameters = None
         self.bitfield = None
+        self.attrib = Attrib()
 
     # make pointer read-only to catch mistakes early
     pointer = property(lambda self: None)
@@ -88,6 +90,7 @@ class Parameter(object):
         self.type = Type()
         self.storage = None
         self.declarator = None
+        self.attrib = Attrib()
 
     def __repr__(self):
         d = {"type": self.type}
@@ -112,11 +115,13 @@ class Type(object):
 
 
 class StorageClassSpecifier(str):
-    pass
+    def __repr__(self):
+        return "StorageClassSpecifier({})".format(str(self))
 
 
 class TypeSpecifier(str):
-    pass
+    def __repr__(self):
+        return "TypeSpecifier({})".format(str(self))
 
 
 class StructTypeSpecifier(object):
@@ -125,6 +130,8 @@ class StructTypeSpecifier(object):
         self.attrib = attrib
         self.tag = tag
         self.declarations = declarations
+        self.filename = None
+        self.lineno = -1
 
     def __repr__(self):
         if self.is_union:
@@ -151,7 +158,8 @@ class EnumSpecifier(object):
     def __init__(self, tag, enumerators, src=None):
         self.tag = tag
         self.enumerators = enumerators
-        self.src = src
+        self.filename = None
+        self.lineno = -1
 
     def __repr__(self):
         s = "enum"
@@ -175,7 +183,8 @@ class Enumerator(object):
 
 
 class TypeQualifier(str):
-    pass
+    def __repr__(self):
+        return "TypeQualifier({})".format(str(self))
 
 
 class Attrib(dict):
@@ -196,3 +205,5 @@ def apply_specifiers(specifiers, declaration):
             declaration.type.specifiers.append(s)
         elif type(s) == TypeQualifier:
             declaration.type.qualifiers.append(s)
+        elif type(s) == Attrib:
+            declaration.attrib.update(s)

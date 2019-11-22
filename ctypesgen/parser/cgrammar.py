@@ -642,8 +642,8 @@ def p_declaration(p):
 
 
 def p_declaration_impl(p):
-    """declaration_impl : declaration_specifiers
-                        | declaration_specifiers init_declarator_list
+    """declaration_impl : declaration_specifier_list
+                        | declaration_specifier_list init_declarator_list
     """
     declaration = cdeclarations.Declaration()
     cdeclarations.apply_specifiers(p[1], declaration)
@@ -668,18 +668,28 @@ def p_declaration_impl(p):
 #    # Error resynchronisation catch-all
 
 
-def p_declaration_specifiers(p):
-    """declaration_specifiers : storage_class_specifier
-                              | storage_class_specifier declaration_specifiers
-                              | type_specifier
-                              | type_specifier declaration_specifiers
-                              | type_qualifier
-                              | type_qualifier declaration_specifiers
+def p_declaration_specifier_list(p):
+    """declaration_specifier_list : gcc_attributes declaration_specifier gcc_attributes
+       | declaration_specifier_list gcc_attributes declaration_specifier gcc_attributes
     """
-    if len(p) > 2:
-        p[0] = (p[1],) + p[2]
+    if len(p) == 1:
+        p[0] = tuple()
+    elif len(p) == 4:
+        p[0] = (p[1], p[2], p[3])
+        p.slice[0].filename = p.slice[2].filename
+        p.slice[0].lineno = p.slice[2].lineno
     else:
-        p[0] = (p[1],)
+        p[0] = p[1] + (p[2], p[3], p[4])
+        p.slice[0].filename = p.slice[1].filename
+        p.slice[0].lineno = p.slice[1].lineno
+
+
+def p_declaration_specifier(p):
+    """declaration_specifier : storage_class_specifier
+                             | type_specifier
+                             | type_qualifier
+    """
+    p[0] = p[1]
 
 
 def p_init_declarator_list(p):
@@ -693,12 +703,13 @@ def p_init_declarator_list(p):
 
 
 def p_init_declarator(p):
-    """init_declarator : declarator
-                       | declarator '=' initializer
+    """init_declarator : declarator gcc_attributes
+                       | declarator gcc_attributes '=' initializer
     """
     p[0] = p[1]
-    if len(p) > 2:
-        p[0].initializer = p[2]
+    p[0].attrib.update(p[2])
+    if len(p) > 3:
+        p[0].initializer = p[4]
 
 
 def p_storage_class_specifier(p):
@@ -1041,13 +1052,14 @@ def p_parameter_list(p):
 
 
 def p_parameter_declaration(p):
-    """parameter_declaration : declaration_specifiers declarator
-                             | declaration_specifiers abstract_declarator
-                             | declaration_specifiers
+    """parameter_declaration : declaration_specifier_list declarator          gcc_attributes
+                             | declaration_specifier_list abstract_declarator gcc_attributes
+                             | declaration_specifier_list                     gcc_attributes
     """
     p[0] = cdeclarations.Parameter()
-    cdeclarations.apply_specifiers(p[1], p[0])
-    if len(p) > 2:
+    # add the attributes as a final specifier
+    cdeclarations.apply_specifiers(p[1] + (p[len(p) - 1],), p[0])
+    if len(p) > 3:
         p[0].declarator = p[2]
 
 
@@ -1246,16 +1258,16 @@ def p_external_declaration(p):
     """external_declaration : declaration
                             | function_definition
     """
-
     # Intentionally empty
 
 
 def p_function_definition(p):
-    """function_definition : declaration_specifiers declarator declaration_list compound_statement
-                        | declaration_specifiers declarator compound_statement
+    """function_definition : declaration_specifier_list declarator declaration_list compound_statement
+                        | declaration_specifier_list declarator compound_statement
                         | declarator declaration_list compound_statement
                         | declarator compound_statement
     """
+    # No impl of function defs
 
 
 def p_define(p):
