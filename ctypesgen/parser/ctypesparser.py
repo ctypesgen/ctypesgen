@@ -174,7 +174,7 @@ class CtypesParser(CParser):
                 ct = self.get_ctypes_type(param.type, param.declarator)
                 ct.identifier = param_name
                 params.append(ct)
-            t = CtypesFunction(t, params, variadic)
+            t = CtypesFunction(t, params, variadic, declarator.attrib)
 
         if declarator:
             a = declarator.array
@@ -208,8 +208,10 @@ class CtypesParser(CParser):
         if declaration.storage == "typedef":
             self.handle_ctypes_typedef(name, remove_function_pointer(t), filename, lineno)
         elif type(t) == CtypesFunction:
+            attrib = Attrib(t.attrib)
+            attrib.update(declaration.attrib)
             self.handle_ctypes_function(
-                name, t.restype, t.argtypes, t.errcheck, t.variadic, filename, lineno
+                name, t.restype, t.argtypes, t.errcheck, t.variadic, attrib, filename, lineno
             )
         elif declaration.storage != "static":
             self.handle_ctypes_variable(name, t, filename, lineno)
@@ -222,7 +224,9 @@ class CtypesParser(CParser):
     def handle_ctypes_typedef(self, name, ctype, filename, lineno):
         pass
 
-    def handle_ctypes_function(self, name, restype, argtypes, errcheck, filename, lineno):
+    def handle_ctypes_function(
+        self, name, restype, argtypes, errcheck, variadic, attrib, filename, lineno
+    ):
         pass
 
     def handle_ctypes_variable(self, name, ctype, filename, lineno):

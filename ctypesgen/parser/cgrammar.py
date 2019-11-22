@@ -113,6 +113,8 @@ tokens = (
     # "PACKED",
     # "ALIGNED",
     # "TRANSPARENT_UNION",
+    # "STDCALL",
+    # "CDECL",
 )
 
 keywords = [
@@ -155,6 +157,8 @@ keywords = [
     # "packed",
     # "aligned",
     # "transparent_union",
+    # "stdcall",
+    # "cdecl",
 ]
 
 

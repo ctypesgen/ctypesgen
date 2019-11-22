@@ -113,14 +113,16 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
         else:
             self.handle_struct(ctype, filename, lineno)
 
-    def handle_ctypes_function(self, name, restype, argtypes, errcheck, variadic, filename, lineno):
+    def handle_ctypes_function(
+        self, name, restype, argtypes, errcheck, variadic, attrib, filename, lineno
+    ):
         # Called by CtypesParser
         restype.visit(self)
         for argtype in argtypes:
             argtype.visit(self)
 
         function = FunctionDescription(
-            name, restype, argtypes, errcheck, variadic=variadic, src=(filename, repr(lineno))
+            name, restype, argtypes, errcheck, variadic, attrib, src=(filename, repr(lineno))
         )
 
         self.functions.append(function)

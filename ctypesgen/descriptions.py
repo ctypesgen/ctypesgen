@@ -170,7 +170,7 @@ class EnumDescription(Description):
 class FunctionDescription(Description):
     """Simple container class for a C function."""
 
-    def __init__(self, name, restype, argtypes, errcheck, variadic=False, src=None):
+    def __init__(self, name, restype, argtypes, errcheck, variadic, attrib, src):
         super(FunctionDescription, self).__init__(src)
         # Name, a string
         self.name = name
@@ -184,6 +184,8 @@ class FunctionDescription(Description):
         self.errcheck = errcheck
         # Does this function accept a variable number of arguments?
         self.variadic = variadic
+        # The set of attributes applied to the function (e.g. stdcall)
+        self.attrib = attrib
 
     def casual_name(self):
         return 'Function "%s"' % self.name

@@ -1404,6 +1404,7 @@ class PrototypeTest(unittest.TestCase):
         int bar2(int a);
         int bar(int);
         void foo(void);
+        void foo2(void) __attribute__((stdcall));
         """
         libraries = None
         self.json, output = ctypesgentest.test(header_str, output_language="json")
@@ -1426,6 +1427,7 @@ class PrototypeTest(unittest.TestCase):
                         "signed": True,
                     }
                 ],
+                "attrib": {},
                 "name": "bar2",
                 "return": {
                     "Klass": "CtypesSimple",
@@ -1448,6 +1450,7 @@ class PrototypeTest(unittest.TestCase):
                         "signed": True,
                     }
                 ],
+                "attrib": {},
                 "name": "bar",
                 "return": {
                     "Klass": "CtypesSimple",
@@ -1461,7 +1464,22 @@ class PrototypeTest(unittest.TestCase):
             },
             {
                 "args": [],
+                "attrib": {},
                 "name": "foo",
+                "return": {
+                    "Klass": "CtypesSimple",
+                    "errors": [],
+                    "longs": 0,
+                    "name": "void",
+                    "signed": True,
+                },
+                "type": "function",
+                "variadic": False,
+            },
+            {
+                "args": [],
+                "attrib": {"stdcall": True},
+                "name": "foo2",
                 "return": {
                     "Klass": "CtypesSimple",
                     "errors": [],

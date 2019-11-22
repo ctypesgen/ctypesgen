@@ -120,6 +120,7 @@ class WrapperPrinter:
             "variadic": function.variadic,
             "args": todict(function.argtypes),
             "return": todict(function.restype),
+            "attrib": function.attrib,
         }
         if function.source_library:
             res["source"] = function.source_library

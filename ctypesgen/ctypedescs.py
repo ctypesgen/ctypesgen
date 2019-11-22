@@ -243,7 +243,7 @@ class CtypesPointerCast(object):
 
 
 class CtypesFunction(CtypesType):
-    def __init__(self, restype, parameters, variadic=False):
+    def __init__(self, restype, parameters, variadic, attrib=dict()):
         super(CtypesFunction, self).__init__()
         self.restype = restype
         self.errcheck = CtypesNoErrorCheck()
@@ -270,6 +270,7 @@ class CtypesFunction(CtypesType):
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
         self.variadic = variadic
+        self.attrib = attrib
 
     def visit(self, visitor):
         self.restype.visit(visitor)
