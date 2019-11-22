@@ -13,8 +13,9 @@ try:
 except:
     reload_module = reload
 
-sys.path.append(".")  # Allow tests to be called from parent directory with Python 2.6
-sys.path.append("..")
+# ensure that we can load the ctypesgen library
+PACKAGE_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
+sys.path.insert(0, PACKAGE_DIR)
 import ctypesgen
 
 """ctypesgentest is a simple module for testing ctypesgen on various C constructs. It consists of a
