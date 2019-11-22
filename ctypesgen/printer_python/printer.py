@@ -255,21 +255,25 @@ class WrapperPrinter:
     def print_fixed_function(self, function):
         self.srcinfo(function.src)
 
+        CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
+
         # If we know what library the function lives in, look there.
         # Otherwise, check all the libraries.
         if function.source_library:
             self.file.write(
-                "if hasattr(_libs['{L}'], '{CN}'):\n"
-                "    {PN} = _libs['{L}'].{CN}\n".format(
-                    L=function.source_library, CN=function.c_name(), PN=function.py_name()
+                'if _libs["{L}"].has("{CN}", "{CC}"):\n'
+                '    {PN} = _libs["{L}"].get("{CN}", "{CC}")\n'.format(
+                    L=function.source_library, CN=function.c_name(), PN=function.py_name(), CC=CC
                 )
             )
         else:
             self.file.write(
                 "for _lib in _libs.values():\n"
-                "    if not hasattr(_lib, '{CN}'):\n"
+                '    if not _lib.has("{CN}", "{CC}"):\n'
                 "        continue\n"
-                "    {PN} = _lib.{CN}\n".format(CN=function.c_name(), PN=function.py_name())
+                '    {PN} = _lib.get("{CN}", "{CC}")\n'.format(
+                    CN=function.c_name(), PN=function.py_name(), CC=CC
+                )
             )
 
         # Argument types
@@ -302,11 +306,13 @@ class WrapperPrinter:
             self.file.write("    break\n")
 
     def print_variadic_function(self, function):
+        CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
+
         self.srcinfo(function.src)
         if function.source_library:
             self.file.write(
-                "if hasattr(_libs['{L}'], '{CN}'):\n"
-                "    _func = _libs['{L}'].{CN}\n"
+                'if _libs["{L}"].has("{CN}", "{CC}"):\n'
+                '    _func = _libs["{L}"].get("{CN}", "{CC}")\n'
                 "    _restype = {RT}\n"
                 "    _errcheck = {E}\n"
                 "    _argtypes = [{t0}]\n"
@@ -317,13 +323,14 @@ class WrapperPrinter:
                     E=function.errcheck.py_string(),
                     t0=", ".join([a.py_string() for a in function.argtypes]),
                     PN=function.py_name(),
+                    CC=CC,
                 )
             )
         else:
             self.file.write(
                 "for _lib in _libs.values():\n"
-                "    if hasattr(_lib, '{CN}'):\n"
-                "        _func = _lib.{CN}\n"
+                '    if _lib.has("{CN}", "{CC}"):\n'
+                '        _func = _lib.get("{CN}", "{CC}")\n'
                 "        _restype = {RT}\n"
                 "        _errcheck = {E}\n"
                 "        _argtypes = [{t0}]\n"
@@ -333,6 +340,7 @@ class WrapperPrinter:
                     E=function.errcheck.py_string(),
                     t0=", ".join([a.py_string() for a in function.argtypes]),
                     PN=function.py_name(),
+                    CC=CC,
                 )
             )
 
