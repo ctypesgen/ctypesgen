@@ -31,6 +31,7 @@ class Description(object):
     or macro description. Description is an abstract base class."""
 
     def __init__(self, src=None):
+        super(Description, self).__init__()
         self.src = src  # A tuple of (filename, lineno)
 
         # If object will be included in output file. Values are "yes", "never",
@@ -83,7 +84,7 @@ class ConstantDescription(Description):
     """Simple class to contain information about a constant."""
 
     def __init__(self, name, value, src=None):
-        Description.__init__(self, src)
+        super(ConstantDescription, self).__init__(src)
         # Name of constant, a string
         self.name = name
         # Value of constant, as an ExpressionNode object
@@ -103,7 +104,7 @@ class TypedefDescription(Description):
     """Simple container class for a type definition."""
 
     def __init__(self, name, ctype, src=None):
-        Description.__init__(self, src)
+        super(TypedefDescription, self).__init__(src)
         self.name = name  # Name, a string
         self.ctype = ctype  # The base type as a ctypedescs.CtypeType object
 
@@ -121,7 +122,7 @@ class StructDescription(Description):
     """Simple container class for a structure or union definition."""
 
     def __init__(self, tag, packed, variety, members, opaque, ctype, src=None):
-        Description.__init__(self, src)
+        super(StructDescription, self).__init__(src)
         # The name of the structure minus the "struct" or "union"
         self.tag = tag
         self.packed = packed
@@ -148,7 +149,7 @@ class EnumDescription(Description):
     """Simple container class for an enum definition."""
 
     def __init__(self, tag, members, ctype, src=None):
-        Description.__init__(self, src)
+        super(EnumDescription, self).__init__(src)
         # The name of the enum, minus the "enum"
         self.tag = tag
         # A list of (name,value) pairs where value is a number
@@ -170,7 +171,7 @@ class FunctionDescription(Description):
     """Simple container class for a C function."""
 
     def __init__(self, name, restype, argtypes, errcheck, variadic=False, src=None):
-        Description.__init__(self, src)
+        super(FunctionDescription, self).__init__(src)
         # Name, a string
         self.name = name
         # Name according to C - stored in case description is renamed
@@ -198,7 +199,7 @@ class VariableDescription(Description):
     """Simple container class for a C variable declaration."""
 
     def __init__(self, name, ctype, src=None):
-        Description.__init__(self, src)
+        super(VariableDescription, self).__init__(src)
         # Name, a string
         self.name = name
         # Name according to C - stored in case description is renamed
@@ -220,7 +221,7 @@ class MacroDescription(Description):
     """Simple container class for a C macro."""
 
     def __init__(self, name, params, expr, src=None):
-        Description.__init__(self, src)
+        super(MacroDescription, self).__init__(src)
         self.name = name
         self.params = params
         self.expr = expr  # ExpressionNode for the macro's body

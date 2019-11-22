@@ -122,6 +122,7 @@ def remove_function_pointer(t):
 
 class CtypesType(object):
     def __init__(self):
+        super(CtypesType, self).__init__()
         self.errors = []
 
     def __repr__(self):
@@ -139,7 +140,7 @@ class CtypesSimple(CtypesType):
     """Represents a builtin type, like "char" or "int"."""
 
     def __init__(self, name, signed, longs):
-        CtypesType.__init__(self)
+        super(CtypesSimple, self).__init__()
         self.name = name
         self.signed = signed
         self.longs = longs
@@ -150,7 +151,7 @@ class CtypesSimple(CtypesType):
 
 class CtypesSpecial(CtypesType):
     def __init__(self, name):
-        CtypesType.__init__(self)
+        super(CtypesSpecial, self).__init__()
         self.name = name
 
     def py_string(self):
@@ -161,13 +162,13 @@ class CtypesTypedef(CtypesType):
     """Represents a type defined by a typedef."""
 
     def __init__(self, name):
-        CtypesType.__init__(self)
+        super(CtypesTypedef, self).__init__()
         self.name = name
 
     def visit(self, visitor):
         if not self.errors:
             visitor.visit_typedef(self.name)
-        CtypesType.visit(self, visitor)
+        super(CtypesTypedef, self).visit(visitor)
 
     def py_string(self):
         return self.name
@@ -175,13 +176,13 @@ class CtypesTypedef(CtypesType):
 
 class CtypesBitfield(CtypesType):
     def __init__(self, base, bitfield):
-        CtypesType.__init__(self)
+        super(CtypesBitfield, self).__init__()
         self.base = base
         self.bitfield = bitfield
 
     def visit(self, visitor):
         self.base.visit(visitor)
-        CtypesType.visit(self, visitor)
+        super(CtypesBitfield, self).visit(visitor)
 
     def py_string(self):
         return self.base.py_string()
@@ -189,14 +190,14 @@ class CtypesBitfield(CtypesType):
 
 class CtypesPointer(CtypesType):
     def __init__(self, destination, qualifiers):
-        CtypesType.__init__(self)
+        super(CtypesPointer, self).__init__()
         self.destination = destination
         self.qualifiers = qualifiers
 
     def visit(self, visitor):
         if self.destination:
             self.destination.visit(visitor)
-        CtypesType.visit(self, visitor)
+        super(CtypesPointer, self).visit(visitor)
 
     def py_string(self):
         return "POINTER(%s)" % self.destination.py_string()
@@ -204,7 +205,7 @@ class CtypesPointer(CtypesType):
 
 class CtypesArray(CtypesType):
     def __init__(self, base, count):
-        CtypesType.__init__(self)
+        super(CtypesArray, self).__init__()
         self.base = base
         self.count = count
 
@@ -212,7 +213,7 @@ class CtypesArray(CtypesType):
         self.base.visit(visitor)
         if self.count:
             self.count.visit(visitor)
-        CtypesType.visit(self, visitor)
+        super(CtypesArray, self).visit(visitor)
 
     def py_string(self):
         if self.count is None:
@@ -243,7 +244,7 @@ class CtypesPointerCast(object):
 
 class CtypesFunction(CtypesType):
     def __init__(self, restype, parameters, variadic=False):
-        CtypesType.__init__(self)
+        super(CtypesFunction, self).__init__()
         self.restype = restype
         self.errcheck = CtypesNoErrorCheck()
 
@@ -274,7 +275,7 @@ class CtypesFunction(CtypesType):
         self.restype.visit(visitor)
         for a in self.argtypes:
             a.visit(visitor)
-        CtypesType.visit(self, visitor)
+        super(CtypesFunction, self).visit(visitor)
 
     def py_string(self):
         return "CFUNCTYPE(UNCHECKED(%s), %s)" % (
@@ -294,7 +295,7 @@ def anonymous_struct_tag():
 
 class CtypesStruct(CtypesType):
     def __init__(self, tag, packed, variety, members, src=None):
-        CtypesType.__init__(self)
+        super(CtypesStruct, self).__init__()
         self.tag = tag
         self.packed = packed
         self.variety = variety  # "struct" or "union"
@@ -314,7 +315,7 @@ class CtypesStruct(CtypesType):
         self.src = src
 
     def get_required_types(self):
-        types = CtypesType.get_required_types(self)
+        types = super(CtypesStruct, self).get_required_types()
         types.add((self.variety, self.tag))
         return types
 
@@ -323,7 +324,7 @@ class CtypesStruct(CtypesType):
         if not self.opaque:
             for name, ctype in self.members:
                 ctype.visit(visitor)
-        CtypesType.visit(self, visitor)
+        super(CtypesStruct, self).visit(visitor)
 
     def get_subtypes(self):
         if self.opaque:
@@ -346,7 +347,7 @@ def anonymous_enum_tag():
 
 class CtypesEnum(CtypesType):
     def __init__(self, tag, enumerators, src=None):
-        CtypesType.__init__(self)
+        super(CtypesEnum, self).__init__()
         self.tag = tag
         self.enumerators = enumerators
 
@@ -365,7 +366,7 @@ class CtypesEnum(CtypesType):
 
     def visit(self, visitor):
         visitor.visit_enum(self)
-        CtypesType.visit(self, visitor)
+        super(CtypesEnum, self).visit(visitor)
 
     def py_string(self):
         return "enum_%s" % self.tag

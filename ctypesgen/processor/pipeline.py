@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import ctypes, re, os
-from ..processor.operations import *
-from ..processor.dependencies import find_dependencies
 from ..ctypedescs import *
 from ..messages import *
+from .operations import *
+from .dependencies import find_dependencies
 
 """
 A brief explanation of the processing steps:

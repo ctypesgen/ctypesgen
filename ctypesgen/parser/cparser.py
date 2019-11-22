@@ -96,6 +96,7 @@ class CParser(object):
     """
 
     def __init__(self, options):
+        super(CParser, self).__init__()
         self.preprocessor_parser = preprocessor.PreprocessorParser(options, self)
         self.parser = yacc.Parser()
         prototype = yacc.yacc(
