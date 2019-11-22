@@ -109,9 +109,10 @@ tokens = (
     "RETURN",
     "__ASM__",
     "__ATTRIBUTE__",
-    "PACKED",
-    "ALIGNED",
-    "TRANSPARENT_UNION",
+    # with new code that accepts arbitrary attributes-->must not be keywords
+    # "PACKED",
+    # "ALIGNED",
+    # "TRANSPARENT_UNION",
 )
 
 keywords = [
@@ -150,9 +151,10 @@ keywords = [
     "while",
     "__asm__",
     "__attribute__",
-    "packed",
-    "aligned",
-    "transparent_union",
+    # with new code that accepts arbitrary attributes-->must not be keywords
+    # "packed",
+    # "aligned",
+    # "transparent_union",
 ]
 
 
@@ -730,48 +732,37 @@ def p_type_specifier(p):
         p[0] = cdeclarations.TypeSpecifier(p[1])
 
 
-class Attribs(dict):
-    def __init__(self, packed=False, aligned=False, transparent_union=False):
-        super(Attribs, self).__init__(
-            packed=packed, aligned=aligned, transparent_union=transparent_union
-        )
-        self.__dict__ = self
-
-
 def p_struct_or_union_specifier(p):
-    """struct_or_union_specifier : struct_or_union gcc_attribs IDENTIFIER '{' struct_declaration_list '}'
-         | struct_or_union gcc_attribs TYPE_NAME '{' struct_declaration_list '}'
-         | struct_or_union gcc_attribs '{' struct_declaration_list '}'
-         | struct_or_union IDENTIFIER '{' struct_declaration_list '}'
-         | struct_or_union TYPE_NAME '{' struct_declaration_list '}'
-         | struct_or_union '{' struct_declaration_list '}'
-         | struct_or_union IDENTIFIER
-         | struct_or_union TYPE_NAME
+    """struct_or_union_specifier : struct_or_union gcc_attributes IDENTIFIER '{' struct_declaration_list '}' gcc_attributes
+         | struct_or_union gcc_attributes TYPE_NAME '{' struct_declaration_list '}' gcc_attributes
+         | struct_or_union gcc_attributes '{' struct_declaration_list '}' gcc_attributes
+         | struct_or_union gcc_attributes IDENTIFIER
+         | struct_or_union gcc_attributes TYPE_NAME
     """
+    # format of grammar for gcc_attributes taken from c-parser.c in GCC source.
     # The TYPE_NAME ones are dodgy, needed for Apple headers
     # CoreServices.framework/Frameworks/CarbonCore.framework/Headers/Files.h.
     # CoreServices.framework/Frameworks/OSServices.framework/Headers/Power.h
-    packed = False
-    if len(p) == 3:  # struct <id/typname>
-        p[0] = cdeclarations.StructTypeSpecifier(p[1], False, p[2], None)
+    attrib = p[2]
+    if len(p) >= 7:
+        attrib.update(p[len(p) - 1])
+
+    tag = None
+    decl = None
+
+    if len(p) == 4:  # struct [attributes] <id/typname>
+        tag = p[3]
+    elif p[3] == "{":
+        tag, decl = "", p[4]
     else:
-        if type(p[2]) is Attribs:
-            attribs = p[2]
-            if p[3] == "{":
-                tag, decl = "", p[4]
-            else:
-                tag, decl = p[3], p[5]
-        else:
-            attribs = Attribs()
-            if p[2] == "{":
-                tag, decl = "", p[3]
-            else:
-                tag, decl = p[2], p[4]
+        tag, decl = p[3], p[5]
 
-        p[0] = cdeclarations.StructTypeSpecifier(p[1], attribs.packed, tag, decl)
+    p[0] = cdeclarations.StructTypeSpecifier(p[1], attrib, tag, decl)
 
-    p[0].filename = p.slice[0].filename
-    p[0].lineno = p.slice[0].lineno
+    p.slice[0].filename = p.slice[1].filename
+    p.slice[0].lineno = p.slice[1].lineno
+    p[0].filename = p.slice[1].filename
+    p[0].lineno = p.slice[1].lineno
 
 
 def p_struct_or_union(p):
@@ -781,19 +772,50 @@ def p_struct_or_union(p):
     p[0] = p[1] == "union"
 
 
-def p_gcc_attribs(p):
-    """gcc_attribs : __ATTRIBUTE__ '(' '(' struct_attribute ')' ')'
+def p_gcc_attributes(p):
+    """gcc_attributes :
+                      | gcc_attributes gcc_attribute
     """
-    p[0] = Attribs()
-    p[0].packed = False if len(p) == 1 else p[4] == "packed"
+    # Allow empty production on attributes (take from c-parser.c in GCC source)
+    if len(p) == 1:
+        p[0] = cdeclarations.Attrib()
+    else:
+        p[0] = p[1]
+        p[0].update(p[2])
+
+    p[0].pop(None, None)  # remove dummy empty attribute
 
 
-def p_struct_attribute(p):
-    """struct_attribute : PACKED
-                        | TRANSPARENT_UNION
-                        | ALIGNED
+def p_gcc_attribute(p):
+    """gcc_attribute : __ATTRIBUTE__ '(' '(' gcc_attrib_list ')' ')'
     """
-    p[0] = p[1]
+    p[0] = cdeclarations.Attrib()
+    p[0].update(p[4])
+
+
+def p_gcc_attrib_list(p):
+    """gcc_attrib_list : gcc_attrib
+                       | gcc_attrib_list ',' gcc_attrib
+    """
+    if len(p) == 2:
+        p[0] = (p[1],)
+    else:
+        p[0] = p[1] + (p[3],)
+
+
+def p_gcc_attrib(p):
+    """gcc_attrib :
+                  | IDENTIFIER
+                  | IDENTIFIER '(' argument_expression_list ')'
+    """
+    if len(p) == 1:
+        p[0] = (None, None)
+    elif len(p) == 2:
+        p[0] = (p[1], True)
+    elif len(p) == 5:
+        p[0] = (p[1], p[3])
+    else:
+        raise RuntimeError("Should never reach this part of the grammar")
 
 
 def p_struct_declaration_list(p):

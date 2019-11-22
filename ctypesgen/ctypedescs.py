@@ -294,10 +294,10 @@ def anonymous_struct_tag():
 
 
 class CtypesStruct(CtypesType):
-    def __init__(self, tag, packed, variety, members, src=None):
+    def __init__(self, tag, attrib, variety, members, src=None):
         super(CtypesStruct, self).__init__()
         self.tag = tag
-        self.packed = packed
+        self.attrib = attrib
         self.variety = variety  # "struct" or "union"
         self.members = members
 

@@ -197,7 +197,7 @@ class WrapperPrinter:
             return
 
         # is this supposed to be packed?
-        if struct.packed:
+        if struct.attrib.get("packed", False):
             self.file.write("{}_{}._pack_ = 1\n".format(struct.variety, struct.tag))
 
         # handle unnamed fields.

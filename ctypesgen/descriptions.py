@@ -121,11 +121,11 @@ class TypedefDescription(Description):
 class StructDescription(Description):
     """Simple container class for a structure or union definition."""
 
-    def __init__(self, tag, packed, variety, members, opaque, ctype, src=None):
+    def __init__(self, tag, attrib, variety, members, opaque, ctype, src=None):
         super(StructDescription, self).__init__(src)
         # The name of the structure minus the "struct" or "union"
         self.tag = tag
-        self.packed = packed
+        self.attrib = attrib
         # A string "struct" or "union"
         self.variety = variety
         # A list of pairs of (name,ctype)

@@ -90,7 +90,7 @@ class WrapperPrinter:
         return {"type": "typedef", "name": typedef.name, "ctype": todict(typedef.ctype)}
 
     def print_struct(self, struct):
-        res = {"type": struct.variety, "name": struct.tag}
+        res = {"type": struct.variety, "name": struct.tag, "attrib": struct.attrib}
         if not struct.opaque:
             res["fields"] = []
             for name, ctype in struct.members:

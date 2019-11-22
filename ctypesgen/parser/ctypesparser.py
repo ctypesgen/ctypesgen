@@ -89,7 +89,7 @@ class CtypesParser(CParser):
             members = None
 
         return CtypesStruct(
-            tag, specifier.is_packed, variety, members, src=(specifier.filename, specifier.lineno)
+            tag, specifier.attrib, variety, members, src=(specifier.filename, specifier.lineno)
         )
 
     def get_ctypes_type(self, typ, declarator, check_qualifiers=False):

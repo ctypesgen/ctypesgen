@@ -495,6 +495,7 @@ typedef struct {
     def test_struct_json(self):
         json_ans = [
             {
+                "attrib": {},
                 "fields": [
                     {
                         "ctype": {
@@ -571,6 +572,7 @@ typedef struct {
                 "type": "struct",
             },
             {
+                "attrib": {"packed": True},
                 "fields": [
                     {
                         "ctype": {
@@ -647,6 +649,7 @@ typedef struct {
                 "type": "struct",
             },
             {
+                "attrib": {},
                 "fields": [
                     {
                         "ctype": {
@@ -798,7 +801,7 @@ typedef struct {
                         ],
                     ],
                     "opaque": False,
-                    "packed": False,
+                    "attrib": {},
                     "src": ["/some-path/temp.h", 21],
                     "tag": "anon_4",
                     "variety": "struct",
@@ -807,6 +810,7 @@ typedef struct {
                 "type": "typedef",
             },
             {
+                "attrib": {"packed": True},
                 "fields": [
                     {
                         "ctype": {
@@ -958,7 +962,7 @@ typedef struct {
                         ],
                     ],
                     "opaque": False,
-                    "packed": True,
+                    "attrib": {"packed": True},
                     "src": ["/some-path/temp.h", 30],
                     "tag": "anon_5",
                     "variety": "struct",
@@ -978,6 +982,7 @@ typedef struct {
                 "type": "typedef",
             },
             {
+                "attrib": {},
                 "fields": [
                     {
                         "ctype": {
@@ -1011,7 +1016,7 @@ typedef struct {
                         ]
                     ],
                     "opaque": False,
-                    "packed": False,
+                    "attrib": {},
                     "src": ["/some-path/temp.h", 41],
                     "tag": "anon_6",
                     "variety": "struct",
@@ -1095,7 +1100,7 @@ typedef struct {
                         ],
                     ],
                     "opaque": False,
-                    "packed": False,
+                    "attrib": {},
                     "src": ["/some-path/temp.h", 3],
                     "tag": "foo",
                     "variety": "struct",
@@ -1179,7 +1184,7 @@ typedef struct {
                         ],
                     ],
                     "opaque": False,
-                    "packed": True,
+                    "attrib": {"packed": True},
                     "src": ["/some-path/temp.h", 12],
                     "tag": "packed_foo",
                     "variety": "struct",
@@ -1189,7 +1194,7 @@ typedef struct {
             },
         ]
 
-        compare_json(self, self.json, json_ans)
+        compare_json(self, self.json, json_ans, True)
 
     def test_fields(self):
         """Test whether fields are built correctly.

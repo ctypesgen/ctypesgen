@@ -120,9 +120,9 @@ class TypeSpecifier(str):
 
 
 class StructTypeSpecifier(object):
-    def __init__(self, is_union, is_packed, tag, declarations):
+    def __init__(self, is_union, attrib, tag, declarations):
         self.is_union = is_union
-        self.is_packed = is_packed
+        self.attrib = attrib
         self.tag = tag
         self.declarations = declarations
 
@@ -131,8 +131,15 @@ class StructTypeSpecifier(object):
             s = "union"
         else:
             s = "struct"
-        if self.is_packed:
-            s += " __attribute__((packed))"
+        if self.attrib:
+            attrs = list()
+            for attr, val in self.attrib.items():
+                if val and type(val) == str:
+                    attrs.append("{}({})".format(attr, val))
+                elif val:
+                    attrs.append(attr)
+
+            s += " __attribute__(({}))".format(",".join(attrs))
         if self.tag:
             s += " %s" % self.tag
         if self.declarations:
@@ -169,6 +176,11 @@ class Enumerator(object):
 
 class TypeQualifier(str):
     pass
+
+
+class Attrib(dict):
+    def __repr__(self):
+        return "Attrib({})".format(dict(self))
 
 
 def apply_specifiers(specifiers, declaration):
