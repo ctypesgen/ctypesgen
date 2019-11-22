@@ -8,7 +8,7 @@ Do not modify this file.
 
 __docformat__ = "restructuredtext"
 
-# Begin preamble for Python v(3, 6)
+# Begin preamble for Python v(3, 2)
 
 import ctypes, os, sys
 from ctypes import *
@@ -401,7 +401,7 @@ def ReturnString(obj, func=None, arguments=None):
 # Non-primitive return values wrapped with UNCHECKED won't be
 # typechecked, and will be converted to c_void_p.
 def UNCHECKED(type):
-    if hasattr(type, "_type_") and isinstance(type._type_, bytes) and type._type_ != "P":
+    if hasattr(type, "_type_") and isinstance(type._type_, str) and type._type_ != "P":
         return type
     else:
         return c_void_p
@@ -429,7 +429,6 @@ class _variadic_function(object):
             fixed_args.append(argtype.from_param(args[i]))
             i += 1
         return self.func(*fixed_args + list(args[i:]))
-
 
 # End preamble
 
@@ -486,32 +485,41 @@ def _environ_path(name):
 
 
 class LibraryLoader(object):
+    class Lookup(object):
+        def __init__(self, path):
+            self.access = dict(cdecl=ctypes.cdll.LoadLibrary(path))
+
+        def get(self, name, calling_convention="cdecl"):
+            if calling_convention not in self.access:
+                raise LookupError(
+                    "Unknown calling convention '{}' for function '{}'".format(
+                        calling_convention, name
+                    )
+                )
+            return getattr(self.access[calling_convention], name)
+
+        def has(self, name, calling_convention="cdecl"):
+            if calling_convention not in self.access:
+                return False
+            return hasattr(self.access[calling_convention], name)
+
+        def __getattr__(self, name):
+            return getattr(self.access["cdecl"], name)
+
     def __init__(self):
         self.other_dirs = []
 
-    def load_library(self, libname):
+    def __call__(self, libname):
         """Given the name of a library, load it."""
         paths = self.getpaths(libname)
 
         for path in paths:
-            if os.path.exists(path):
-                return self.load(path)
+            try:
+                return self.Lookup(path)
+            except:
+                pass
 
-        raise ImportError("%s not found." % libname)
-
-    def load(self, path):
-        """Given a path to a library, load it."""
-        try:
-            # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
-            # of the default RTLD_LOCAL.  Without this, you end up with
-            # libraries not being loadable, resulting in "Symbol not found"
-            # errors
-            if sys.platform == "darwin":
-                return ctypes.CDLL(path, ctypes.RTLD_GLOBAL)
-            else:
-                return ctypes.cdll.LoadLibrary(path)
-        except OSError as e:
-            raise ImportError(e)
+        raise ImportError("Could not load %s." % libname)
 
     def getpaths(self, libname):
         """Return a list of paths where the library might be found."""
@@ -543,6 +551,14 @@ class DarwinLibraryLoader(LibraryLoader):
         "%s.bundle",
         "%s",
     ]
+
+    class Lookup(LibraryLoader.Lookup):
+        def __init__(self, path):
+            # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
+            # of the default RTLD_LOCAL.  Without this, you end up with
+            # libraries not being loadable, resulting in "Symbol not found"
+            # errors
+            self.access = dict(cdecl=ctypes.CDLL(path, ctypes.RTLD_GLOBAL))
 
     def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
@@ -677,58 +693,28 @@ class PosixLibraryLoader(LibraryLoader):
 # Windows
 
 
-class _WindowsLibrary(object):
-    def __init__(self, path):
-        self.cdll = ctypes.cdll.LoadLibrary(path)
-        self.windll = ctypes.windll.LoadLibrary(path)
-
-    def __getattr__(self, name):
-        try:
-            return getattr(self.cdll, name)
-        except AttributeError:
-            try:
-                return getattr(self.windll, name)
-            except AttributeError:
-                raise
-
-
 class WindowsLibraryLoader(LibraryLoader):
     name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
 
-    def load_library(self, libname):
-        try:
-            result = LibraryLoader.load_library(self, libname)
-        except ImportError:
-            result = None
-            if os.path.sep not in libname:
-                for name in self.name_formats:
-                    try:
-                        result = getattr(ctypes.cdll, name % libname)
-                        if result:
-                            break
-                    except WindowsError:
-                        result = None
-            if result is None:
-                try:
-                    result = getattr(ctypes.cdll, libname)
-                except WindowsError:
-                    result = None
-            if result is None:
-                raise ImportError("%s not found." % libname)
-        return result
-
-    def load(self, path):
-        return _WindowsLibrary(path)
+    class Lookup(LibraryLoader.Lookup):
+        def __init__(self, path):
+            self.access = dict(
+                cdecl=ctypes.cdll.LoadLibrary(path), stdcall=ctypes.windll.LoadLibrary(path)
+            )
 
     def getplatformpaths(self, libname):
         if os.path.sep not in libname:
             for name in self.name_formats:
-                dll_in_current_dir = os.path.abspath(name % libname)
-                if os.path.exists(dll_in_current_dir):
-                    yield dll_in_current_dir
-                path = ctypes.util.find_library(name % libname)
+                lname = name % libname
+
+                yield os.path.abspath(lname)
+
+                path = ctypes.util.find_library(lname)
                 if path:
                     yield path
+
+                yield lname
+            yield libname
 
 
 # Platform switching
@@ -740,9 +726,10 @@ loaderclass = {
     "darwin": DarwinLibraryLoader,
     "cygwin": WindowsLibraryLoader,
     "win32": WindowsLibraryLoader,
+    "msys": WindowsLibraryLoader,
 }
 
-loader = loaderclass.get(sys.platform, PosixLibraryLoader)()
+load_library = loaderclass.get(sys.platform, PosixLibraryLoader)()
 
 
 def add_library_search_dirs(other_dirs):
@@ -751,14 +738,11 @@ def add_library_search_dirs(other_dirs):
     If library paths are relative, convert them to absolute with respect to this
     file's directory
     """
-    THIS_DIR = os.path.dirname(__file__)
     for F in other_dirs:
         if not os.path.isabs(F):
-            F = os.path.abspath(os.path.join(THIS_DIR, F))
-        loader.other_dirs.append(F)
+            F = os.path.abspath(F)
+        load_library.other_dirs.append(F)
 
-
-load_library = loader.load_library
 
 del loaderclass
 
@@ -774,10 +758,11 @@ _libs["demolib.so"] = load_library("demolib.so")
 
 # No modules
 
-# /home/olsonse/src/ctypesgen/demo/demolib.h: 6
-if hasattr(_libs["demolib.so"], "trivial_add"):
-    trivial_add = _libs["demolib.so"].trivial_add
+# /home/olsonse/src/ctypesgen/demo/demolib.h: 0
+if _libs["demolib.so"].has("trivial_add", "cdecl"):
+    trivial_add = _libs["demolib.so"].get("trivial_add", "cdecl")
     trivial_add.argtypes = [c_int, c_int]
     trivial_add.restype = c_int
 
 # No inserted files
+
