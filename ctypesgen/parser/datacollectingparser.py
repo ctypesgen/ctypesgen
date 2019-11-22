@@ -60,15 +60,16 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
 
     def parse(self):
         fd, fname = mkstemp(suffix=".h")
-        f = os.fdopen(fd, "w")
-        for header in self.options.other_headers:
-            f.write("#include <%s>\n" % header)
-        for header in self.headers:
-            f.write('#include "%s"\n' % os.path.abspath(header))
-        f.flush()
-        f.close()
-        super(DataCollectingParser, self).parse(fname, self.options.debug_level)
-        os.unlink(fname)
+        with os.fdopen(fd, "w") as f:
+            for header in self.options.other_headers:
+                f.write("#include <%s>\n" % header)
+            for header in self.headers:
+                f.write('#include "%s"\n' % os.path.abspath(header))
+            f.flush()
+        try:
+            super(DataCollectingParser, self).parse(fname, self.options.debug_level)
+        finally:
+            os.unlink(fname)
 
         for name, params, expr, (filename, lineno) in self.saved_macros:
             self.handle_macro(name, params, expr, filename, lineno)
