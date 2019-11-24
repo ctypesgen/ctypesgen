@@ -125,7 +125,7 @@ class CtypesType(object):
         self.errors = []
 
     def __repr__(self):
-        return '<Ctype "%s">' % self.py_string()
+        return '<Ctype (%s) "%s">' % (type(self).__name__, self.py_string())
 
     def error(self, message, cls=None):
         self.errors.append((message, cls))

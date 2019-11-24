@@ -59,7 +59,7 @@ class ExpressionNode(object):
             string = repr(self.py_string(True))
         except ValueError:
             string = "<error in expression node>"
-        return "<ExpressionNode: %s>" % string
+        return "<%s: %s>" % (type(self).__name__, string)
 
     def visit(self, visitor):
         for error, cls in self.errors:
@@ -271,35 +271,54 @@ class CallExpressionNode(ExpressionNode):
         return "(%s (%s))" % (function, ", ".join(arguments))
 
 
-# There seems not to be any reasonable way to translate C typecasts
-# into Python. Ctypesgen doesn't try, except for the special case of NULL.
 class TypeCastExpressionNode(ExpressionNode):
+    """
+    Type cast expressions as handled by ctypesgen.  There is a strong
+    possibility that this does not support all types of casts.
+    """
+
     def __init__(self, base, ctype):
         ExpressionNode.__init__(self)
         self.base = base
         self.ctype = ctype
-        self.isnull = (
-            isinstance(ctype, CtypesPointer)
-            and isinstance(base, ConstantExpressionNode)
-            and base.value == 0
-        )
 
     def visit(self, visitor):
-        # No need to visit ctype because it isn't actually used
         self.base.visit(visitor)
+        self.ctype.visit(visitor)
         ExpressionNode.visit(self, visitor)
 
     def evaluate(self, context):
-        if self.isnull:
-            return None
-        else:
-            return self.base.evaluate(context)
+        return self.base.evaluate(context)
 
     def py_string(self, can_be_ctype):
-        if self.isnull:
-            return "None"
+        if isinstance(self.ctype, CtypesPointer):
+            return "cast({}, {})".format(self.base.py_string(True), self.ctype.py_string())
+        elif isinstance(self.ctype, CtypesStruct):
+            raise TypeError(
+                "conversion to non-scalar type ({}) requested from {}".format(
+                    self.ctype, self.base.py_string(False)
+                )
+            )
         else:
-            return self.base.py_string(can_be_ctype)
+            # In reality, this conversion should only really work if the types
+            # are scalar types.  We won't work really hard to test if the types
+            # are  indeed scalar.
+            # To be backwards compatible, we always return literals for builtin types.
+            # We use a function to convert to integer for c_char types since
+            # c_char can take integer or byte types, but the others can *only*
+            # take non-char arguments.
+            # ord_if_char must be provided by preambles
+            if isinstance(self.ctype, CtypesSimple) and (self.ctype.name, self.ctype.signed) == (
+                "char",
+                True,
+            ):
+                ord_if_char = ""
+            else:
+                ord_if_char = "ord_if_char"
+
+            return "({to} ({ord_if_char}({frm}))).value".format(
+                to=self.ctype.py_string(), ord_if_char=ord_if_char, frm=self.base.py_string(False)
+            )
 
 
 class UnsupportedExpressionNode(ExpressionNode):

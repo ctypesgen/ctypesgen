@@ -393,3 +393,14 @@ class _variadic_function(object):
             fixed_args.append(argtype.from_param(args[i]))
             i += 1
         return self.func(*fixed_args + list(args[i:]))
+
+
+def ord_if_char(value):
+    """
+    Simple helper used for casts to simple builtin types:  if the argument is a
+    string type, it will be converted to it's ordinal value.
+
+    This function will raise an exception if the argument is string with more
+    than one characters.
+    """
+    return ord(value) if isinstance(value, str) else value
