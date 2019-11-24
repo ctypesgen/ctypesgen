@@ -69,7 +69,7 @@ def filter_by_regexes_exclude(data, opts):
     """filter_by_regexes_exclude() uses regular expressions specified by options
     dictionary to filter symbols."""
     if opts.exclude_symbols:
-        expr = re.compile('({})'.format('|'.join(opts.exclude_symbols)))
+        expr = re.compile("({})".format("|".join(opts.exclude_symbols)))
         for object in data.all:
             if expr.match(object.py_name()):
                 object.include_rule = "never"
@@ -79,7 +79,7 @@ def filter_by_regexes_include(data, opts):
     """filter_by_regexes_include() uses regular expressions specified by options
     dictionary to re-include symbols previously rejected by other operations."""
     if opts.include_symbols:
-        expr = re.compile('({})'.format('|'.join(opts.include_symbols)))
+        expr = re.compile("({})".format("|".join(opts.include_symbols)))
         for object in data.all:
             if object.include_rule != "never":
                 if expr.match(object.py_name()):
