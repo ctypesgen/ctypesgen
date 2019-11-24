@@ -187,16 +187,24 @@ def main(givenargs=None):
     op.add_option(
         "-i",
         "--include-symbols",
+        action="append",
         dest="include_symbols",
-        default=None,
-        help="regular expression for symbols to always include",
+        metavar="REGEXPR",
+        default=[],
+        help="Regular expression for symbols to always include.  Multiple "
+        "instances of this option will be combined into a single expression "
+        "doing something like '(expr1|expr2|expr3)'.",
     )
     op.add_option(
         "-x",
         "--exclude-symbols",
+        action="append",
         dest="exclude_symbols",
-        default=None,
-        help="regular expression for symbols to exclude",
+        metavar="REGEXPR",
+        default=[],
+        help="Regular expression for symbols to exclude.  Multiple instances "
+        "of this option will be combined into a single expression doing "
+        "something like '(expr1|expr2|expr3)'.",
     )
     op.add_option(
         "",
