@@ -198,6 +198,8 @@ def p_constant(p):
     if constant[0] == "'":
         # Character constant
         value = constant[1:-1]
+        if isinstance(value, str):
+            value = value.encode()
     else:
         # This is a value formatted the way that the preprocessor formats
         # numeric constants. It puts a prefix "l", "i", or "f" to indicate
