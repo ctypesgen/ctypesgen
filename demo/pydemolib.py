@@ -485,9 +485,15 @@ def _environ_path(name):
 
 
 class LibraryLoader(object):
+    # library names formatted specifically for platforms
+    name_formats = ["%s"]
+
     class Lookup(object):
+        mode = ctypes.DEFAULT_MODE
+
         def __init__(self, path):
-            self.access = dict(cdecl=ctypes.cdll.LoadLibrary(path))
+            super(LibraryLoader.Lookup, self).__init__()
+            self.access = dict(cdecl=ctypes.CDLL(path, self.mode))
 
         def get(self, name, calling_convention="cdecl"):
             if calling_convention not in self.access:
@@ -526,13 +532,31 @@ class LibraryLoader(object):
         if os.path.isabs(libname):
             yield libname
         else:
-            # FIXME / TODO return '.' and os.path.dirname(__file__)
+            # search through a prioritized series of locations for the library
+
+            # we first search any specific directories identified by user
+            for dir_i in self.other_dirs:
+                for fmt in self.name_formats:
+                    # dir_i should be absolute already
+                    yield os.path.join(dir_i, fmt % libname)
+
+            # then we search the directory where the generated python interface is stored
+            for fmt in self.name_formats:
+                yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
+
+            # now, use the ctypes tools to try to find the library
+            for fmt in self.name_formats:
+                path = ctypes.util.find_library(fmt % libname)
+                if path:
+                    yield path
+
+            # then we search all paths identified as platform-specific lib paths
             for path in self.getplatformpaths(libname):
                 yield path
 
-            path = ctypes.util.find_library(libname)
-            if path:
-                yield path
+            # Finally, we'll try the users current working directory
+            for fmt in self.name_formats:
+                yield os.path.abspath(os.path.join(os.path.curdir, fmt % libname))
 
     def getplatformpaths(self, libname):
         return []
@@ -553,12 +577,11 @@ class DarwinLibraryLoader(LibraryLoader):
     ]
 
     class Lookup(LibraryLoader.Lookup):
-        def __init__(self, path):
-            # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
-            # of the default RTLD_LOCAL.  Without this, you end up with
-            # libraries not being loadable, resulting in "Symbol not found"
-            # errors
-            self.access = dict(cdecl=ctypes.CDLL(path, ctypes.RTLD_GLOBAL))
+        # Darwin requires dlopen to be called with mode RTLD_GLOBAL instead
+        # of the default RTLD_LOCAL.  Without this, you end up with
+        # libraries not being loadable, resulting in "Symbol not found"
+        # errors
+        mode = ctypes.RTLD_GLOBAL
 
     def getplatformpaths(self, libname):
         if os.path.pathsep in libname:
@@ -593,10 +616,6 @@ class DarwinLibraryLoader(LibraryLoader):
             dirs.extend(_environ_path("LD_LIBRARY_PATH"))
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
 
-        dirs.extend(self.other_dirs)
-        dirs.append(".")
-        dirs.append(os.path.dirname(__file__))
-
         if hasattr(sys, "frozen") and sys.frozen == "macosx_app":
             dirs.append(os.path.join(os.environ["RESOURCEPATH"], "..", "Frameworks"))
 
@@ -628,9 +647,6 @@ class PosixLibraryLoader(LibraryLoader):
         ):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
-        directories.extend(self.other_dirs)
-        directories.append(".")
-        directories.append(os.path.dirname(__file__))
 
         try:
             with open("/etc/ld.so.conf") as f:
@@ -685,36 +701,17 @@ class PosixLibraryLoader(LibraryLoader):
         if result:
             yield result
 
-        path = ctypes.util.find_library(libname)
-        if path:
-            yield os.path.join("/lib", path)
-
 
 # Windows
 
 
 class WindowsLibraryLoader(LibraryLoader):
-    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll"]
+    name_formats = ["%s.dll", "lib%s.dll", "%slib.dll", "%s"]
 
     class Lookup(LibraryLoader.Lookup):
         def __init__(self, path):
-            self.access = dict(
-                cdecl=ctypes.cdll.LoadLibrary(path), stdcall=ctypes.windll.LoadLibrary(path)
-            )
-
-    def getplatformpaths(self, libname):
-        if os.path.sep not in libname:
-            for name in self.name_formats:
-                lname = name % libname
-
-                yield os.path.abspath(lname)
-
-                path = ctypes.util.find_library(lname)
-                if path:
-                    yield path
-
-                yield lname
-            yield libname
+            super(WindowsLibraryLoader.Lookup, self).__init__(path)
+            self.access['stdcall'] = ctypes.windll.LoadLibrary(path)
 
 
 # Platform switching
