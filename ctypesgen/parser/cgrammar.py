@@ -674,16 +674,14 @@ def p_declaration_impl(p):
 
 def p_declaration_specifier_list(p):
     """declaration_specifier_list : gcc_attributes declaration_specifier gcc_attributes
-       | declaration_specifier_list gcc_attributes declaration_specifier gcc_attributes
+                      | declaration_specifier_list declaration_specifier gcc_attributes
     """
-    if len(p) == 1:
-        p[0] = tuple()
-    elif len(p) == 4:
+    if type(p[1]) == cdeclarations.Attrib:
         p[0] = (p[1], p[2], p[3])
         p.slice[0].filename = p.slice[2].filename
         p.slice[0].lineno = p.slice[2].lineno
     else:
-        p[0] = p[1] + (p[2], p[3], p[4])
+        p[0] = p[1] + (p[2], p[3])
         p.slice[0].filename = p.slice[1].filename
         p.slice[0].lineno = p.slice[1].lineno
 
@@ -748,9 +746,9 @@ def p_type_specifier(p):
 
 
 def p_struct_or_union_specifier(p):
-    """struct_or_union_specifier : struct_or_union gcc_attributes IDENTIFIER '{' struct_declaration_list '}' gcc_attributes
-         | struct_or_union gcc_attributes TYPE_NAME '{' struct_declaration_list '}' gcc_attributes
-         | struct_or_union gcc_attributes '{' struct_declaration_list '}' gcc_attributes
+    """struct_or_union_specifier : struct_or_union gcc_attributes IDENTIFIER '{' struct_declaration_list '}'
+         | struct_or_union gcc_attributes TYPE_NAME '{' struct_declaration_list '}'
+         | struct_or_union gcc_attributes '{' struct_declaration_list '}'
          | struct_or_union gcc_attributes IDENTIFIER
          | struct_or_union gcc_attributes TYPE_NAME
     """
@@ -758,10 +756,6 @@ def p_struct_or_union_specifier(p):
     # The TYPE_NAME ones are dodgy, needed for Apple headers
     # CoreServices.framework/Frameworks/CarbonCore.framework/Headers/Files.h.
     # CoreServices.framework/Frameworks/OSServices.framework/Headers/Power.h
-    attrib = p[2]
-    if len(p) >= 7:
-        attrib.update(p[len(p) - 1])
-
     tag = None
     decl = None
 
@@ -772,7 +766,7 @@ def p_struct_or_union_specifier(p):
     else:
         tag, decl = p[3], p[5]
 
-    p[0] = cdeclarations.StructTypeSpecifier(p[1], attrib, tag, decl)
+    p[0] = cdeclarations.StructTypeSpecifier(p[1], p[2], tag, decl)
 
     p.slice[0].filename = p.slice[1].filename
     p.slice[0].lineno = p.slice[1].lineno
@@ -1058,13 +1052,17 @@ def p_parameter_list(p):
 def p_parameter_declaration(p):
     """parameter_declaration : declaration_specifier_list declarator          gcc_attributes
                              | declaration_specifier_list abstract_declarator gcc_attributes
-                             | declaration_specifier_list                     gcc_attributes
+                             | declaration_specifier_list
     """
     p[0] = cdeclarations.Parameter()
-    # add the attributes as a final specifier
-    cdeclarations.apply_specifiers(p[1] + (p[len(p) - 1],), p[0])
-    if len(p) > 3:
+    specs = p[1]
+
+    if len(p) == 4:
+        # add the attributes as a final specifier
+        specs += (p[3],)
         p[0].declarator = p[2]
+
+    cdeclarations.apply_specifiers(specs, p[0])
 
 
 def p_identifier_list(p):
