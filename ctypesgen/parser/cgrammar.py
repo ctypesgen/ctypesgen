@@ -860,16 +860,20 @@ def p_struct_declaration(p):
 
 
 def p_specifier_qualifier_list(p):
-    """specifier_qualifier_list : type_specifier specifier_qualifier_list
-                                | type_specifier
-                                | type_qualifier specifier_qualifier_list
-                                | type_qualifier
+    """specifier_qualifier_list : gcc_attributes specifier_qualifier gcc_attributes
+                      | specifier_qualifier_list specifier_qualifier gcc_attributes
     """
-    # Interesting.. why is this one right-recursion?
-    if len(p) == 3:
-        p[0] = (p[1],) + p[2]
+    if type(p[1]) == cdeclarations.Attrib:
+        p[0] = (p[1], p[2], p[3])
     else:
-        p[0] = (p[1],)
+        p[0] = p[1] + (p[2], p[3])
+
+
+def p_specifier_qualifier(p):
+    """specifier_qualifier : type_specifier
+                           | type_qualifier
+    """
+    p[0] = p[1]
 
 
 def p_struct_declarator_list(p):
@@ -883,9 +887,9 @@ def p_struct_declarator_list(p):
 
 
 def p_struct_declarator(p):
-    """struct_declarator : declarator
-                         | ':' constant_expression
-                         | declarator ':' constant_expression
+    """struct_declarator : declarator                         gcc_attributes
+                         | ':' constant_expression            gcc_attributes
+                         | declarator ':' constant_expression gcc_attributes
     """
     if p[1] == ":":
         p[0] = cdeclarations.Declarator()
@@ -893,8 +897,10 @@ def p_struct_declarator(p):
     else:
         p[0] = p[1]
         # Bitfield support
-        if len(p) == 4:
+        if p[2] == ":":
             p[0].bitfield = p[3]
+
+    p[0].attrib.update(p[len(p) - 1])
 
 
 def p_enum_specifier(p):
