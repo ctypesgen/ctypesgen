@@ -161,6 +161,8 @@ keywords = [
     # "cdecl",
 ]
 
+precedence = (("nonassoc", "IF"), ("nonassoc", "ELSE"))
+
 
 def p_translation_unit(p):
     """translation_unit :
@@ -1239,7 +1241,7 @@ def p_expression_statement_error(p):
 
 
 def p_selection_statement(p):
-    """selection_statement : IF '(' expression ')' statement
+    """selection_statement : IF '(' expression ')' statement %prec IF
                            | IF '(' expression ')' statement ELSE statement
                            | SWITCH '(' expression ')' statement
     """
