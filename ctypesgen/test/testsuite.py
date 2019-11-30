@@ -1405,6 +1405,8 @@ class PrototypeTest(unittest.TestCase):
         int bar(int);
         void foo(void);
         void foo2(void) __attribute__((stdcall));
+        void * __attribute__((stdcall)) foo3(void);
+        void * __attribute__((stdcall)) * foo4(void);
         """
         libraries = None
         self.json, output = ctypesgentest.test(header_str, output_language="json")
@@ -1486,6 +1488,45 @@ class PrototypeTest(unittest.TestCase):
                     "longs": 0,
                     "name": "void",
                     "signed": True,
+                },
+                "type": "function",
+                "variadic": False,
+            },
+            {
+                "args": [],
+                "attrib": {"stdcall": True},
+                "name": "foo3",
+                "return": {
+                    "Klass": "CtypesPointer",
+                    "destination": {"Klass": "CtypesSpecial", "errors": [], "name": "c_ubyte"},
+                    "errors": [],
+                    "qualifiers": [],
+                },
+                "type": "function",
+                "variadic": False,
+            },
+            {
+                "args": [],
+                "attrib": {"stdcall": True},
+                "name": "foo4",
+                "return": {
+                    "Klass": "CtypesPointer",
+                    "destination": {
+                        "Klass": "CtypesPointer",
+                        "destination": {
+                            # this return type seems like it really ought to be
+                            # the same as for foo3
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "void",
+                            "signed": True,
+                        },
+                        "errors": [],
+                        "qualifiers": [],
+                    },
+                    "errors": [],
+                    "qualifiers": [],
                 },
                 "type": "function",
                 "variadic": False,

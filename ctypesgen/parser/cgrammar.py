@@ -967,13 +967,14 @@ def p_declarator(p):
         while ptr.pointer:
             ptr = ptr.pointer
         ptr.pointer = p[2]
+        p[2].attrib.update(p[1].attrib)
     else:
         p[0] = p[1]
 
 
 def p_direct_declarator(p):
     """direct_declarator : IDENTIFIER
-                         | '(' declarator ')'
+                         | '(' gcc_attributes declarator ')'
                          | direct_declarator '[' constant_expression ']'
                          | direct_declarator '[' ']'
                          | direct_declarator '(' parameter_type_list ')'
@@ -994,7 +995,8 @@ def p_direct_declarator(p):
             else:
                 p[0].parameters = p[3]
     elif p[1] == "(":
-        p[0] = p[2]
+        p[0] = p[3]
+        p[3].attrib.update(p[2])
     else:
         p[0] = cdeclarations.Declarator()
         p[0].identifier = p[1]
@@ -1014,22 +1016,28 @@ def p_pointer(p):
     """
     if len(p) == 2:
         p[0] = cdeclarations.Pointer()
-    elif len(p) == 3:
-        if type(p[2]) == cdeclarations.Pointer:
-            p[0] = cdeclarations.Pointer()
-            p[0].pointer = p[2]
-        else:
-            p[0] = cdeclarations.Pointer()
-            p[0].qualifiers = p[2]
+    elif len(p) == 3 and isinstance(p[2], cdeclarations.Pointer):
+        p[0] = cdeclarations.Pointer()
+        p[0].pointer = p[2]
+        p[0].attrib.update(p[2].attrib)
     else:
         p[0] = cdeclarations.Pointer()
-        p[0].qualifiers = p[2]
-        p[0].pointer = p[3]
+        for tq in p[2]:
+            if isinstance(tq, cdeclarations.Attrib):
+                p[0].attrib.update(tq)
+            else:
+                p[0].qualifiers += (tq,)
+
+        if len(p) == 4:
+            p[0].pointer = p[3]
+            p[0].attrib.update(p[3].attrib)
 
 
 def p_type_qualifier_list(p):
     """type_qualifier_list : type_qualifier
+                           | gcc_attribute
                            | type_qualifier_list type_qualifier
+                           | type_qualifier_list gcc_attribute
     """
     if len(p) > 2:
         p[0] = p[1] + (p[2],)
@@ -1059,7 +1067,7 @@ def p_parameter_list(p):
 
 def p_parameter_declaration(p):
     """parameter_declaration : declaration_specifier_list declarator          gcc_attributes
-                             | declaration_specifier_list abstract_declarator gcc_attributes
+                             | declaration_specifier_list abstract_declarator
                              | declaration_specifier_list
     """
     p[0] = cdeclarations.Parameter()
@@ -1068,6 +1076,8 @@ def p_parameter_declaration(p):
     if len(p) == 4:
         # add the attributes as a final specifier
         specs += (p[3],)
+        p[0].declarator = p[2]
+    elif len(p) == 3:
         p[0].declarator = p[2]
 
     cdeclarations.apply_specifiers(specs, p[0])
@@ -1106,28 +1116,35 @@ def p_type_name(p):
 
 def p_abstract_declarator(p):
     """abstract_declarator : pointer
-                           | direct_abstract_declarator
-                           | pointer direct_abstract_declarator
+                           | direct_abstract_declarator         gcc_attributes
+                           | pointer direct_abstract_declarator gcc_attributes
     """
     if len(p) == 2:
         p[0] = p[1]
-        if type(p[0]) == cdeclarations.Pointer:
-            ptr = p[0]
-            while ptr.pointer:
-                ptr = ptr.pointer
-            # Only if doesn't already terminate in a declarator
-            if type(ptr) == cdeclarations.Pointer:
-                ptr.pointer = cdeclarations.Declarator()
+        ptr = p[0]
+        while ptr.pointer:
+            ptr = ptr.pointer
+        # Only if doesn't already terminate in a declarator
+        if type(ptr) == cdeclarations.Pointer:
+            ptr.pointer = cdeclarations.Declarator()
+            ptr.pointer.attrib.update(p[1].attrib)
+        else:
+            ptr.attrib.update(p[1].attrib)
+    elif len(p) == 3:
+        p[0] = p[1]
+        p[1].attrib.update(p[2])
     else:
         p[0] = p[1]
         ptr = p[0]
         while ptr.pointer:
             ptr = ptr.pointer
         ptr.pointer = p[2]
+        p[2].attrib.update(p[1].attrib)
+        p[2].attrib.update(p[3])
 
 
 def p_direct_abstract_declarator(p):
-    """direct_abstract_declarator : '(' abstract_declarator ')'
+    """direct_abstract_declarator : '(' gcc_attributes abstract_declarator ')'
                       | '[' ']'
                       | '[' constant_expression ']'
                       | direct_abstract_declarator '[' ']'
@@ -1137,8 +1154,9 @@ def p_direct_abstract_declarator(p):
                       | direct_abstract_declarator '(' ')'
                       | direct_abstract_declarator '(' parameter_type_list ')'
     """
-    if p[1] == "(" and isinstance(p[2], cdeclarations.Declarator):
-        p[0] = p[2]
+    if p[1] == "(" and isinstance(p[3], cdeclarations.Declarator):
+        p[0] = p[3]
+        p[3].attrib.update(p[2])
     else:
         if isinstance(p[1], cdeclarations.Declarator):
             p[0] = p[1]
