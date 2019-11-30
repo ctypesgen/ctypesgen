@@ -2276,7 +2276,7 @@ def yacc(
             if not (isinstance(prec, list) or isinstance(prec, tuple)):
                 raise YaccError("precedence must be a list or tuple.")
             add_precedence(prec)
-            Signature.update(repr(prec))
+            Signature.update(repr(prec).encode())
 
         for n in tokens:
             if n not in Precedence:
