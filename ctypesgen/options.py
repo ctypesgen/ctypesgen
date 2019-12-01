@@ -17,6 +17,8 @@ default_values = {
     "compile_libdirs": [],
     "runtime_libdirs": [],
     "cpp": "gcc -E",
+    "cpp_defines": [],
+    "cpp_undefines": [],
     "save_preprocessed_headers": None,
     "all_headers": False,
     "builtin_symbols": False,

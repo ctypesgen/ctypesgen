@@ -142,6 +142,24 @@ def main(givenargs=None):
         "necessary options (default: gcc -E)",
     )
     op.add_option(
+        "-D",
+        "--define",
+        action="append",
+        dest="cpp_defines",
+        metavar="MACRO",
+        default=[],
+        help="Add a definition to the preprocessor via commandline",
+    )
+    op.add_option(
+        "-U",
+        "--undefine",
+        action="append",
+        dest="cpp_undefines",
+        metavar="NAME",
+        default=[],
+        help="Instruct the preprocessor to undefine the specified macro via commandline",
+    )
+    op.add_option(
         "",
         "--save-preprocessed-headers",
         metavar="FILENAME",
