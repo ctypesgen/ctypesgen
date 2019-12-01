@@ -152,7 +152,7 @@ class PreprocessorParser(object):
             cmd += " -U __BLOCKS__"
 
         for path in self.options.include_search_paths:
-            cmd += " -I%s" % path
+            cmd += ' -I"%s"' % path
         for define in self.defines + self.options.cpp_defines:
             cmd += ' "-D%s"' % define
         cmd += ' "' + filename + '"'
