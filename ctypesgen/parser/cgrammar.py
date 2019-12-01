@@ -314,6 +314,8 @@ def p_postfix_expression(p):
 def p_argument_expression_list(p):
     """argument_expression_list : assignment_expression
                         | argument_expression_list ',' assignment_expression
+                        | type_name
+                        | argument_expression_list ',' type_name
     """
     if len(p) == 4:
         p[1].append(p[3])
