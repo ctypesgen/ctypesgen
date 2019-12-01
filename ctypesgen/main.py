@@ -21,7 +21,7 @@ def find_names_in_modules(modules):
         except:
             pass
         else:
-            names.union(dir(module))
+            names.update(dir(mod))
     return names
 
 
