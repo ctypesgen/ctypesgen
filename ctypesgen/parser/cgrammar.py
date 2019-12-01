@@ -714,6 +714,8 @@ def p_init_declarator(p):
     """
     p[0] = p[1]
     p[0].attrib.update(p[2])
+    p.slice[0].filename = p.slice[1].filename
+    p.slice[0].lineno = p.slice[1].lineno
     if len(p) > 3:
         p[0].initializer = p[4]
 
