@@ -289,6 +289,17 @@ def main(givenargs=None):
         "(py) attempts to select `py32', `py27', or `py25' based on the "
         "version of Python that runs this script.",
     )
+    op.add_option(
+        "-P",
+        "--strip-prefix",
+        dest="strip_prefixes",
+        default=[],
+        action="append",
+        metavar="REGEXPR",
+        help="Regular expression to match prefix to strip from all symbols.  "
+        "Multiple instances of this option will be combined into a single "
+        "expression doing something like '(expr1|expr2|expr3)'.",
+    )
 
     # Error options
     op.add_option(

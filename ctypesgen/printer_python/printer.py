@@ -78,6 +78,7 @@ class WrapperPrinter:
                 self.file.write("\n")
 
         self.print_group(self.options.inserted_files, "inserted files", self.insert_file)
+        self.strip_prefixes()
 
     def __del__(self):
         self.file.close()
@@ -395,6 +396,32 @@ class WrapperPrinter:
             "    return {ME}\n".format(
                 MN=macro.name, MP=", ".join(macro.params), ME=macro.expr.py_string(True)
             )
+        )
+
+    def strip_prefixes(self):
+        if not self.options.strip_prefixes:
+            self.file.write("# No prefix-stripping\n\n")
+            return
+
+        self.file.write(
+            "# Begin prefix-stripping\n"
+            "\n"
+            "# Strip prefixes from all symbols following regular expression:\n"
+            "# {expr}\n"
+            "\n"
+            "import re as __re_module\n"
+            "\n"
+            "__strip_expr = __re_module.compile('{expr}')\n"
+            "for __k, __v in globals().copy().items():\n"
+            "    __m = __strip_expr.match(__k)\n"
+            "    if __m:\n"
+            "        globals()[__k[__m.end():]] = __v\n"
+            "        # remove symbol with prefix(?)\n"
+            "        # globals().pop(__k)\n"
+            "del __re_module, __k, __v, __m, __strip_expr\n"
+            "\n"
+            "# End prefix-stripping\n"
+            "\n".format(expr="({})".format("|".join(self.options.strip_prefixes)))
         )
 
     def insert_file(self, filename):
