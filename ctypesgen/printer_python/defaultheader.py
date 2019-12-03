@@ -1,4 +1,4 @@
-"""Wrapper for %(name)s
+r"""Wrapper for %(name)s
 
 Generated with:
 %(argv)s
