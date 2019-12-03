@@ -1,4 +1,4 @@
-"""Wrapper for demolib.h
+r"""Wrapper for demolib.h
 
 Generated with:
 ../run.py -o pydemolib.py -l demolib.so demolib.h
@@ -430,6 +430,17 @@ class _variadic_function(object):
             i += 1
         return self.func(*fixed_args + list(args[i:]))
 
+
+def ord_if_char(value):
+    """
+    Simple helper used for casts to simple builtin types:  if the argument is a
+    string type, it will be converted to it's ordinal value.
+
+    This function will raise an exception if the argument is string with more
+    than one characters.
+    """
+    return ord(value) if (isinstance(value, bytes) or isinstance(value, str)) else value
+
 # End preamble
 
 _libs = {}
@@ -711,7 +722,7 @@ class WindowsLibraryLoader(LibraryLoader):
     class Lookup(LibraryLoader.Lookup):
         def __init__(self, path):
             super(WindowsLibraryLoader.Lookup, self).__init__(path)
-            self.access['stdcall'] = ctypes.windll.LoadLibrary(path)
+            self.access["stdcall"] = ctypes.windll.LoadLibrary(path)
 
 
 # Platform switching
@@ -755,11 +766,13 @@ _libs["demolib.so"] = load_library("demolib.so")
 
 # No modules
 
-# /home/olsonse/src/ctypesgen/demo/demolib.h: 0
+# /home/olsonse/src/ctypesgen/demo/demolib.h: 6
 if _libs["demolib.so"].has("trivial_add", "cdecl"):
     trivial_add = _libs["demolib.so"].get("trivial_add", "cdecl")
     trivial_add.argtypes = [c_int, c_int]
     trivial_add.restype = c_int
 
 # No inserted files
+
+# No prefix-stripping
 
