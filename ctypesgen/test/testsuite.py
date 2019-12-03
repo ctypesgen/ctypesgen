@@ -1407,6 +1407,7 @@ class PrototypeTest(unittest.TestCase):
         void foo2(void) __attribute__((stdcall));
         void * __attribute__((stdcall)) foo3(void);
         void * __attribute__((stdcall)) * foo4(void);
+        void foo5(void) __attribute__((__stdcall__));
         """
         libraries = None
         self.json, output = ctypesgentest.test(header_str, output_language="json")
@@ -1527,6 +1528,20 @@ class PrototypeTest(unittest.TestCase):
                     },
                     "errors": [],
                     "qualifiers": [],
+                },
+                "type": "function",
+                "variadic": False,
+            },
+            {
+                "args": [],
+                "attrib": {"stdcall": True},
+                "name": "foo5",
+                "return": {
+                    "Klass": "CtypesSimple",
+                    "errors": [],
+                    "longs": 0,
+                    "name": "void",
+                    "signed": True,
                 },
                 "type": "function",
                 "variadic": False,

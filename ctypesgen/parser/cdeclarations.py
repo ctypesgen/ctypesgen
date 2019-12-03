@@ -188,8 +188,31 @@ class TypeQualifier(str):
 
 
 class Attrib(dict):
+    def __init__(self, *a, **kw):
+        super(Attrib, self).__init__(*a, **kw)
+        self._unalias()
+
     def __repr__(self):
         return "Attrib({})".format(dict(self))
+
+    def update(self, *a, **kw):
+        super(Attrib, self).update(*a, **kw)
+        self._unalias()
+
+    def _unalias(self):
+        """
+        Check for any attribute aliases and remove leading/trailing '__'
+
+        According to https://gcc.gnu.org/onlinedocs/gcc/Attribute-Syntax.html,
+        an attribute can also be preceeded/followed by a double underscore
+        ('__').
+        """
+
+        self.pop(None, None)  # remove dummy empty attribute
+
+        fixes = [attr for attr in self if attr.startswith("__") and attr.endswith("__")]
+        for attr in fixes:
+            self[attr[2 : (len(attr) - 2)]] = self.pop(attr)
 
 
 def apply_specifiers(specifiers, declaration):

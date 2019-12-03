@@ -798,8 +798,6 @@ def p_gcc_attributes(p):
         p[0] = p[1]
         p[0].update(p[2])
 
-    p[0].pop(None, None)  # remove dummy empty attribute
-
 
 def p_gcc_attribute(p):
     """gcc_attribute : __ATTRIBUTE__ '(' '(' gcc_attrib_list ')' ')'
