@@ -4,6 +4,7 @@ import os, sys, time, glob, re
 from ..descriptions import *
 from ..ctypedescs import *
 from ..messages import *
+from .. import expressions
 
 from .. import libraryloader  # So we can get the path to it
 from . import test  # So we can find the path to local files in the printer package
@@ -199,7 +200,13 @@ class WrapperPrinter:
 
         # is this supposed to be packed?
         if struct.attrib.get("packed", False):
-            self.file.write("{}_{}._pack_ = 1\n".format(struct.variety, struct.tag))
+            aligned = struct.attrib.get("aligned", [1])
+            assert len(aligned) == 1, "cgrammar gave more than one arg for aligned attribute"
+            aligned = aligned[0]
+            if isinstance(aligned, expressions.ExpressionNode):
+                # TODO: for non-constant expression nodes, this will fail:
+                aligned = aligned.evaluate(None)
+            self.file.write("{}_{}._pack_ = {}\n".format(struct.variety, struct.tag, aligned))
 
         # handle unnamed fields.
         unnamed_fields = []
