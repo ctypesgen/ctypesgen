@@ -191,6 +191,51 @@ class DarwinLibraryLoader(LibraryLoader):
 class PosixLibraryLoader(LibraryLoader):
     _ld_so_cache = None
 
+    _include = re.compile(r"^\s*include\s+(?P<pattern>.*)")
+
+    class _Directories(dict):
+        def __init__(self):
+            self.order = 0
+
+        def add(self, directory):
+            if len(directory) > 1:
+                directory = directory.rstrip(os.path.sep)
+            # only adds and updates order if exists and not already in set
+            if not os.path.exists(directory):
+                return
+            o = self.setdefault(directory, self.order)
+            if o == self.order:
+                self.order += 1
+
+        def extend(self, directories):
+            for d in directories:
+                self.add(d)
+
+        def ordered(self):
+            return (i[0] for i in sorted(self.items(), key=lambda D: D[1]))
+
+    def _get_ld_so_conf_dirs(self, conf, dirs):
+        """
+        Recursive funtion to help parse all ld.so.conf files, including proper
+        handling of the `include` directive.
+        """
+
+        try:
+            with open(conf) as f:
+                for D in f:
+                    D = D.strip()
+                    if not D:
+                        continue
+
+                    m = self._include.match(D)
+                    if not m:
+                        dirs.add(D)
+                    else:
+                        for D2 in glob.glob(m.group("pattern")):
+                            self._get_ld_so_conf_dirs(D2, dirs)
+        except IOError:
+            pass
+
     def _create_ld_so_cache(self):
         # Recreate search path followed by ld.so.  This is going to be
         # slow to build, and incorrect (ld.so uses ld.so.cache, which may
@@ -199,7 +244,7 @@ class PosixLibraryLoader(LibraryLoader):
         #
         # We assume the DT_RPATH and DT_RUNPATH binary sections are omitted.
 
-        directories = []
+        directories = self._Directories()
         for name in (
             "LD_LIBRARY_PATH",
             "SHLIB_PATH",  # HPUX
@@ -209,17 +254,21 @@ class PosixLibraryLoader(LibraryLoader):
             if name in os.environ:
                 directories.extend(os.environ[name].split(os.pathsep))
 
-        try:
-            with open("/etc/ld.so.conf") as f:
-                directories.extend([dir.strip() for dir in f])
-        except IOError:
-            pass
+        self._get_ld_so_conf_dirs("/etc/ld.so.conf", directories)
 
-        unix_lib_dirs_list = ["/lib", "/usr/lib", "/lib64", "/usr/lib64"]
+        bitage = platform.architecture()[0]
+
+        unix_lib_dirs_list = []
+        if bitage.startswith("64"):
+            # prefer 64 bit if that is our arch
+            unix_lib_dirs_list += ["/lib64", "/usr/lib64"]
+
+        # must include standard libs, since those paths are also used by 64 bit
+        # installs
+        unix_lib_dirs_list += ["/lib", "/usr/lib"]
         if sys.platform.startswith("linux"):
             # Try and support multiarch work in Ubuntu
             # https://wiki.ubuntu.com/MultiarchSpec
-            bitage = platform.architecture()[0]
             if bitage.startswith("32"):
                 # Assume Intel/AMD x86 compat
                 unix_lib_dirs_list += ["/lib/i386-linux-gnu", "/usr/lib/i386-linux-gnu"]
@@ -234,21 +283,21 @@ class PosixLibraryLoader(LibraryLoader):
         cache = {}
         lib_re = re.compile(r"lib(.*)\.s[ol]")
         ext_re = re.compile(r"\.s[ol]$")
-        for dir in directories:
+        for dir in directories.ordered():
             try:
                 for path in glob.glob("%s/*.s[ol]*" % dir):
                     file = os.path.basename(path)
 
                     # Index by filename
-                    if file not in cache:
-                        cache[file] = path
+                    cache_i = cache.setdefault(file, set())
+                    cache_i.add(path)
 
                     # Index by library name
                     match = lib_re.match(file)
                     if match:
                         library = match.group(1)
-                        if library not in cache:
-                            cache[library] = path
+                        cache_i = cache.setdefault(library, set())
+                        cache_i.add(path)
             except OSError:
                 pass
 
@@ -258,9 +307,12 @@ class PosixLibraryLoader(LibraryLoader):
         if self._ld_so_cache is None:
             self._create_ld_so_cache()
 
-        result = self._ld_so_cache.get(libname)
-        if result:
-            yield result
+        result = self._ld_so_cache.get(libname, set())
+        for i in result:
+            # we iterate through all found paths for library, since we may have
+            # actually found multiple architectures or other library types that
+            # may not load
+            yield i
 
 
 # Windows
