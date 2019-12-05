@@ -46,6 +46,9 @@ tokens = (
     "PP_STRINGIFY",
     "PP_IDENTIFIER_PASTE",
     "PP_END_DEFINE",
+    "PRAGMA",
+    "PRAGMA_PACK",
+    "PRAGMA_END",
     "IDENTIFIER",
     "CONSTANT",
     "CHARACTER_CONSTANT",
@@ -167,7 +170,7 @@ precedence = (("nonassoc", "IF"), ("nonassoc", "ELSE"))
 def p_translation_unit(p):
     """translation_unit :
                         | translation_unit external_declaration
-                        | translation_unit define
+                        | translation_unit directive
     """
     # Starting production.
     # Allow empty production so that files with no declarations are still
@@ -1300,6 +1303,12 @@ def p_function_definition(p):
     # No impl of function defs
 
 
+def p_directive(p):
+    """directive : define
+                 | pragma
+    """
+
+
 def p_define(p):
     """define : PP_DEFINE PP_DEFINE_NAME PP_END_DEFINE
               | PP_DEFINE PP_DEFINE_NAME type_name PP_END_DEFINE
@@ -1388,6 +1397,61 @@ def p_error(t):
     # Don't alter lexer: default behaviour is to pass error production
     # up until it hits the catch-all at declaration, at which point
     # parsing continues (synchronisation).
+
+
+def p_pragma(p):
+    """pragma : pragma_pack
+    """
+
+
+def p_pragma_pack(p):
+    """pragma_pack : PRAGMA PRAGMA_PACK '(' ')' PRAGMA_END
+                   | PRAGMA PRAGMA_PACK '(' constant ')' PRAGMA_END
+                   | PRAGMA PRAGMA_PACK '(' pragma_pack_stack_args ')' PRAGMA_END
+    """
+
+    err = None
+    if len(p) == 6:
+        cdeclarations.pragma_pack.set_default()
+    elif isinstance(p[4], tuple):
+        op, id, n = p[4]
+        if op == "push":
+            err = cdeclarations.pragma_pack.push(id, n)
+        elif op == "pop":
+            err = cdeclarations.pragma_pack.pop(id)
+        else:
+            err = "Syntax error for #pragma pack at {}:{}".format(
+                p.slice[1].filename, p.slice[1].lineno
+            )
+    else:
+        cdeclarations.pragma_pack.current = p[4]
+
+    if err:
+        p.lexer.cparser.handle_error(err, p.slice[1].filename, p.slice[1].lineno)
+
+
+def p_pragma_pack_stack_args(p):
+    """pragma_pack_stack_args : IDENTIFIER
+                              | IDENTIFIER ',' IDENTIFIER
+                              | IDENTIFIER ',' IDENTIFIER ',' constant
+                              | IDENTIFIER ',' constant ',' IDENTIFIER
+                              | IDENTIFIER ',' constant
+    """
+    op, id, n = p[1], None, None
+
+    if len(p) > 2:
+        if isinstance(p[3], expressions.ConstantExpressionNode):
+            n = p[3].value
+
+            if len(p) > 4:
+                id = p[5]
+        else:
+            id = p[3]
+
+            if len(p) > 4:
+                n = p[5].value
+
+    p[0] = (op, id, n)
 
 
 def main():

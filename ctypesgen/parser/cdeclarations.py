@@ -187,9 +187,67 @@ class TypeQualifier(str):
         return "TypeQualifier({})".format(str(self))
 
 
+class PragmaPack(object):
+    DEFAULT = None
+
+    def __init__(self):
+        self.current = self.DEFAULT
+        self.stack = list()
+
+    def set_default(self):
+        self.current = self.DEFAULT
+
+    def push(self, id=None, value=None):
+        item = (id, self.current)
+        self.stack.append(item)
+
+        if value is not None:
+            self.current = value
+
+    def pop(self, id=None):
+        if not self.stack:
+            if id:
+                return (
+                    "#pragma pack(pop, {id}) encountered without matching "
+                    "#pragma pack(push, {id})".format(id=id),
+                )
+            else:
+                return "#pragma pack(pop) encountered without matching #pragma pack(push)"
+
+        item = None
+        err = None
+
+        if id is not None:
+            i = len(self.stack) - 1
+            while i >= 0 and self.stack[i][0] != id:
+                i -= 1
+
+            if i >= 0:
+                item = self.stack[i]
+                self.stack = self.stack[:i]
+            else:
+                err = (
+                    "#pragma pack(pop, {id}) encountered without matching "
+                    "#pragma pack(push, {id}); popped last".format(id=id)
+                )
+
+        if item is None:
+            item = self.stack.pop()
+
+        self.current = item[1]
+        return err
+
+
+pragma_pack = PragmaPack()
+
+
 class Attrib(dict):
     def __init__(self, *a, **kw):
-        super(Attrib, self).__init__(*a, **kw)
+        if pragma_pack.current:
+            super(Attrib, self).__init__(packed=True, aligned=[pragma_pack.current])
+            super(Attrib, self).update(*a, **kw)
+        else:
+            super(Attrib, self).__init__(*a, **kw)
         self._unalias()
 
     def __repr__(self):

@@ -53,9 +53,12 @@ tokens = (
     "PP_STRINGIFY",
     "PP_IDENTIFIER_PASTE",
     "PP_END_DEFINE",
+    "PRAGMA",
+    "PRAGMA_PACK",
+    "PRAGMA_END",
 )
 
-states = [("DEFINE", "exclusive")]
+states = [("DEFINE", "exclusive"), ("PRAGMA", "exclusive")]
 
 subs = {
     "D": "[0-9]",
@@ -315,6 +318,40 @@ def t_INITIAL_pp_define(t):
     t.lexer.begin("DEFINE")
     t.lexer.next_is_define_name = True
     t.lexer.macro_params = set()
+    return t
+
+
+@TOKEN(r"\#pragma")
+def t_INITIAL_pragma(t):
+    t.type = "PRAGMA"
+    t.lexer.begin("PRAGMA")
+    return t
+
+
+@TOKEN(r"pack")
+def t_PRAGMA_pack(t):
+    t.type = "PRAGMA_PACK"
+    return t
+
+
+@TOKEN(r"\n")
+def t_PRAGMA_newline(t):
+    t.type = "PRAGMA_END"
+    t.lexer.begin("INITIAL")
+    t.lexer.lineno += 1
+    return t
+
+
+@TOKEN(IDENTIFIER)
+def t_PRAGMA_identifier(t):
+    t.type = "IDENTIFIER"
+    return t
+
+
+def t_PRAGMA_error(t):
+    t.type = "OTHER"
+    t.value = t.value[0:30]
+    t.lexer.lexpos += 1  # Skip it if it's an error in a #pragma
     return t
 
 

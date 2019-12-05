@@ -185,6 +185,10 @@ class PreprocessorParser(object):
                 source_lines.append("\n")
                 define_lines.append(line)
 
+            elif line.startswith("#pragma"):
+                source_lines.append(line)
+                define_lines.append("\n")
+
             elif line.startswith("#"):
                 # It's a directive, but not a #define. Remove it
                 source_lines.append("\n")
