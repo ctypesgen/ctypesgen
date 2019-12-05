@@ -50,12 +50,21 @@ def cleanup_json_src_paths(json):
 
 
 def compare_json(test_instance, json, json_ans, verbose=False):
+    print_excess = False
     try:
         test_instance.assertEqual(len(json), len(json_ans))
     except:
         if verbose:
-            print("JSONs do not have same length")
-        raise
+            print(
+                "JSONs do not have same length: ",
+                len(json),
+                "generated vs",
+                len(json_ans),
+                "stored",
+            )
+            print_excess = True
+        else:
+            raise
 
     # first fix paths that exist inside JSON to avoid user-specific paths:
     for i, ith_json_ans in zip(json, json_ans):
@@ -66,6 +75,27 @@ def compare_json(test_instance, json, json_ans, verbose=False):
                 print("\nFailed JSON for: ", i["name"])
                 print("GENERATED:\n", i, "\nANS:\n", ith_json_ans)
             raise
+
+    if print_excess:
+        if len(json) > len(json_ans):
+            j, jlen, jlabel = json, len(json_ans), "generated"
+        else:
+            j, jlen, jlabel = json_ans, len(json), "stored"
+        import pprint
+
+        print("Excess JSON content from", jlabel, "content:")
+        pprint.pprint(j[jlen:])
+
+
+def compute_packed(modulo, fields):
+    packs = [
+        (
+            modulo * int(ctypes.sizeof(f) / modulo)
+            + modulo * (1 if (ctypes.sizeof(f) % modulo) else 0)
+        )
+        for f in fields
+    ]
+    return sum(packs)
 
 
 class StdlibTest(unittest.TestCase):
@@ -477,6 +507,42 @@ typedef struct __attribute__((packed))
         int   : 17;
 } packed_foo_t;
 
+#pragma pack(push, 4)
+typedef struct
+{
+        int a;
+        char b;
+        int c;
+        int d : 15;
+        int   : 17;
+} pragma_packed_foo_t;
+#pragma pack(pop)
+
+#pragma pack(push, thing1, 2)
+#pragma pack(push, thing2, 4)
+#pragma pack(pop)
+#pragma pack(push, thing3, 8)
+#pragma pack(push, thing4, 16)
+#pragma pack(pop, thing3)
+struct  pragma_packed_foo2
+{
+        int a;
+        char b;
+        int c;
+        int d : 15;
+        int   : 17;
+};
+#pragma pack(pop, thing1)
+
+struct  foo3
+{
+        int a;
+        char b;
+        int c;
+        int d : 15;
+        int   : 17;
+};
+
 typedef int Int;
 
 typedef struct {
@@ -722,7 +788,7 @@ typedef struct {
                         "name": None,
                     },
                 ],
-                "name": "anon_4",
+                "name": "anon_5",
                 "type": "struct",
             },
             {
@@ -803,7 +869,7 @@ typedef struct {
                     "opaque": False,
                     "attrib": {},
                     "src": ["/some-path/temp.h", 21],
-                    "tag": "anon_4",
+                    "tag": "anon_5",
                     "variety": "struct",
                 },
                 "name": "foo_t",
@@ -883,7 +949,7 @@ typedef struct {
                         "name": None,
                     },
                 ],
-                "name": "anon_5",
+                "name": "anon_6",
                 "type": "struct",
             },
             {
@@ -964,11 +1030,326 @@ typedef struct {
                     "opaque": False,
                     "attrib": {"packed": True},
                     "src": ["/some-path/temp.h", 30],
-                    "tag": "anon_5",
+                    "tag": "anon_6",
                     "variety": "struct",
                 },
                 "name": "packed_foo_t",
                 "type": "typedef",
+            },
+            {
+                "attrib": {"packed": True, "aligned": [4]},
+                "fields": [
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
+                        },
+                        "name": "a",
+                    },
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "char",
+                            "signed": True,
+                        },
+                        "name": "b",
+                    },
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
+                        },
+                        "name": "c",
+                    },
+                    {
+                        "bitfield": "15",
+                        "ctype": {
+                            "Klass": "CtypesBitfield",
+                            "base": {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                            "bitfield": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "value": 15,
+                            },
+                            "errors": [],
+                        },
+                        "name": "d",
+                    },
+                    {
+                        "bitfield": "17",
+                        "ctype": {
+                            "Klass": "CtypesBitfield",
+                            "base": {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                            "bitfield": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "value": 17,
+                            },
+                            "errors": [],
+                        },
+                        "name": None,
+                    },
+                ],
+                "name": "anon_7",
+                "type": "struct",
+            },
+            {
+                "ctype": {
+                    "Klass": "CtypesStruct",
+                    "anonymous": True,
+                    "errors": [],
+                    "members": [
+                        [
+                            "a",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "char",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "d",
+                            {
+                                "Klass": "CtypesBitfield",
+                                "base": {
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
+                                "bitfield": {
+                                    "Klass": "ConstantExpressionNode",
+                                    "errors": [],
+                                    "value": 15,
+                                },
+                                "errors": [],
+                            },
+                        ],
+                        [
+                            None,
+                            {
+                                "Klass": "CtypesBitfield",
+                                "base": {
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
+                                "bitfield": {
+                                    "Klass": "ConstantExpressionNode",
+                                    "errors": [],
+                                    "value": 17,
+                                },
+                                "errors": [],
+                            },
+                        ],
+                    ],
+                    "opaque": False,
+                    "attrib": {"packed": True, "aligned": [4]},
+                    "src": ["/some-path/temp.h", 40],
+                    "tag": "anon_7",
+                    "variety": "struct",
+                },
+                "name": "pragma_packed_foo_t",
+                "type": "typedef",
+            },
+            {
+                "attrib": {"packed": True, "aligned": [2]},
+                "fields": [
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
+                        },
+                        "name": "a",
+                    },
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "char",
+                            "signed": True,
+                        },
+                        "name": "b",
+                    },
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
+                        },
+                        "name": "c",
+                    },
+                    {
+                        "bitfield": "15",
+                        "ctype": {
+                            "Klass": "CtypesBitfield",
+                            "base": {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                            "bitfield": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "value": 15,
+                            },
+                            "errors": [],
+                        },
+                        "name": "d",
+                    },
+                    {
+                        "bitfield": "17",
+                        "ctype": {
+                            "Klass": "CtypesBitfield",
+                            "base": {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                            "bitfield": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "value": 17,
+                            },
+                            "errors": [],
+                        },
+                        "name": None,
+                    },
+                ],
+                "name": "pragma_packed_foo2",
+                "type": "struct",
+            },
+            {
+                "attrib": {},
+                "fields": [
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
+                        },
+                        "name": "a",
+                    },
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "char",
+                            "signed": True,
+                        },
+                        "name": "b",
+                    },
+                    {
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
+                        },
+                        "name": "c",
+                    },
+                    {
+                        "bitfield": "15",
+                        "ctype": {
+                            "Klass": "CtypesBitfield",
+                            "base": {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                            "bitfield": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "value": 15,
+                            },
+                            "errors": [],
+                        },
+                        "name": "d",
+                    },
+                    {
+                        "bitfield": "17",
+                        "ctype": {
+                            "Klass": "CtypesBitfield",
+                            "base": {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                            "bitfield": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "value": 17,
+                            },
+                            "errors": [],
+                        },
+                        "name": None,
+                    },
+                ],
+                "name": "foo3",
+                "type": "struct",
             },
             {
                 "ctype": {
@@ -995,7 +1376,7 @@ typedef struct {
                         "name": "Int",
                     }
                 ],
-                "name": "anon_6",
+                "name": "anon_8",
                 "type": "struct",
             },
             {
@@ -1017,8 +1398,8 @@ typedef struct {
                     ],
                     "opaque": False,
                     "attrib": {},
-                    "src": ["/some-path/temp.h", 41],
-                    "tag": "anon_6",
+                    "src": ["/some-path/temp.h", 77],
+                    "tag": "anon_8",
                     "variety": "struct",
                 },
                 "name": "id_struct_t",
@@ -1192,6 +1573,174 @@ typedef struct {
                 "name": "packed_foo",
                 "type": "typedef",
             },
+            {
+                "ctype": {
+                    "Klass": "CtypesStruct",
+                    "anonymous": False,
+                    "attrib": {"aligned": [2], "packed": True},
+                    "errors": [],
+                    "members": [
+                        [
+                            "a",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "char",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "d",
+                            {
+                                "Klass": "CtypesBitfield",
+                                "base": {
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
+                                "bitfield": {
+                                    "Klass": "ConstantExpressionNode",
+                                    "errors": [],
+                                    "value": 15,
+                                },
+                                "errors": [],
+                            },
+                        ],
+                        [
+                            None,
+                            {
+                                "Klass": "CtypesBitfield",
+                                "base": {
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
+                                "bitfield": {
+                                    "Klass": "ConstantExpressionNode",
+                                    "errors": [],
+                                    "value": 17,
+                                },
+                                "errors": [],
+                            },
+                        ],
+                    ],
+                    "opaque": False,
+                    "src": ["/some-path/temp.h", 56],
+                    "tag": "pragma_packed_foo2",
+                    "variety": "struct",
+                },
+                "name": "pragma_packed_foo2",
+                "type": "typedef",
+            },
+            {
+                "ctype": {
+                    "Klass": "CtypesStruct",
+                    "anonymous": False,
+                    "attrib": {},
+                    "errors": [],
+                    "members": [
+                        [
+                            "a",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "b",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "char",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "c",
+                            {
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
+                        ],
+                        [
+                            "d",
+                            {
+                                "Klass": "CtypesBitfield",
+                                "base": {
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
+                                "bitfield": {
+                                    "Klass": "ConstantExpressionNode",
+                                    "errors": [],
+                                    "value": 15,
+                                },
+                                "errors": [],
+                            },
+                        ],
+                        [
+                            None,
+                            {
+                                "Klass": "CtypesBitfield",
+                                "base": {
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
+                                "bitfield": {
+                                    "Klass": "ConstantExpressionNode",
+                                    "errors": [],
+                                    "value": 17,
+                                },
+                                "errors": [],
+                            },
+                        ],
+                    ],
+                    "opaque": False,
+                    "src": ["/some-path/temp.h", 66],
+                    "tag": "foo3",
+                    "variety": "struct",
+                },
+                "name": "foo3",
+                "type": "typedef",
+            },
         ]
 
         compare_json(self, self.json, json_ans, True)
@@ -1214,8 +1763,8 @@ typedef struct {
     def test_pack(self):
         """Test whether gcc __attribute__((packed)) is interpreted correctly.
         """
-        unpacked_size = ctypes.sizeof(ctypes.c_int) * 4
-        packed_size = ctypes.sizeof(ctypes.c_int) * 3 + ctypes.sizeof(ctypes.c_char)
+        unpacked_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
+        packed_size = compute_packed(1, [ctypes.c_int] * 3 + [ctypes.c_char])
 
         struct_foo = self.module.struct_foo
         struct_packed_foo = self.module.struct_packed_foo
@@ -1229,6 +1778,25 @@ typedef struct {
         self.assertEqual(ctypes.sizeof(foo_t), unpacked_size)
         self.assertEqual(ctypes.sizeof(struct_packed_foo), packed_size)
         self.assertEqual(ctypes.sizeof(packed_foo_t), packed_size)
+
+    def test_pragma_pack(self):
+        """Test whether #pragma pack(...) is interpreted correctly.
+        """
+        packed4_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
+        packed2_size = compute_packed(2, [ctypes.c_int] * 3 + [ctypes.c_char])
+        unpacked_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
+
+        pragma_packed_foo_t = self.module.pragma_packed_foo_t
+        struct_pragma_packed_foo2 = self.module.struct_pragma_packed_foo2
+        struct_foo3 = self.module.struct_foo3
+
+        self.assertEqual(getattr(pragma_packed_foo_t, "_pack_", 0), 4)
+        self.assertEqual(getattr(struct_pragma_packed_foo2, "_pack_", 0), 2)
+        self.assertEqual(getattr(struct_foo3, "_pack_", 0), 0)
+
+        self.assertEqual(ctypes.sizeof(pragma_packed_foo_t), packed4_size)
+        self.assertEqual(ctypes.sizeof(struct_pragma_packed_foo2), packed2_size)
+        self.assertEqual(ctypes.sizeof(struct_foo3), unpacked_size)
 
     def test_typedef_vs_field_id(self):
         """Test whether local field identifier names can override external
