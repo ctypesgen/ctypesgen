@@ -13,7 +13,7 @@ __docformat__ = "restructuredtext"
 import os, re, shlex, sys, tokenize, traceback, subprocess
 import ctypes
 from . import lex, yacc
-from .lex import TOKEN
+from .lex import TOKEN, LexError
 from . import pplexer
 
 # --------------------------------------------------------------------------
@@ -213,9 +213,12 @@ class PreprocessorParser(object):
         self.lexer.input(text)
         self.output = []
 
-        while True:
-            token = self.lexer.token()
-            if token is not None:
-                self.output.append(token)
-            else:
-                break
+        try:
+            while True:
+                token = self.lexer.token()
+                if token is not None:
+                    self.output.append(token)
+                else:
+                    break
+        except LexError as e:
+            self.cparser.handle_error("{}; {}".format(e, e.text.partition("\n")[0]), filename, 0)
