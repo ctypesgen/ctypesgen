@@ -236,3 +236,22 @@ class MacroDescription(Description):
 
     def c_name(self):
         return self.name
+
+
+class UndefDescription(Description):
+    """Simple container class for a preprocessor #undef directive."""
+
+    def __init__(self, macro, src=None):
+        super(UndefDescription, self).__init__(src)
+        self.include_rule = "if_needed"
+
+        self.macro = macro
+
+    def casual_name(self):
+        return 'Undef "%s"' % self.macro.name
+
+    def py_name(self):
+        return "#undef:%s" % self.macro.name
+
+    def c_name(self):
+        return "#undef %s" % self.macro.name

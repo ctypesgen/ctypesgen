@@ -45,6 +45,22 @@ description."""
         else:
             return False
 
+    def co_depend(desc, nametable, name):
+        """
+        Try to add `name` as a requirement for `desc`, looking `name` up in
+        `nametable`.  Also try to add desc as a requirement for `name`.
+
+        Returns Description of `name` if found.
+        """
+
+        requirement = nametable.get(name, None)
+        if requirement is None:
+            return
+
+        desc.add_requirements([requirement])
+        requirement.add_requirements([desc])
+        return requirement
+
     def find_dependencies_for(desc, kind):
         """Find all the descriptions that `desc` depends on and add them as
 dependencies for `desc`. Also collect error messages regarding `desc` and
@@ -52,23 +68,25 @@ convert unlocateable descriptions into error messages."""
 
         if kind == "constant":
             roots = [desc.value]
-        if kind == "struct":
+        elif kind == "struct":
             roots = []
-        if kind == "struct-body":
+        elif kind == "struct-body":
             roots = [desc.ctype]
-        if kind == "enum":
+        elif kind == "enum":
             roots = []
-        if kind == "typedef":
+        elif kind == "typedef":
             roots = [desc.ctype]
-        if kind == "function":
+        elif kind == "function":
             roots = desc.argtypes + [desc.restype]
-        if kind == "variable":
+        elif kind == "variable":
             roots = [desc.ctype]
-        if kind == "macro":
+        elif kind == "macro":
             if desc.expr:
                 roots = [desc.expr]
             else:
                 roots = []
+        elif kind == "undef":
+            roots = [desc.macro]
 
         cstructs, cenums, ctypedefs, errors, identifiers = [], [], [], [], []
 
@@ -101,7 +119,15 @@ convert unlocateable descriptions into error messages."""
         for ident in identifiers:
             if isinstance(desc, MacroDescription) and desc.params and ident in desc.params:
                 continue
-            if not depend(desc, ident_names, ident):
+
+            elif opts.include_undefs and isinstance(desc, UndefDescription):
+                macro_desc = None
+                if ident == desc.macro.name:
+                    macro_desc = co_depend(desc, ident_names, ident)
+                if macro_desc is None or not isinstance(macro_desc, MacroDescription):
+                    unresolvables.append('identifier "%s"' % ident)
+
+            elif not depend(desc, ident_names, ident):
                 unresolvables.append('identifier "%s"' % ident)
 
         for u in unresolvables:
@@ -132,13 +158,10 @@ it can find it."""
     # no other type of description can look ahead like that.
 
     for kind, desc in data.output_order:
+        add_to_lookup_table(desc, kind)
         if kind != "macro":
             find_dependencies_for(desc, kind)
-            add_to_lookup_table(desc, kind)
 
-    for kind, desc in data.output_order:
-        if kind == "macro":
-            add_to_lookup_table(desc, kind)
     for kind, desc in data.output_order:
         if kind == "macro":
             find_dependencies_for(desc, kind)

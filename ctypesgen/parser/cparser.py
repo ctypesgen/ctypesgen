@@ -188,6 +188,12 @@ class CParser(object):
         value is an ExpressionNode or None
         """
 
+    def handle_undefine(self, name, filename, lineno):
+        """#undef `name`
+
+        name is a string
+        """
+
     def impl_handle_declaration(self, declaration, filename, lineno):
         """Internal method that calls `handle_declaration`.  This method
         also adds any new type definitions to the lexer's list of valid type

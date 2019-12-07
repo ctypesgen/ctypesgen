@@ -97,6 +97,10 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
         # Save to handle later
         self.saved_macros.append((name, params, expr, (filename, lineno)))
 
+    def handle_undefine(self, macro, filename, lineno):
+        # save to handle later to get order correct
+        self.saved_macros.append(("#undef", None, macro, (filename, lineno)))
+
     def handle_ctypes_typedef(self, name, ctype, filename, lineno):
         # Called by CtypesParser
         ctype.visit(self)
@@ -288,6 +292,10 @@ class DataCollectingParser(ctypesparser.CtypesParser, ctypesparser.CtypesTypeVis
                 self.all.append(typedef)
                 self.output_order.append(("typedef", typedef))
 
+        elif name == "#undef":
+            undef = UndefDescription(expr, src)
+            self.all.append(undef)
+            self.output_order.append(("undef", undef))
         else:
             macro = MacroDescription(name, params, expr, src)
             self.macros.append(macro)

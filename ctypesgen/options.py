@@ -31,6 +31,7 @@ default_values = {
     "inserted_files": [],
     "other_known_names": [],
     "include_macros": True,
+    "include_undefs": True,
     "libraries": [],
     "strip_build_path": None,
     "output_language": "py",

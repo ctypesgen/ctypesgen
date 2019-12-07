@@ -42,6 +42,7 @@ tokens = (
     "PP_DEFINE",
     "PP_DEFINE_NAME",
     "PP_DEFINE_MACRO_NAME",
+    "PP_UNDEFINE",
     "PP_MACRO_PARAM",
     "PP_STRINGIFY",
     "PP_IDENTIFIER_PASTE",
@@ -1305,6 +1306,7 @@ def p_function_definition(p):
 
 def p_directive(p):
     """directive : define
+                 | undefine
                  | pragma
     """
 
@@ -1372,6 +1374,16 @@ def p_define_error(p):
     lineno = p.slice[1].lineno
 
     p[2].lexer.cparser.handle_define_unparseable(name, params, contents, filename, lineno)
+
+
+def p_undefine(p):
+    """undefine : PP_UNDEFINE PP_DEFINE_NAME PP_END_DEFINE"""
+
+    filename = p.slice[1].filename
+    lineno = p.slice[1].lineno
+
+    macro = expressions.IdentifierExpressionNode(p[2])
+    p.parser.cparser.handle_undefine(macro, filename, lineno)
 
 
 def p_macro_parameter_list(p):

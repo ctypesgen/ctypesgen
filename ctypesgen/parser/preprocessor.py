@@ -194,14 +194,9 @@ class PreprocessorParser(object):
                 source_lines.append(line)
                 define_lines.append(line)
 
-            elif hash_token ==  "define":
+            else:  # hash_token in ("define", "undef"):
                 source_lines.append("\n")
                 define_lines.append(line)
-
-            else: # hash_token.startswith("#"):
-                # It's a directive, but not a #define. Remove it
-                source_lines.append("\n")
-                define_lines.append("\n")
 
         text = "".join(source_lines + define_lines)
 

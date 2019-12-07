@@ -203,6 +203,14 @@ def main(givenargs=None):
         help="Don't output macros.",
     )
     op.add_option(
+        "",
+        "--no-undefs",
+        action="store_false",
+        dest="include_undefs",
+        default=True,
+        help="Do not remove macro definitions as per #undef directives",
+    )
+    op.add_option(
         "-i",
         "--include-symbols",
         action="append",

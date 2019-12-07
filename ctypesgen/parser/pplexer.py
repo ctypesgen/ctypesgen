@@ -49,6 +49,7 @@ tokens = (
     "PP_DEFINE",
     "PP_DEFINE_NAME",
     "PP_DEFINE_MACRO_NAME",
+    "PP_UNDEFINE",
     "PP_MACRO_PARAM",
     "PP_STRINGIFY",
     "PP_IDENTIFIER_PASTE",
@@ -310,6 +311,15 @@ def t_ANY_lparen(t):
 def t_INITIAL_newline(t):
     t.lexer.lineno += 1
     return None
+
+
+@TOKEN(r"\#undef")
+def t_INITIAL_pp_undefine(t):
+    t.type = "PP_UNDEFINE"
+    t.lexer.begin("DEFINE")
+    t.lexer.next_is_define_name = True
+    t.lexer.macro_params = set()
+    return t
 
 
 @TOKEN(r"\#define")

@@ -62,6 +62,7 @@ class WrapperPrinter:
             "variable": self.print_variable,
             "enum": self.print_enum,
             "constant": self.print_constant,
+            "undef": self.print_undef,
         }
 
         res = []
@@ -85,6 +86,9 @@ class WrapperPrinter:
 
     def print_constant(self, constant):
         return {"type": "constant", "name": constant.name, "value": constant.value.py_string(False)}
+
+    def print_undef(self, undef):
+        return {"type": "undef", "value": undef.macro.py_string(False)}
 
     def print_typedef(self, typedef):
         return {"type": "typedef", "name": typedef.name, "ctype": todict(typedef.ctype)}

@@ -71,6 +71,7 @@ class WrapperPrinter:
             "variable": self.print_variable,
             "enum": self.print_enum,
             "constant": self.print_constant,
+            "undef": self.print_undef,
         }
 
         for kind, desc in data.output_order:
@@ -184,6 +185,16 @@ class WrapperPrinter:
     def print_constant(self, constant):
         self.file.write("%s = %s" % (constant.name, constant.value.py_string(False)))
         self.srcinfo(constant.src)
+
+    def print_undef(self, undef):
+        self.srcinfo(undef.src)
+        self.file.write(
+            "# #undef {macro}\n"
+            "try:\n"
+            "    del {macro}\n"
+            "except NameError:\n"
+            "    pass\n".format(macro=undef.macro.py_string(False))
+        )
 
     def print_typedef(self, typedef):
         self.file.write("%s = %s" % (typedef.name, typedef.ctype.py_string()))
