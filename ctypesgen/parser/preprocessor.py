@@ -168,34 +168,39 @@ class PreprocessorParser(object):
             if line:
                 self.cparser.handle_pp_error(line)
 
-        # We separate lines that are #defines and lines that are source code
+        # We separate lines to two groups: directives and c-source.  Note that
+        # #pragma directives actually belong to the source category for this.
+        # This is necessary because some source files intermix preprocessor
+        # directives with source--this is not tolerated by ctypesgen's single
+        # grammar.
         # We put all the source lines first, then all the #define lines.
 
         source_lines = []
         define_lines = []
 
+        first_token_reg = re.compile(r"^#\s*([^ ]+)($|\s)")
+
         for line in ppout.split("\n"):
-            line = line + "\n"
-            if line.startswith("# "):
+            line += "\n"
+            search = first_token_reg.match(line)
+            hash_token = search.group(1) if search else None
+
+            if (not hash_token) or hash_token == "pragma":
+                source_lines.append(line)
+                define_lines.append("\n")
+
+            elif hash_token.isdigit():
                 # Line number information has to go with both groups
                 source_lines.append(line)
                 define_lines.append(line)
 
-            elif line.startswith("#define"):
+            elif hash_token ==  "define":
                 source_lines.append("\n")
                 define_lines.append(line)
 
-            elif line.startswith("#pragma"):
-                source_lines.append(line)
-                define_lines.append("\n")
-
-            elif line.startswith("#"):
+            else: # hash_token.startswith("#"):
                 # It's a directive, but not a #define. Remove it
                 source_lines.append("\n")
-                define_lines.append("\n")
-
-            else:
-                source_lines.append(line)
                 define_lines.append("\n")
 
         text = "".join(source_lines + define_lines)
