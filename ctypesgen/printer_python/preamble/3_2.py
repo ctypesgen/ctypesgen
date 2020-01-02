@@ -328,7 +328,7 @@ class String(MutableString, Union):
 
     _fields_ = [("raw", POINTER(c_char)), ("data", c_char_p)]
 
-    def __init__(self, obj=""):
+    def __init__(self, obj=b""):
         if isinstance(obj, (bytes, UserString)):
             self.data = bytes(obj)
         else:
