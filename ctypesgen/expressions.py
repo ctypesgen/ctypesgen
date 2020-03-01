@@ -313,6 +313,10 @@ class TypeCastExpressionNode(ExpressionNode):
                 True,
             ):
                 ord_if_char = ""
+            elif isinstance(self.ctype, CtypesSimple) and self.ctype.name == "void":
+                # This is a very simple type cast:  cast everything to (void)
+                # At least one macro from mingw does this
+                return "None"
             else:
                 ord_if_char = "ord_if_char"
 
