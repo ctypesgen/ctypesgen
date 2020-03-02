@@ -2164,8 +2164,7 @@ class MainTest(unittest.TestCase):
 
     @staticmethod
     def _exec(args):
-        pyexec = "python{}".format(sys.version_info.major)
-        p = Popen([pyexec, MainTest.script] + args, stdout=PIPE, stderr=PIPE)
+        p = Popen([sys.executable, MainTest.script] + args, stdout=PIPE, stderr=PIPE)
         o, e = p.communicate()
         return o, e, p.returncode
 
