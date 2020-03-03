@@ -147,7 +147,7 @@ class StructTypeSpecifier(object):
                     attrs.append(attr)
 
             s += " __attribute__(({}))".format(",".join(attrs))
-        if self.tag:
+        if self.tag and type(self.tag) != int:
             s += " %s" % self.tag
         if self.declarations:
             s += " {%s}" % "; ".join([repr(d) for d in self.declarations])

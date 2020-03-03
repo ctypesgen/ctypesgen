@@ -288,10 +288,16 @@ class CtypesFunction(CtypesType):
 last_tagnum = 0
 
 
-def anonymous_struct_tag():
+def anonymous_struct_tagnum():
     global last_tagnum
     last_tagnum += 1
-    return "anon_%d" % last_tagnum
+    return last_tagnum
+
+def fmt_anonymous_struct_tag(num):
+    return "anon_%d" % num
+
+def anonymous_struct_tag():
+    return fmt_anonymous_struct_tag(anonymous_struct_tagnum())
 
 
 class CtypesStruct(CtypesType):
@@ -302,8 +308,11 @@ class CtypesStruct(CtypesType):
         self.variety = variety  # "struct" or "union"
         self.members = members
 
-        if not self.tag:
-            self.tag = anonymous_struct_tag()
+        if type(self.tag) == int or not self.tag:
+            if type(self.tag) == int:
+              self.tag = fmt_anonymous_struct_tag(self.tag)
+            else:
+              self.tag = anonymous_struct_tag()
             self.anonymous = True
         else:
             self.anonymous = False

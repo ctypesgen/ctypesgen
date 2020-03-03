@@ -36,6 +36,7 @@ import warnings
 
 from . import yacc
 from .. import expressions
+from ..ctypedescs import anonymous_struct_tagnum
 from . import cdeclarations
 
 tokens = (
@@ -772,7 +773,7 @@ def p_struct_or_union_specifier(p):
     if len(p) == 4:  # struct [attributes] <id/typname>
         tag = p[3]
     elif p[3] == "{":
-        tag, decl = "", p[4]
+        tag, decl = anonymous_struct_tagnum(), p[4]
     else:
         tag, decl = p[3], p[5]
 
