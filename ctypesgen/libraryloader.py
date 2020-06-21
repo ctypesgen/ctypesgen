@@ -193,6 +193,12 @@ class PosixLibraryLoader(LibraryLoader):
 
     _include = re.compile(r"^\s*include\s+(?P<pattern>.*)")
 
+    name_formats = [
+        "lib%s.so",
+        "%s.so",
+        "%s"
+    ]
+
     class _Directories(dict):
         def __init__(self):
             self.order = 0
