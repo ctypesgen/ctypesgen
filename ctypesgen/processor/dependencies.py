@@ -12,9 +12,9 @@ from ..messages import *
 
 def find_dependencies(data, opts):
     """Visit each description in `data` and figure out which other descriptions
-it depends on, putting the results in desc.requirements. Also find errors in
-ctypedecls or expressions attached to the description and transfer them to the
-description."""
+    it depends on, putting the results in desc.requirements. Also find errors in
+    ctypedecls or expressions attached to the description and transfer them to the
+    description."""
 
     struct_names = {}
     enum_names = {}
@@ -35,7 +35,7 @@ description."""
 
     def depend(desc, nametable, name):
         """Try to add `name` as a requirement for `desc`, looking `name` up in
-`nametable`. Returns True if found."""
+        `nametable`. Returns True if found."""
 
         if name in nametable:
             requirement = nametable[name]
@@ -63,8 +63,8 @@ description."""
 
     def find_dependencies_for(desc, kind):
         """Find all the descriptions that `desc` depends on and add them as
-dependencies for `desc`. Also collect error messages regarding `desc` and
-convert unlocateable descriptions into error messages."""
+        dependencies for `desc`. Also collect error messages regarding `desc` and
+        convert unlocateable descriptions into error messages."""
 
         if kind == "constant":
             roots = [desc.value]
@@ -139,7 +139,7 @@ convert unlocateable descriptions into error messages."""
 
     def add_to_lookup_table(desc, kind):
         """Add `desc` to the lookup table so that other descriptions that use
-it can find it."""
+        it can find it."""
         if kind == "struct":
             if (desc.variety, desc.tag) not in struct_names:
                 struct_names[(desc.variety, desc.tag)] = desc

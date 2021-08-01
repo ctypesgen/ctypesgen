@@ -293,8 +293,10 @@ def anonymous_struct_tagnum():
     last_tagnum += 1
     return last_tagnum
 
+
 def fmt_anonymous_struct_tag(num):
     return "anon_%d" % num
+
 
 def anonymous_struct_tag():
     return fmt_anonymous_struct_tag(anonymous_struct_tagnum())
@@ -310,9 +312,9 @@ class CtypesStruct(CtypesType):
 
         if type(self.tag) == int or not self.tag:
             if type(self.tag) == int:
-              self.tag = fmt_anonymous_struct_tag(self.tag)
+                self.tag = fmt_anonymous_struct_tag(self.tag)
             else:
-              self.tag = anonymous_struct_tag()
+                self.tag = anonymous_struct_tag()
             self.anonymous = True
         else:
             self.anonymous = False

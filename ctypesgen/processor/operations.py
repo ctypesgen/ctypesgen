@@ -31,7 +31,7 @@ def automatically_typedef_structs(data, options):
 
 def remove_NULL(data, options):
     """remove_NULL() removes any NULL definitions from the C headers because
-ctypesgen supplies its own NULL definition."""
+    ctypesgen supplies its own NULL definition."""
 
     for macro in data.macros:
         if macro.name == "NULL":

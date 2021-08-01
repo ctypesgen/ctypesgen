@@ -171,8 +171,8 @@ precedence = (("nonassoc", "IF"), ("nonassoc", "ELSE"))
 
 def p_translation_unit(p):
     """translation_unit :
-                        | translation_unit external_declaration
-                        | translation_unit directive
+    | translation_unit external_declaration
+    | translation_unit directive
     """
     # Starting production.
     # Allow empty production so that files with no declarations are still
@@ -182,10 +182,10 @@ def p_translation_unit(p):
 
 def p_identifier(p):
     """identifier : IDENTIFIER
-                  | IDENTIFIER PP_IDENTIFIER_PASTE identifier
-                  | PP_MACRO_PARAM PP_IDENTIFIER_PASTE identifier
-                  | IDENTIFIER PP_IDENTIFIER_PASTE PP_MACRO_PARAM
-                  | PP_MACRO_PARAM PP_IDENTIFIER_PASTE PP_MACRO_PARAM
+    | IDENTIFIER PP_IDENTIFIER_PASTE identifier
+    | PP_MACRO_PARAM PP_IDENTIFIER_PASTE identifier
+    | IDENTIFIER PP_IDENTIFIER_PASTE PP_MACRO_PARAM
+    | PP_MACRO_PARAM PP_IDENTIFIER_PASTE PP_MACRO_PARAM
     """
     if len(p) == 2:
         p[0] = expressions.IdentifierExpressionNode(p[1])
@@ -204,7 +204,7 @@ def p_identifier(p):
 
 def p_constant(p):
     """constant : CONSTANT
-                | CHARACTER_CONSTANT
+    | CHARACTER_CONSTANT
     """
     constant = p[1]
 
@@ -236,9 +236,9 @@ def p_string_literal(p):
 
 def p_multi_string_literal(p):
     """multi_string_literal : string_literal
-                            | macro_param
-                            | multi_string_literal string_literal
-                            | multi_string_literal macro_param
+    | macro_param
+    | multi_string_literal string_literal
+    | multi_string_literal macro_param
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -250,7 +250,7 @@ def p_multi_string_literal(p):
 
 def p_macro_param(p):
     """macro_param : PP_MACRO_PARAM
-                   | PP_STRINGIFY PP_MACRO_PARAM
+    | PP_STRINGIFY PP_MACRO_PARAM
     """
     if len(p) == 2:
         p[0] = expressions.ParameterExpressionNode(p[1])
@@ -260,9 +260,9 @@ def p_macro_param(p):
 
 def p_primary_expression(p):
     """primary_expression : identifier
-                          | constant
-                          | multi_string_literal
-                          | '(' expression ')'
+    | constant
+    | multi_string_literal
+    | '(' expression ')'
     """
     if p[1] == "(":
         p[0] = p[2]
@@ -272,13 +272,13 @@ def p_primary_expression(p):
 
 def p_postfix_expression(p):
     """postfix_expression : primary_expression
-                  | postfix_expression '[' expression ']'
-                  | postfix_expression '(' ')'
-                  | postfix_expression '(' argument_expression_list ')'
-                  | postfix_expression PERIOD IDENTIFIER
-                  | postfix_expression PTR_OP IDENTIFIER
-                  | postfix_expression INC_OP
-                  | postfix_expression DEC_OP
+    | postfix_expression '[' expression ']'
+    | postfix_expression '(' ')'
+    | postfix_expression '(' argument_expression_list ')'
+    | postfix_expression PERIOD IDENTIFIER
+    | postfix_expression PTR_OP IDENTIFIER
+    | postfix_expression INC_OP
+    | postfix_expression DEC_OP
     """
 
     if len(p) == 2:
@@ -318,9 +318,9 @@ def p_postfix_expression(p):
 
 def p_argument_expression_list(p):
     """argument_expression_list : assignment_expression
-                        | argument_expression_list ',' assignment_expression
-                        | type_name
-                        | argument_expression_list ',' type_name
+    | argument_expression_list ',' assignment_expression
+    | type_name
+    | argument_expression_list ',' type_name
     """
     if len(p) == 4:
         p[1].append(p[3])
@@ -331,9 +331,9 @@ def p_argument_expression_list(p):
 
 def p_asm_expression(p):
     """asm_expression : __ASM__ volatile_opt '(' string_literal ')'
-                      | __ASM__ volatile_opt '(' string_literal ':' str_opt_expr_pair_list ')'
-                      | __ASM__ volatile_opt '(' string_literal ':' str_opt_expr_pair_list ':' str_opt_expr_pair_list ')'
-                      | __ASM__ volatile_opt '(' string_literal ':' str_opt_expr_pair_list ':' str_opt_expr_pair_list ':' str_opt_expr_pair_list ')'
+    | __ASM__ volatile_opt '(' string_literal ':' str_opt_expr_pair_list ')'
+    | __ASM__ volatile_opt '(' string_literal ':' str_opt_expr_pair_list ':' str_opt_expr_pair_list ')'
+    | __ASM__ volatile_opt '(' string_literal ':' str_opt_expr_pair_list ':' str_opt_expr_pair_list ':' str_opt_expr_pair_list ')'
     """
 
     # Definitely not ISO C, adapted from example ANTLR GCC parser at
@@ -347,20 +347,20 @@ def p_asm_expression(p):
 
 def p_str_opt_expr_pair_list(p):
     """str_opt_expr_pair_list :
-                              | str_opt_expr_pair
-                              | str_opt_expr_pair_list ',' str_opt_expr_pair
+    | str_opt_expr_pair
+    | str_opt_expr_pair_list ',' str_opt_expr_pair
     """
 
 
 def p_str_opt_expr_pair(p):
     """str_opt_expr_pair : string_literal
-                         | string_literal '(' expression ')'
-     """
+    | string_literal '(' expression ')'
+    """
 
 
 def p_volatile_opt(p):
     """volatile_opt :
-                    | VOLATILE
+    | VOLATILE
     """
 
 
@@ -378,12 +378,12 @@ prefix_ops_dict = {
 
 def p_unary_expression(p):
     """unary_expression : postfix_expression
-                        | INC_OP unary_expression
-                        | DEC_OP unary_expression
-                        | unary_operator cast_expression
-                        | SIZEOF unary_expression
-                        | SIZEOF '(' type_name ')'
-                        | asm_expression
+    | INC_OP unary_expression
+    | DEC_OP unary_expression
+    | unary_operator cast_expression
+    | SIZEOF unary_expression
+    | SIZEOF '(' type_name ')'
+    | asm_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -401,18 +401,18 @@ def p_unary_expression(p):
 
 def p_unary_operator(p):
     """unary_operator : '&'
-                      | '*'
-                      | '+'
-                      | '-'
-                      | '~'
-                      | '!'
+    | '*'
+    | '+'
+    | '-'
+    | '~'
+    | '!'
     """
     p[0] = p[1]
 
 
 def p_cast_expression(p):
     """cast_expression : unary_expression
-                       | '(' type_name ')' cast_expression
+    | '(' type_name ')' cast_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -429,9 +429,9 @@ mult_ops_dict = {
 
 def p_multiplicative_expression(p):
     """multiplicative_expression : cast_expression
-                                 | multiplicative_expression '*' cast_expression
-                                 | multiplicative_expression '/' cast_expression
-                                 | multiplicative_expression '%' cast_expression
+    | multiplicative_expression '*' cast_expression
+    | multiplicative_expression '/' cast_expression
+    | multiplicative_expression '%' cast_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -448,8 +448,8 @@ add_ops_dict = {
 
 def p_additive_expression(p):
     """additive_expression : multiplicative_expression
-                           | additive_expression '+' multiplicative_expression
-                           | additive_expression '-' multiplicative_expression
+    | additive_expression '+' multiplicative_expression
+    | additive_expression '-' multiplicative_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -466,8 +466,8 @@ shift_ops_dict = {
 
 def p_shift_expression(p):
     """shift_expression : additive_expression
-                        | shift_expression LEFT_OP additive_expression
-                        | shift_expression RIGHT_OP additive_expression
+    | shift_expression LEFT_OP additive_expression
+    | shift_expression RIGHT_OP additive_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -486,10 +486,10 @@ rel_ops_dict = {
 
 def p_relational_expression(p):
     """relational_expression : shift_expression
-                             | relational_expression '<' shift_expression
-                             | relational_expression '>' shift_expression
-                             | relational_expression LE_OP shift_expression
-                             | relational_expression GE_OP shift_expression
+    | relational_expression '<' shift_expression
+    | relational_expression '>' shift_expression
+    | relational_expression LE_OP shift_expression
+    | relational_expression GE_OP shift_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -506,8 +506,8 @@ equality_ops_dict = {
 
 def p_equality_expression(p):
     """equality_expression : relational_expression
-                           | equality_expression EQ_OP relational_expression
-                           | equality_expression NE_OP relational_expression
+    | equality_expression EQ_OP relational_expression
+    | equality_expression NE_OP relational_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -518,7 +518,7 @@ def p_equality_expression(p):
 
 def p_and_expression(p):
     """and_expression : equality_expression
-                      | and_expression '&' equality_expression
+    | and_expression '&' equality_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -530,7 +530,7 @@ def p_and_expression(p):
 
 def p_exclusive_or_expression(p):
     """exclusive_or_expression : and_expression
-                               | exclusive_or_expression '^' and_expression
+    | exclusive_or_expression '^' and_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -542,7 +542,7 @@ def p_exclusive_or_expression(p):
 
 def p_inclusive_or_expression(p):
     """inclusive_or_expression : exclusive_or_expression
-                   | inclusive_or_expression '|' exclusive_or_expression
+    | inclusive_or_expression '|' exclusive_or_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -554,7 +554,7 @@ def p_inclusive_or_expression(p):
 
 def p_logical_and_expression(p):
     """logical_and_expression : inclusive_or_expression
-                  | logical_and_expression AND_OP inclusive_or_expression
+    | logical_and_expression AND_OP inclusive_or_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -566,7 +566,7 @@ def p_logical_and_expression(p):
 
 def p_logical_or_expression(p):
     """logical_or_expression : logical_and_expression
-                  | logical_or_expression OR_OP logical_and_expression
+    | logical_or_expression OR_OP logical_and_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -578,7 +578,7 @@ def p_logical_or_expression(p):
 
 def p_conditional_expression(p):
     """conditional_expression : logical_or_expression
-          | logical_or_expression '?' expression ':' conditional_expression
+    | logical_or_expression '?' expression ':' conditional_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -602,7 +602,7 @@ assign_ops_dict = {
 
 def p_assignment_expression(p):
     """assignment_expression : conditional_expression
-                 | unary_expression assignment_operator assignment_expression
+    | unary_expression assignment_operator assignment_expression
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -618,37 +618,35 @@ def p_assignment_expression(p):
 
 def p_assignment_operator(p):
     """assignment_operator : '='
-                           | MUL_ASSIGN
-                           | DIV_ASSIGN
-                           | MOD_ASSIGN
-                           | ADD_ASSIGN
-                           | SUB_ASSIGN
-                           | LEFT_ASSIGN
-                           | RIGHT_ASSIGN
-                           | AND_ASSIGN
-                           | XOR_ASSIGN
-                           | OR_ASSIGN
+    | MUL_ASSIGN
+    | DIV_ASSIGN
+    | MOD_ASSIGN
+    | ADD_ASSIGN
+    | SUB_ASSIGN
+    | LEFT_ASSIGN
+    | RIGHT_ASSIGN
+    | AND_ASSIGN
+    | XOR_ASSIGN
+    | OR_ASSIGN
     """
     p[0] = p[1]
 
 
 def p_expression(p):
     """expression : assignment_expression
-                  | expression ',' assignment_expression
+    | expression ',' assignment_expression
     """
     p[0] = p[1]
     # We don't need to support sequence expressions...
 
 
 def p_constant_expression(p):
-    """constant_expression : conditional_expression
-    """
+    """constant_expression : conditional_expression"""
     p[0] = p[1]
 
 
 def p_declaration(p):
-    """declaration : declaration_impl ';'
-    """
+    """declaration : declaration_impl ';'"""
     # The ';' must be here, not in 'declaration', as declaration needs to
     # be executed before the ';' is shifted (otherwise the next lookahead will
     # be read, which may be affected by this declaration if its a typedef.
@@ -656,7 +654,7 @@ def p_declaration(p):
 
 def p_declaration_impl(p):
     """declaration_impl : declaration_specifier_list
-                        | declaration_specifier_list init_declarator_list
+    | declaration_specifier_list init_declarator_list
     """
     declaration = cdeclarations.Declaration()
     cdeclarations.apply_specifiers(p[1], declaration)
@@ -683,7 +681,7 @@ def p_declaration_impl(p):
 
 def p_declaration_specifier_list(p):
     """declaration_specifier_list : gcc_attributes declaration_specifier gcc_attributes
-                      | declaration_specifier_list declaration_specifier gcc_attributes
+    | declaration_specifier_list declaration_specifier gcc_attributes
     """
     if type(p[1]) == cdeclarations.Attrib:
         p[0] = (p[1], p[2], p[3])
@@ -697,15 +695,15 @@ def p_declaration_specifier_list(p):
 
 def p_declaration_specifier(p):
     """declaration_specifier : storage_class_specifier
-                             | type_specifier
-                             | type_qualifier
+    | type_specifier
+    | type_qualifier
     """
     p[0] = p[1]
 
 
 def p_init_declarator_list(p):
     """init_declarator_list : init_declarator
-                            | init_declarator_list ',' init_declarator
+    | init_declarator_list ',' init_declarator
     """
     if len(p) > 2:
         p[0] = p[1] + (p[3],)
@@ -715,7 +713,7 @@ def p_init_declarator_list(p):
 
 def p_init_declarator(p):
     """init_declarator : declarator gcc_attributes
-                       | declarator gcc_attributes '=' initializer
+    | declarator gcc_attributes '=' initializer
     """
     p[0] = p[1]
     p[0].attrib.update(p[2])
@@ -727,28 +725,28 @@ def p_init_declarator(p):
 
 def p_storage_class_specifier(p):
     """storage_class_specifier : TYPEDEF
-                               | EXTERN
-                               | STATIC
-                               | AUTO
-                               | REGISTER
+    | EXTERN
+    | STATIC
+    | AUTO
+    | REGISTER
     """
     p[0] = cdeclarations.StorageClassSpecifier(p[1])
 
 
 def p_type_specifier(p):
     """type_specifier : VOID
-                      | _BOOL
-                      | CHAR
-                      | SHORT
-                      | INT
-                      | LONG
-                      | FLOAT
-                      | DOUBLE
-                      | SIGNED
-                      | UNSIGNED
-                      | struct_or_union_specifier
-                      | enum_specifier
-                      | TYPE_NAME
+    | _BOOL
+    | CHAR
+    | SHORT
+    | INT
+    | LONG
+    | FLOAT
+    | DOUBLE
+    | SIGNED
+    | UNSIGNED
+    | struct_or_union_specifier
+    | enum_specifier
+    | TYPE_NAME
     """
     if type(p[1]) in (cdeclarations.StructTypeSpecifier, cdeclarations.EnumSpecifier):
         p[0] = p[1]
@@ -758,10 +756,10 @@ def p_type_specifier(p):
 
 def p_struct_or_union_specifier(p):
     """struct_or_union_specifier : struct_or_union gcc_attributes IDENTIFIER '{' struct_declaration_list '}'
-         | struct_or_union gcc_attributes TYPE_NAME '{' struct_declaration_list '}'
-         | struct_or_union gcc_attributes '{' struct_declaration_list '}'
-         | struct_or_union gcc_attributes IDENTIFIER
-         | struct_or_union gcc_attributes TYPE_NAME
+    | struct_or_union gcc_attributes TYPE_NAME '{' struct_declaration_list '}'
+    | struct_or_union gcc_attributes '{' struct_declaration_list '}'
+    | struct_or_union gcc_attributes IDENTIFIER
+    | struct_or_union gcc_attributes TYPE_NAME
     """
     # format of grammar for gcc_attributes taken from c-parser.c in GCC source.
     # The TYPE_NAME ones are dodgy, needed for Apple headers
@@ -787,14 +785,14 @@ def p_struct_or_union_specifier(p):
 
 def p_struct_or_union(p):
     """struct_or_union : STRUCT
-                       | UNION
+    | UNION
     """
     p[0] = p[1] == "union"
 
 
 def p_gcc_attributes(p):
     """gcc_attributes :
-                      | gcc_attributes gcc_attribute
+    | gcc_attributes gcc_attribute
     """
     # Allow empty production on attributes (take from c-parser.c in GCC source)
     if len(p) == 1:
@@ -805,15 +803,14 @@ def p_gcc_attributes(p):
 
 
 def p_gcc_attribute(p):
-    """gcc_attribute : __ATTRIBUTE__ '(' '(' gcc_attrib_list ')' ')'
-    """
+    """gcc_attribute : __ATTRIBUTE__ '(' '(' gcc_attrib_list ')' ')'"""
     p[0] = cdeclarations.Attrib()
     p[0].update(p[4])
 
 
 def p_gcc_attrib_list(p):
     """gcc_attrib_list : gcc_attrib
-                       | gcc_attrib_list ',' gcc_attrib
+    | gcc_attrib_list ',' gcc_attrib
     """
     if len(p) == 2:
         p[0] = (p[1],)
@@ -823,8 +820,8 @@ def p_gcc_attrib_list(p):
 
 def p_gcc_attrib(p):
     """gcc_attrib :
-                  | IDENTIFIER
-                  | IDENTIFIER '(' argument_expression_list ')'
+    | IDENTIFIER
+    | IDENTIFIER '(' argument_expression_list ')'
     """
     if len(p) == 1:
         p[0] = (None, None)
@@ -838,7 +835,7 @@ def p_gcc_attrib(p):
 
 def p_struct_declaration_list(p):
     """struct_declaration_list : struct_declaration
-                               | struct_declaration_list struct_declaration
+    | struct_declaration_list struct_declaration
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -848,7 +845,7 @@ def p_struct_declaration_list(p):
 
 def p_struct_declaration(p):
     """struct_declaration : specifier_qualifier_list struct_declarator_list ';'
-                          | specifier_qualifier_list ';'
+    | specifier_qualifier_list ';'
     """
     # p[0] returned is a tuple, to handle multiple declarators in one
     # declaration.
@@ -870,7 +867,7 @@ def p_struct_declaration(p):
 
 def p_specifier_qualifier_list(p):
     """specifier_qualifier_list : gcc_attributes specifier_qualifier gcc_attributes
-                      | specifier_qualifier_list specifier_qualifier gcc_attributes
+    | specifier_qualifier_list specifier_qualifier gcc_attributes
     """
     if type(p[1]) == cdeclarations.Attrib:
         p[0] = (p[1], p[2], p[3])
@@ -880,14 +877,14 @@ def p_specifier_qualifier_list(p):
 
 def p_specifier_qualifier(p):
     """specifier_qualifier : type_specifier
-                           | type_qualifier
+    | type_qualifier
     """
     p[0] = p[1]
 
 
 def p_struct_declarator_list(p):
     """struct_declarator_list : struct_declarator
-                              | struct_declarator_list ',' struct_declarator
+    | struct_declarator_list ',' struct_declarator
     """
     if len(p) == 2:
         p[0] = (p[1],)
@@ -897,8 +894,8 @@ def p_struct_declarator_list(p):
 
 def p_struct_declarator(p):
     """struct_declarator : declarator                         gcc_attributes
-                         | ':' constant_expression            gcc_attributes
-                         | declarator ':' constant_expression gcc_attributes
+    | ':' constant_expression            gcc_attributes
+    | declarator ':' constant_expression gcc_attributes
     """
     if p[1] == ":":
         p[0] = cdeclarations.Declarator()
@@ -914,8 +911,8 @@ def p_struct_declarator(p):
 
 def p_enum_specifier(p):
     """enum_specifier : ENUM '{' enumerator_list '}'
-                      | ENUM IDENTIFIER '{' enumerator_list '}'
-                      | ENUM IDENTIFIER
+    | ENUM IDENTIFIER '{' enumerator_list '}'
+    | ENUM IDENTIFIER
     """
     if len(p) == 5:
         p[0] = cdeclarations.EnumSpecifier(None, p[3])
@@ -930,7 +927,7 @@ def p_enum_specifier(p):
 
 def p_enumerator_list(p):
     """enumerator_list : enumerator_list_iso
-                       | enumerator_list_iso ','
+    | enumerator_list_iso ','
     """
     # Apple headers sometimes have trailing ',' after enumerants, which is
     # not ISO C.
@@ -939,7 +936,7 @@ def p_enumerator_list(p):
 
 def p_enumerator_list_iso(p):
     """enumerator_list_iso : enumerator
-                           | enumerator_list_iso ',' enumerator
+    | enumerator_list_iso ',' enumerator
     """
     if len(p) == 2:
         p[0] = (p[1],)
@@ -949,7 +946,7 @@ def p_enumerator_list_iso(p):
 
 def p_enumerator(p):
     """enumerator : IDENTIFIER
-                  | IDENTIFIER '=' constant_expression
+    | IDENTIFIER '=' constant_expression
     """
     if len(p) == 2:
         p[0] = cdeclarations.Enumerator(p[1], None)
@@ -959,14 +956,14 @@ def p_enumerator(p):
 
 def p_type_qualifier(p):
     """type_qualifier : CONST
-                      | VOLATILE
+    | VOLATILE
     """
     p[0] = cdeclarations.TypeQualifier(p[1])
 
 
 def p_declarator(p):
     """declarator : pointer direct_declarator
-                  | direct_declarator
+    | direct_declarator
     """
     if len(p) > 2:
         p[0] = p[1]
@@ -981,12 +978,12 @@ def p_declarator(p):
 
 def p_direct_declarator(p):
     """direct_declarator : IDENTIFIER
-                         | '(' gcc_attributes declarator ')'
-                         | direct_declarator '[' constant_expression ']'
-                         | direct_declarator '[' ']'
-                         | direct_declarator '(' parameter_type_list ')'
-                         | direct_declarator '(' identifier_list ')'
-                         | direct_declarator '(' ')'
+    | '(' gcc_attributes declarator ')'
+    | direct_declarator '[' constant_expression ']'
+    | direct_declarator '[' ']'
+    | direct_declarator '(' parameter_type_list ')'
+    | direct_declarator '(' identifier_list ')'
+    | direct_declarator '(' ')'
     """
     if isinstance(p[1], cdeclarations.Declarator):
         p[0] = p[1]
@@ -1017,9 +1014,9 @@ def p_direct_declarator(p):
 
 def p_pointer(p):
     """pointer : '*'
-               | '*' type_qualifier_list
-               | '*' pointer
-               | '*' type_qualifier_list pointer
+    | '*' type_qualifier_list
+    | '*' pointer
+    | '*' type_qualifier_list pointer
     """
     if len(p) == 2:
         p[0] = cdeclarations.Pointer()
@@ -1042,9 +1039,9 @@ def p_pointer(p):
 
 def p_type_qualifier_list(p):
     """type_qualifier_list : type_qualifier
-                           | gcc_attribute
-                           | type_qualifier_list type_qualifier
-                           | type_qualifier_list gcc_attribute
+    | gcc_attribute
+    | type_qualifier_list type_qualifier
+    | type_qualifier_list gcc_attribute
     """
     if len(p) > 2:
         p[0] = p[1] + (p[2],)
@@ -1054,7 +1051,7 @@ def p_type_qualifier_list(p):
 
 def p_parameter_type_list(p):
     """parameter_type_list : parameter_list
-                           | parameter_list ',' ELLIPSIS
+    | parameter_list ',' ELLIPSIS
     """
     if len(p) > 2:
         p[0] = p[1] + (p[3],)
@@ -1064,7 +1061,7 @@ def p_parameter_type_list(p):
 
 def p_parameter_list(p):
     """parameter_list : parameter_declaration
-                      | parameter_list ',' parameter_declaration
+    | parameter_list ',' parameter_declaration
     """
     if len(p) > 2:
         p[0] = p[1] + (p[3],)
@@ -1074,8 +1071,8 @@ def p_parameter_list(p):
 
 def p_parameter_declaration(p):
     """parameter_declaration : declaration_specifier_list declarator          gcc_attributes
-                             | declaration_specifier_list abstract_declarator
-                             | declaration_specifier_list
+    | declaration_specifier_list abstract_declarator
+    | declaration_specifier_list
     """
     p[0] = cdeclarations.Parameter()
     specs = p[1]
@@ -1092,7 +1089,7 @@ def p_parameter_declaration(p):
 
 def p_identifier_list(p):
     """identifier_list : IDENTIFIER
-                       | identifier_list ',' IDENTIFIER
+    | identifier_list ',' IDENTIFIER
     """
     param = cdeclarations.Parameter()
     param.declarator = cdeclarations.Declarator()
@@ -1106,7 +1103,7 @@ def p_identifier_list(p):
 
 def p_type_name(p):
     """type_name : specifier_qualifier_list
-                 | specifier_qualifier_list abstract_declarator
+    | specifier_qualifier_list abstract_declarator
     """
     typ = p[1]
     if len(p) == 3:
@@ -1123,8 +1120,8 @@ def p_type_name(p):
 
 def p_abstract_declarator(p):
     """abstract_declarator : pointer
-                           | direct_abstract_declarator         gcc_attributes
-                           | pointer direct_abstract_declarator gcc_attributes
+    | direct_abstract_declarator         gcc_attributes
+    | pointer direct_abstract_declarator gcc_attributes
     """
     if len(p) == 2:
         p[0] = p[1]
@@ -1152,14 +1149,14 @@ def p_abstract_declarator(p):
 
 def p_direct_abstract_declarator(p):
     """direct_abstract_declarator : '(' gcc_attributes abstract_declarator ')'
-                      | '[' ']'
-                      | '[' constant_expression ']'
-                      | direct_abstract_declarator '[' ']'
-                      | direct_abstract_declarator '[' constant_expression ']'
-                      | '(' ')'
-                      | '(' parameter_type_list ')'
-                      | direct_abstract_declarator '(' ')'
-                      | direct_abstract_declarator '(' parameter_type_list ')'
+    | '[' ']'
+    | '[' constant_expression ']'
+    | direct_abstract_declarator '[' ']'
+    | direct_abstract_declarator '[' constant_expression ']'
+    | '(' ')'
+    | '(' parameter_type_list ')'
+    | direct_abstract_declarator '(' ')'
+    | direct_abstract_declarator '(' parameter_type_list ')'
     """
     if p[1] == "(" and isinstance(p[3], cdeclarations.Declarator):
         p[0] = p[3]
@@ -1199,76 +1196,74 @@ def p_direct_abstract_declarator(p):
 
 def p_initializer(p):
     """initializer : assignment_expression
-                   | '{' initializer_list '}'
-                   | '{' initializer_list ',' '}'
+    | '{' initializer_list '}'
+    | '{' initializer_list ',' '}'
     """
 
 
 def p_initializer_list(p):
     """initializer_list : initializer
-                        | initializer_list ',' initializer
+    | initializer_list ',' initializer
     """
 
 
 def p_statement(p):
     """statement : labeled_statement
-                 | compound_statement
-                 | expression_statement
-                 | selection_statement
-                 | iteration_statement
-                 | jump_statement
+    | compound_statement
+    | expression_statement
+    | selection_statement
+    | iteration_statement
+    | jump_statement
     """
 
 
 def p_labeled_statement(p):
     """labeled_statement : IDENTIFIER ':' statement
-                         | CASE constant_expression ':' statement
-                         | DEFAULT ':' statement
+    | CASE constant_expression ':' statement
+    | DEFAULT ':' statement
     """
 
 
 def p_compound_statement(p):
     """compound_statement : '{' '}'
-                          | '{' statement_list '}'
-                          | '{' declaration_list '}'
-                          | '{' declaration_list statement_list '}'
+    | '{' statement_list '}'
+    | '{' declaration_list '}'
+    | '{' declaration_list statement_list '}'
     """
 
 
 def p_compound_statement_error(p):
-    """compound_statement : '{' error '}'
-    """
+    """compound_statement : '{' error '}'"""
     # Error resynchronisation catch-all
 
 
 def p_declaration_list(p):
     """declaration_list : declaration
-                        | declaration_list declaration
+    | declaration_list declaration
     """
 
 
 def p_statement_list(p):
     """statement_list : statement
-                      | statement_list statement
+    | statement_list statement
     """
 
 
 def p_expression_statement(p):
     """expression_statement : ';'
-                            | expression ';'
+    | expression ';'
     """
 
 
 def p_expression_statement_error(p):
-    """expression_statement : error ';'
-    """
+    """expression_statement : error ';'"""
     # Error resynchronisation catch-all
 
 
 def p_selection_statement(p):
     """selection_statement : IF '(' expression ')' statement %prec IF
-                           | IF '(' expression ')' statement ELSE statement
-                           | SWITCH '(' expression ')' statement
+    | IF '(' expression ')' statement ELSE statement
+    | SWITCH '(' expression ')' statement
     """
 
 
@@ -1282,44 +1277,44 @@ def p_iteration_statement(p):
 
 def p_jump_statement(p):
     """jump_statement : GOTO IDENTIFIER ';'
-                      | CONTINUE ';'
-                      | BREAK ';'
-                      | RETURN ';'
-                      | RETURN expression ';'
+    | CONTINUE ';'
+    | BREAK ';'
+    | RETURN ';'
+    | RETURN expression ';'
     """
 
 
 def p_external_declaration(p):
     """external_declaration : declaration
-                            | function_definition
+    | function_definition
     """
     # Intentionally empty
 
 
 def p_function_definition(p):
     """function_definition : declaration_specifier_list declarator declaration_list compound_statement
-                        | declaration_specifier_list declarator compound_statement
-                        | declarator declaration_list compound_statement
-                        | declarator compound_statement
+    | declaration_specifier_list declarator compound_statement
+    | declarator declaration_list compound_statement
+    | declarator compound_statement
     """
     # No impl of function defs
 
 
 def p_directive(p):
     """directive : define
-                 | undefine
-                 | pragma
+    | undefine
+    | pragma
     """
 
 
 def p_define(p):
     """define : PP_DEFINE PP_DEFINE_NAME PP_END_DEFINE
-              | PP_DEFINE PP_DEFINE_NAME type_name PP_END_DEFINE
-              | PP_DEFINE PP_DEFINE_NAME constant_expression PP_END_DEFINE
-              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' ')' PP_END_DEFINE
-              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' ')' constant_expression PP_END_DEFINE
-              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' PP_END_DEFINE
-              | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' constant_expression PP_END_DEFINE
+    | PP_DEFINE PP_DEFINE_NAME type_name PP_END_DEFINE
+    | PP_DEFINE PP_DEFINE_NAME constant_expression PP_END_DEFINE
+    | PP_DEFINE PP_DEFINE_MACRO_NAME '(' ')' PP_END_DEFINE
+    | PP_DEFINE PP_DEFINE_MACRO_NAME '(' ')' constant_expression PP_END_DEFINE
+    | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' PP_END_DEFINE
+    | PP_DEFINE PP_DEFINE_MACRO_NAME '(' macro_parameter_list ')' constant_expression PP_END_DEFINE
     """
 
     filename = p.slice[1].filename
@@ -1389,7 +1384,7 @@ def p_undefine(p):
 
 def p_macro_parameter_list(p):
     """macro_parameter_list : PP_MACRO_PARAM
-                            | macro_parameter_list ',' PP_MACRO_PARAM
+    | macro_parameter_list ',' PP_MACRO_PARAM
     """
     if len(p) == 2:
         p[0] = [p[1]]
@@ -1413,14 +1408,13 @@ def p_error(t):
 
 
 def p_pragma(p):
-    """pragma : pragma_pack
-    """
+    """pragma : pragma_pack"""
 
 
 def p_pragma_pack(p):
     """pragma_pack : PRAGMA PRAGMA_PACK '(' ')' PRAGMA_END
-                   | PRAGMA PRAGMA_PACK '(' constant ')' PRAGMA_END
-                   | PRAGMA PRAGMA_PACK '(' pragma_pack_stack_args ')' PRAGMA_END
+    | PRAGMA PRAGMA_PACK '(' constant ')' PRAGMA_END
+    | PRAGMA PRAGMA_PACK '(' pragma_pack_stack_args ')' PRAGMA_END
     """
 
     err = None
@@ -1445,10 +1439,10 @@ def p_pragma_pack(p):
 
 def p_pragma_pack_stack_args(p):
     """pragma_pack_stack_args : IDENTIFIER
-                              | IDENTIFIER ',' IDENTIFIER
-                              | IDENTIFIER ',' IDENTIFIER ',' constant
-                              | IDENTIFIER ',' constant ',' IDENTIFIER
-                              | IDENTIFIER ',' constant
+    | IDENTIFIER ',' IDENTIFIER
+    | IDENTIFIER ',' IDENTIFIER ',' constant
+    | IDENTIFIER ',' constant ',' IDENTIFIER
+    | IDENTIFIER ',' constant
     """
     op, id, n = p[1], None, None
 

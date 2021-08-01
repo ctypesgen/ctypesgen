@@ -139,8 +139,8 @@ class StdlibTest(unittest.TestCase):
         if sys.platform == "win32":
             # Check a variable that is already set
             env_var_name = (
-                "USERNAME"
-            )  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
+                "USERNAME"  # this is always set (as is windir, ProgramFiles, USERPROFILE, etc.)
+            )
             expect_result = os.environ[env_var_name]
             self.assertTrue(expect_result, "this should not be None or empty")
             # reason for using an existing OS variable is that unless the
@@ -157,8 +157,7 @@ class StdlibTest(unittest.TestCase):
         self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
-        """Related to issue 8. Test getenv of unset variable.
-        """
+        """Related to issue 8. Test getenv of unset variable."""
         module = self.module
         env_var_name = "NOT SET"
         expect_result = None
@@ -202,8 +201,7 @@ struct foo
 
 
 class SimpleMacrosTest(unittest.TestCase):
-    """Based on simple_macros.py
-    """
+    """Based on simple_macros.py"""
 
     def setUp(self):
         """NOTE this is called once for each test* method
@@ -239,8 +237,7 @@ class SimpleMacrosTest(unittest.TestCase):
         ctypesgentest.cleanup()
 
     def test_macro_constant_int(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         module, json = self.module, self._json
 
         self.assertEqual(module.A, 1)
@@ -255,15 +252,13 @@ class SimpleMacrosTest(unittest.TestCase):
         )
 
     def test_macro_addition(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         module = self.module
 
         self.assertEqual(module.B(2, 2), 4)
 
     def test_macro_ternary_json(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         json = self._json
 
         self.assertEqual(
@@ -277,43 +272,37 @@ class SimpleMacrosTest(unittest.TestCase):
         )
 
     def test_macro_ternary_true(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         module = self.module
 
         self.assertEqual(module.C(True, 1, 2), 1)
 
     def test_macro_ternary_false(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         module = self.module
 
         self.assertEqual(module.C(False, 1, 2), 2)
 
     def test_macro_ternary_true_complex(self):
-        """Test ?: with true, using values that can not be confused between True and 1
-        """
+        """Test ?: with true, using values that can not be confused between True and 1"""
         module = self.module
 
         self.assertEqual(module.C(True, 99, 100), 99)
 
     def test_macro_ternary_false_complex(self):
-        """Test ?: with false, using values that can not be confused between True and 1
-        """
+        """Test ?: with false, using values that can not be confused between True and 1"""
         module = self.module
 
         self.assertEqual(module.C(False, 99, 100), 100)
 
     def test_macro_string_compose(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         module = self.module
 
         self.assertEqual(module.funny("bunny"), "funnybunny")
 
     def test_macro_string_compose_json(self):
-        """Tests from simple_macros.py
-        """
+        """Tests from simple_macros.py"""
         json = self._json
 
         self.assertEqual(
@@ -467,8 +456,7 @@ class SimpleMacrosTest(unittest.TestCase):
 
 
 class StructuresTest(unittest.TestCase):
-    """Based on structures.py
-    """
+    """Based on structures.py"""
 
     def setUp(self):
         """NOTE this is called once for each test* method
@@ -1421,108 +1409,108 @@ typedef struct {
                 "type": "typedef",
             },
             {
-                'attrib': {},
-                'fields': [
+                "attrib": {},
+                "fields": [
                     {
-                        'ctype': {
-                            'Klass': 'CtypesSimple',
-                            'errors': [],
-                            'longs': 0,
-                            'name': 'int',
-                            'signed': True
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "int",
+                            "signed": True,
                         },
-                        'name': 'a'
+                        "name": "a",
                     },
                     {
-                        'ctype': {
-                            'Klass': 'CtypesSimple',
-                            'errors': [],
-                            'longs': 0,
-                            'name': 'char',
-                            'signed': True
+                        "ctype": {
+                            "Klass": "CtypesSimple",
+                            "errors": [],
+                            "longs": 0,
+                            "name": "char",
+                            "signed": True,
                         },
-                        'name': 'b'
-                    }
+                        "name": "b",
+                    },
                 ],
-                'name': 'anon_10',
-                'type': 'struct'
+                "name": "anon_10",
+                "type": "struct",
             },
             {
-                'ctype': {
-                    'Klass': 'CtypesStruct',
-                    'anonymous': True,
-                    'attrib': {},
-                    'errors': [],
-                    'members': [
+                "ctype": {
+                    "Klass": "CtypesStruct",
+                    "anonymous": True,
+                    "attrib": {},
+                    "errors": [],
+                    "members": [
                         [
-                            'a',
+                            "a",
                             {
-                                'Klass': 'CtypesSimple',
-                                'errors': [],
-                                'longs': 0,
-                                'name': 'int',
-                                'signed': True
-                            }
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "int",
+                                "signed": True,
+                            },
                         ],
                         [
-                            'b',
+                            "b",
                             {
-                                'Klass': 'CtypesSimple',
-                                'errors': [],
-                                'longs': 0,
-                                'name': 'char',
-                                'signed': True
-                            }
-                        ]
+                                "Klass": "CtypesSimple",
+                                "errors": [],
+                                "longs": 0,
+                                "name": "char",
+                                "signed": True,
+                            },
+                        ],
                     ],
-                    'opaque': False,
-                    'src': ['/some-path/temp.h', 81],
-                    'tag': 'anon_10',
-                    'variety': 'struct'
+                    "opaque": False,
+                    "src": ["/some-path/temp.h", 81],
+                    "tag": "anon_10",
+                    "variety": "struct",
                 },
-                'name': 'BAR0',
-                'type': 'typedef'
+                "name": "BAR0",
+                "type": "typedef",
             },
             {
-                'ctype': {
-                    'Klass': 'CtypesPointer',
-                    'destination': {
-                        'Klass': 'CtypesStruct',
-                        'anonymous': True,
-                        'attrib': {},
-                        'errors': [],
-                        'members': [
+                "ctype": {
+                    "Klass": "CtypesPointer",
+                    "destination": {
+                        "Klass": "CtypesStruct",
+                        "anonymous": True,
+                        "attrib": {},
+                        "errors": [],
+                        "members": [
                             [
-                                'a',
+                                "a",
                                 {
-                                    'Klass': 'CtypesSimple',
-                                    'errors': [],
-                                    'longs': 0,
-                                    'name': 'int',
-                                    'signed': True
-                                }
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "int",
+                                    "signed": True,
+                                },
                             ],
                             [
-                                'b',
+                                "b",
                                 {
-                                    'Klass': 'CtypesSimple',
-                                    'errors': [],
-                                    'longs': 0,
-                                    'name': 'char',
-                                    'signed': True
-                                }
-                            ]
+                                    "Klass": "CtypesSimple",
+                                    "errors": [],
+                                    "longs": 0,
+                                    "name": "char",
+                                    "signed": True,
+                                },
+                            ],
                         ],
-                        'opaque': False,
-                        'src': ["/some-path/temp.h", 81],
-                        'tag': 'anon_10',
-                        'variety': 'struct'
+                        "opaque": False,
+                        "src": ["/some-path/temp.h", 81],
+                        "tag": "anon_10",
+                        "variety": "struct",
                     },
-                    'errors': [],
-                    'qualifiers': []
+                    "errors": [],
+                    "qualifiers": [],
                 },
-                'name': 'PBAR0',
-                'type': 'typedef'
+                "name": "PBAR0",
+                "type": "typedef",
             },
             {
                 "ctype": {
@@ -1865,8 +1853,7 @@ typedef struct {
         compare_json(self, self.json, json_ans, True)
 
     def test_fields(self):
-        """Test whether fields are built correctly.
-        """
+        """Test whether fields are built correctly."""
         struct_foo = self.module.struct_foo
         self.assertEqual(
             struct_foo._fields_,
@@ -1880,8 +1867,7 @@ typedef struct {
         )
 
     def test_pack(self):
-        """Test whether gcc __attribute__((packed)) is interpreted correctly.
-        """
+        """Test whether gcc __attribute__((packed)) is interpreted correctly."""
         unpacked_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
         packed_size = compute_packed(1, [ctypes.c_int] * 3 + [ctypes.c_char])
 
@@ -1899,8 +1885,7 @@ typedef struct {
         self.assertEqual(ctypes.sizeof(packed_foo_t), packed_size)
 
     def test_pragma_pack(self):
-        """Test whether #pragma pack(...) is interpreted correctly.
-        """
+        """Test whether #pragma pack(...) is interpreted correctly."""
         packed4_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
         packed2_size = compute_packed(2, [ctypes.c_int] * 3 + [ctypes.c_char])
         unpacked_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
@@ -2346,6 +2331,7 @@ class UncheckedTest(unittest.TestCase):
     def tearDown(self):
         del self.module
         ctypesgentest.cleanup()
+
 
 class NULLTest(unittest.TestCase):
     "Test correct parsing and generation of NULL"

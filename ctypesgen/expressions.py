@@ -27,8 +27,7 @@ import keyword
 
 
 class EvaluationContext(object):
-    """Interface for evaluating expression nodes.
-    """
+    """Interface for evaluating expression nodes."""
 
     def evaluate_identifier(self, name):
         warnings.warn('Attempt to evaluate identifier "%s" failed' % name)
