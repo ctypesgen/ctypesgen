@@ -26,6 +26,7 @@ Known to run clean with:
 import sys
 import os
 import ctypes
+import json as JSON
 import math
 import unittest
 import logging
@@ -43,10 +44,17 @@ def cleanup_json_src_paths(json):
     JSON stores the path to some source items.  These need to be genericized in
     order for tests to succeed on all machines/user accounts.
     """
-    TYPES_W_PATHS = ["CtypesStruct", "CtypesEnum"]
-    for i in json:
-        if "ctype" in i and i["ctype"]["Klass"] in TYPES_W_PATHS:
-            i["ctype"]["src"][0] = "/some-path/temp.h"
+    if isinstance(json, list):
+        for item in json:
+            cleanup_json_src_paths(item)
+        return
+    if isinstance(json, dict):
+        for key, value in json.items():
+            if key == "src" and isinstance(value, list):
+                if value and "temp.h" in value[0]:
+                    value[0] = "/some-path/temp.h"
+            else:
+                cleanup_json_src_paths(value)
 
 
 def compare_json(test_instance, json, json_ans, verbose=False):
@@ -74,6 +82,8 @@ def compare_json(test_instance, json, json_ans, verbose=False):
             if verbose:
                 print("\nFailed JSON for: ", i["name"])
                 print("GENERATED:\n", i, "\nANS:\n", ith_json_ans)
+                print("FAILED FOR================", JSON.dumps(i, indent=4))
+                print("GENERATED =============", JSON.dumps(ith_json_ans, indent=4))
             raise
 
     if print_excess:
@@ -1504,7 +1514,7 @@ typedef struct {
                             ]
                         ],
                         'opaque': False,
-                        'src': ['/home/olsonse/src/ctypesgen/temp.h', 81],
+                        'src': ["/some-path/temp.h", 81],
                         'tag': 'anon_10',
                         'variety': 'struct'
                     },
@@ -2336,6 +2346,25 @@ class UncheckedTest(unittest.TestCase):
     def tearDown(self):
         del self.module
         ctypesgentest.cleanup()
+
+class NULLTest(unittest.TestCase):
+    "Test correct parsing and generation of NULL"
+
+    def setUp(self):
+        """NOTE this is called once for each test* method
+        (it is not called once per class).
+        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
+        """
+        header_str = "#define A_NULL_MACRO NULL"
+        self.module, _ = ctypesgentest.test(header_str)  # , all_headers=True)
+
+    def tearDown(self):
+        del self.module
+        ctypesgentest.cleanup()
+
+    def test_null_type(self):
+        """Test if NULL is correctly parsed"""
+        self.assertEqual(self.module.A_NULL_MACRO, None)
 
 
 def main(argv=None):
