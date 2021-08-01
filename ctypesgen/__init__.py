@@ -62,15 +62,6 @@ from . import processor
 from . import printer_python
 from . import version
 
-try:
-    from . import printer_json
-except ImportError:
-    pass
-
-__version__ = version.VERSION.partition("-")[-1]
-VERSION = __version__
-
-
 # Modules describing internal format
 from . import descriptions
 from . import ctypedescs
@@ -79,5 +70,13 @@ from . import expressions
 # Helper modules
 from . import messages
 from . import options
+
+try:
+    from . import printer_json
+except ImportError:
+    pass
+
+__version__ = version.VERSION.partition("-")[-1]
+VERSION = __version__
 
 printer = printer_python  # Default the printer to generating Python
