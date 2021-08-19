@@ -26,7 +26,7 @@
 
 __version__ = "2.2"
 
-import re, sys, types, os.path
+import re, sys, types, os.path, importlib
 
 # Regular expression used to match valid token names
 _is_identifier = re.compile(r"^[a-zA-Z0-9_]+$")
@@ -175,7 +175,7 @@ class Lexer:
     # readtab() - Read lexer information from a tab file
     # ------------------------------------------------------------
     def readtab(self, tabfile, fdict):
-        exec("import %s as lextab" % tabfile)
+        lextab = importlib.import_module(tabfile)
         self.lextokens = lextab._lextokens
         self.lexreflags = lextab._lexreflags
         self.lexliterals = lextab._lexliterals
