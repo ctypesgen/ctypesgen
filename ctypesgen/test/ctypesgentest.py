@@ -14,8 +14,10 @@ except ImportError:
 
 if sys.version_info.major == 2:
     import imp
+    module_factory = imp.new_module
 else:
     import types
+    module_factory = types.ModuleType
 
 # ensure that we can load the ctypesgen library
 PACKAGE_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
@@ -65,9 +67,7 @@ def test(header, **more_options):
     printer = None
     if options.output_language.startswith("py"):
         def module_from_code(name, python_code):
-            module = imp.new_module(name) \
-                    if sys.version_info.major == 2 \
-                    else types.ModuleType(name) 
+            module = module_factory(name)
             exec(python_code, module.__dict__)
             return module
         
