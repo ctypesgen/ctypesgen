@@ -80,13 +80,14 @@ def test(header, **more_options):
             retval = module
 
     elif options.output_language == "json":
-        # for ease and consistency with test results, we are going to cheat by
-        # resetting the anonymous tag number
-        ctypesgen.ctypedescs.last_tagnum = 0
-        ctypesgen.printer_json.WrapperPrinter("temp.json", options, descriptions)
-        with open("temp.json") as f:
-            JSON = json.load(f)
-        retval = JSON
+        with redirect(stdout=StringIO()) as printer_output:
+            # for ease and consistency with test results, we are going to cheat by
+            # resetting the anonymous tag number
+            ctypesgen.ctypedescs.last_tagnum = 0
+            # do not discard WrapperPrinter object, as the target file gets closed on printer deletion
+            _ = ctypesgen.printer_json.WrapperPrinter(None, options, descriptions)
+            JSON = json.loads(printer_output.getvalue())
+            retval = JSON
     else:
         raise RuntimeError("No such output language `" + options.output_language + "'")
 
