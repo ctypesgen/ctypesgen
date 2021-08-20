@@ -6,17 +6,22 @@ import io
 import optparse
 import glob
 import json
-
+from contextlib import contextmanager
 try:
-    # should succeed for py3
-    from importlib import reload as reload_module
-except:
-    reload_module = reload
+    from StringIO import StringIO
+except ImportError:
+    from io import StringIO
+
+if sys.version_info.major == 2:
+    import imp
+else:
+    import types
 
 # ensure that we can load the ctypesgen library
 PACKAGE_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
 sys.path.insert(0, PACKAGE_DIR)
 import ctypesgen
+
 
 """ctypesgentest is a simple module for testing ctypesgen on various C constructs. It consists of a
 single function, test(). test() takes a string that represents a C header file, along with some
@@ -26,6 +31,14 @@ containing the resulting module object and the output that ctypesgen produced.""
 # set redirect_stdout to False if using console based debugger like pdb
 redirect_stdout = True
 
+@contextmanager
+def redirect(stdout=sys.stdout):
+    backup = sys.stdout
+    sys.stdout = stdout
+    try:
+        yield stdout
+    finally:
+        sys.stdout = backup
 
 def test(header, **more_options):
 
@@ -51,14 +64,20 @@ def test(header, **more_options):
     # Step 3: Print
     printer = None
     if options.output_language.startswith("py"):
-        ctypesgen.printer_python.WrapperPrinter("temp.py", options, descriptions)
-
-        # Load the module we have just produced
-        module = __import__("temp")
-        # import twice, this hack ensure that "temp" is force loaded
-        # (there *must* be a better way to do this)
-        reload_module(module)
-        retval = module
+        def module_from_code(name, python_code):
+            module = imp.new_module(name) \
+                    if sys.version_info.major == 2 \
+                    else types.ModuleType(name) 
+            exec(python_code, module.__dict__)
+            return module
+        
+        # we have to redirect stdout, as WrapperPrinter is only able to write to files or stdout
+        with redirect(stdout=StringIO()) as printer_output:
+            # do not discard WrapperPrinter object, as the target file gets closed on printer deletion
+            _ = ctypesgen.printer_python.WrapperPrinter(None, options, descriptions)
+            generated_python_code = printer_output.getvalue()
+            module = module_from_code('temp', generated_python_code)
+            retval = module
 
     elif options.output_language == "json":
         # for ease and consistency with test results, we are going to cheat by
