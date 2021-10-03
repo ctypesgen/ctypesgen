@@ -141,7 +141,19 @@ class PreprocessorParser(object):
         """Parse a file and save its output"""
 
         cmd = self.options.cpp
-        cmd += " -U __GNUC__ -dD"
+
+        # Legacy behaviour is to implicitly undefine '__GNUC__'
+        # Continue doing this, unless user explicitly requested to allow it.
+        if self.options.allow_gnu_c:
+            # New behaviour. No implicit override.
+            # (currently NOT enabled by default yet)
+            pass
+        else:
+            # Legacy behaviour. Add an implicit override.
+            # (currently the default)
+            cmd += " -U __GNUC__"
+
+        cmd += " -dD"
 
         for undefine in self.options.cpp_undefines:
             cmd += " -U%s" % undefine
