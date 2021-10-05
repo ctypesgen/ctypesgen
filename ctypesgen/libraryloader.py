@@ -117,9 +117,16 @@ class LibraryLoader(object):  # pylint: disable=useless-object-inheritance ## (n
                     # dir_i should be absolute already
                     yield os.path.join(dir_i, fmt % libname)
 
+            # check if this code is even stored in a physical file
+            try:
+                this_file = __file__
+            except NameError:
+                this_file = None
+            
             # then we search the directory where the generated python interface is stored
-            for fmt in self.name_formats:
-                yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
+            if this_file != None:
+                for fmt in self.name_formats:
+                    yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
 
             # now, use the ctypes tools to try to find the library
             for fmt in self.name_formats:
