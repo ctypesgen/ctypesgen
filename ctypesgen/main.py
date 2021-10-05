@@ -142,6 +142,17 @@ def main(givenargs=None):
         "necessary options (default: gcc -E)",
     )
     op.add_option(
+        "",
+        "--allow-gnu-c",
+        action="store_true",
+        dest="allow_gnu_c",
+        default=False,
+        help="Specify whether to undefine the '__GNUC__' macro, "
+        "while invoking the C preprocessor.\n"
+        "(default: False. i.e. ctypesgen adds an implicit undefine using '-U __GNUC__'.)\n"
+        "Specify this flag to avoid ctypesgen undefining '__GNUC__' as shown above.",
+    )
+    op.add_option(
         "-D",
         "--define",
         action="append",
