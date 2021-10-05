@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: ascii -*-
 # vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 #
 """Simple test suite using unittest.
@@ -17,10 +16,6 @@ Could use any unitest compatible test runner (nose, etc.)
 
 Aims to test for regressions. Where possible use stdlib to
 avoid the need to compile C code.
-
-Known to run clean with:
-  * 32bit Linux (python 2.5.2, 2.6)
-  * 32bit Windows XP (python 2.4, 2.5, 2.6.1)
 """
 
 import sys
@@ -36,32 +31,18 @@ test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
 sys.path.append(os.path.join(test_directory, os.pardir))
 
-import ctypesgentest  # TODO consider moving test() from ctypesgentest into this module
-
-
-def cleanup_json_src_paths(json):
-    """
-    JSON stores the path to some source items.  These need to be genericized in
-    order for tests to succeed on all machines/user accounts.
-    """
-    if isinstance(json, list):
-        for item in json:
-            cleanup_json_src_paths(item)
-        return
-    if isinstance(json, dict):
-        for key, value in json.items():
-            if key == "src" and isinstance(value, list):
-                if value and "temp.h" in value[0]:
-                    value[0] = "/some-path/temp.h"
-            else:
-                cleanup_json_src_paths(value)
+from ctypesgentest import generate, cleanup, JsonHelper  # noqa: E402
+from ctypesgentest import set_logging_level, ctypesgen_version  # noqa: E402
 
 
 def compare_json(test_instance, json, json_ans, verbose=False):
+    json_helper = JsonHelper()
+    json_helper.prepare(json)
+
     print_excess = False
     try:
         test_instance.assertEqual(len(json), len(json_ans))
-    except:
+    except Exception:
         if verbose:
             print(
                 "JSONs do not have same length: ",
@@ -78,7 +59,7 @@ def compare_json(test_instance, json, json_ans, verbose=False):
     for i, ith_json_ans in zip(json, json_ans):
         try:
             test_instance.assertEqual(i, ith_json_ans)
-        except:
+        except Exception:
             if verbose:
                 print("\nFailed JSON for: ", i["name"])
                 print("GENERATED:\n", i, "\nANS:\n", ith_json_ans)
@@ -109,11 +90,8 @@ def compute_packed(modulo, fields):
 
 
 class StdlibTest(unittest.TestCase):
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = "#include <stdlib.h>\n"
         if sys.platform == "win32":
             # pick something from %windir%\system32\msvc*dll that include stdlib
@@ -123,18 +101,19 @@ class StdlibTest(unittest.TestCase):
             libraries = ["libc.so.6"]
         else:
             libraries = ["libc"]
-        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
+        cls.module, _ = generate(header_str, libraries=libraries, all_headers=True)
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        cleanup()
 
     def test_getenv_returns_string(self):
         """Issue 8 - Regression for crash with 64 bit and bad strings on 32 bit.
         See http://code.google.com/p/ctypesgen/issues/detail?id=8
         Test that we get a valid (non-NULL, non-empty) string back
         """
-        module = self.module
+        module = StdlibTest.module
 
         if sys.platform == "win32":
             # Check a variable that is already set
@@ -158,7 +137,7 @@ class StdlibTest(unittest.TestCase):
 
     def test_getenv_returns_null(self):
         """Related to issue 8. Test getenv of unset variable."""
-        module = self.module
+        module = StdlibTest.module
         env_var_name = "NOT SET"
         expect_result = None
         try:
@@ -173,11 +152,8 @@ class StdlibTest(unittest.TestCase):
 class StdBoolTest(unittest.TestCase):
     "Test correct parsing and generation of bool type"
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
 #include <stdbool.h>
 
@@ -187,15 +163,16 @@ struct foo
     int a;
 };
 """
-        self.module, _ = ctypesgentest.test(header_str)  # , all_headers=True)
+        cls.module, _ = generate(header_str)  # , all_headers=True)
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        cleanup()
 
     def test_stdbool_type(self):
         """Test is bool is correctly parsed"""
-        module = self.module
+        module = StdBoolTest.module
         struct_foo = module.struct_foo
         self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
 
@@ -203,11 +180,8 @@ struct foo
 class SimpleMacrosTest(unittest.TestCase):
     """Based on simple_macros.py"""
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
 #define A 1
 #define B(x,y) x+y
@@ -222,23 +196,23 @@ class SimpleMacrosTest(unittest.TestCase):
 #define subcall_macro_minus(x,y) minus_macro(x,y)
 #define subcall_macro_minus_plus(x,y,z) (minus_macro(x,y)) + (z)
 """
-        libraries = None
-        self.module, output = ctypesgentest.test(header_str)
-        self.json, output = ctypesgentest.test(header_str, output_language="json")
+        cls.module, _ = generate(header_str)
+        cls.json, _ = generate(header_str, output_language="json")
 
     def _json(self, name):
-        for i in self.json:
+        for i in SimpleMacrosTest.json:
             if i["name"] == name:
                 return i
         raise KeyError("Could not find JSON entry")
 
-    def tearDown(self):
-        del self.module, self.json
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module, cls.json
+        cleanup()
 
     def test_macro_constant_int(self):
         """Tests from simple_macros.py"""
-        module, json = self.module, self._json
+        module, json = SimpleMacrosTest.module, self._json
 
         self.assertEqual(module.A, 1)
         self.assertEqual(json("A"), {"name": "A", "type": "macro", "value": "1"})
@@ -253,7 +227,7 @@ class SimpleMacrosTest(unittest.TestCase):
 
     def test_macro_addition(self):
         """Tests from simple_macros.py"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.B(2, 2), 4)
 
@@ -273,31 +247,31 @@ class SimpleMacrosTest(unittest.TestCase):
 
     def test_macro_ternary_true(self):
         """Tests from simple_macros.py"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.C(True, 1, 2), 1)
 
     def test_macro_ternary_false(self):
         """Tests from simple_macros.py"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.C(False, 1, 2), 2)
 
     def test_macro_ternary_true_complex(self):
         """Test ?: with true, using values that can not be confused between True and 1"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.C(True, 99, 100), 99)
 
     def test_macro_ternary_false_complex(self):
         """Test ?: with false, using values that can not be confused between True and 1"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.C(False, 99, 100), 100)
 
     def test_macro_string_compose(self):
         """Tests from simple_macros.py"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.funny("bunny"), "funnybunny")
 
@@ -311,7 +285,7 @@ class SimpleMacrosTest(unittest.TestCase):
         )
 
     def test_macro_math_multipler(self):
-        module = self.module
+        module = SimpleMacrosTest.module
 
         x, y = 2, 5
         self.assertEqual(module.multipler_macro(x, y), x * y)
@@ -330,7 +304,7 @@ class SimpleMacrosTest(unittest.TestCase):
         )
 
     def test_macro_math_minus(self):
-        module = self.module
+        module = SimpleMacrosTest.module
 
         x, y = 2, 5
         self.assertEqual(module.minus_macro(x, y), x - y)
@@ -349,7 +323,7 @@ class SimpleMacrosTest(unittest.TestCase):
         )
 
     def test_macro_math_divide(self):
-        module = self.module
+        module = SimpleMacrosTest.module
 
         x, y = 2, 5
         self.assertEqual(module.divide_macro(x, y), x / y)
@@ -368,7 +342,7 @@ class SimpleMacrosTest(unittest.TestCase):
         )
 
     def test_macro_math_mod(self):
-        module = self.module
+        module = SimpleMacrosTest.module
 
         x, y = 2, 5
         self.assertEqual(module.mod_macro(x, y), x % y)
@@ -383,7 +357,7 @@ class SimpleMacrosTest(unittest.TestCase):
 
     def test_macro_subcall_simple(self):
         """Test use of a constant valued macro within a macro"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.subcall_macro_simple(2), 1)
 
@@ -397,7 +371,7 @@ class SimpleMacrosTest(unittest.TestCase):
 
     def test_macro_subcall_simple_plus(self):
         """Test math with constant valued macro within a macro"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         self.assertEqual(module.subcall_macro_simple_plus(2), 1 + 2)
 
@@ -416,7 +390,7 @@ class SimpleMacrosTest(unittest.TestCase):
 
     def test_macro_subcall_minus(self):
         """Test use of macro function within a macro"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         x, y = 2, 5
         self.assertEqual(module.subcall_macro_minus(x, y), x - y)
@@ -436,7 +410,7 @@ class SimpleMacrosTest(unittest.TestCase):
 
     def test_macro_subcall_minus_plus(self):
         """Test math with a macro function within a macro"""
-        module = self.module
+        module = SimpleMacrosTest.module
 
         x, y, z = 2, 5, 1
         self.assertEqual(module.subcall_macro_minus_plus(x, y, z), (x - y) + z)
@@ -458,14 +432,12 @@ class SimpleMacrosTest(unittest.TestCase):
 class StructuresTest(unittest.TestCase):
     """Based on structures.py"""
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-
-        NOTE:  Very possibly, if you change this header string, you need to change the line
-               numbers in the JSON output test result below (in
-               test_struct_json).
+    @classmethod
+    def setUpClass(cls):
+        """
+        NOTE:  Very possibly, if you change this header string, you need to
+        change the line numbers in the JSON output test result below
+        (in test_struct_json).
         """
         header_str = """
 
@@ -552,14 +524,13 @@ typedef struct {
   char b;
 } BAR0, *PBAR0;
 """
-        libraries = None
-        self.module, output = ctypesgentest.test(header_str)
-        self.json, output = ctypesgentest.test(header_str, output_language="json")
-        cleanup_json_src_paths(self.json)
+        cls.module, _ = generate(header_str)
+        cls.json, _ = generate(header_str, output_language="json")
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del StructuresTest.module
+        cleanup()
 
     def test_struct_json(self):
         json_ans = [
@@ -791,7 +762,7 @@ typedef struct {
                         "name": None,
                     },
                 ],
-                "name": "anon_6",
+                "name": "anon_1",
                 "type": "struct",
             },
             {
@@ -872,7 +843,7 @@ typedef struct {
                     "opaque": False,
                     "attrib": {},
                     "src": ["/some-path/temp.h", 21],
-                    "tag": "anon_6",
+                    "tag": "anon_1",
                     "variety": "struct",
                 },
                 "name": "foo_t",
@@ -952,7 +923,7 @@ typedef struct {
                         "name": None,
                     },
                 ],
-                "name": "anon_7",
+                "name": "anon_2",
                 "type": "struct",
             },
             {
@@ -1033,7 +1004,7 @@ typedef struct {
                     "opaque": False,
                     "attrib": {"packed": True},
                     "src": ["/some-path/temp.h", 30],
-                    "tag": "anon_7",
+                    "tag": "anon_2",
                     "variety": "struct",
                 },
                 "name": "packed_foo_t",
@@ -1113,7 +1084,7 @@ typedef struct {
                         "name": None,
                     },
                 ],
-                "name": "anon_8",
+                "name": "anon_3",
                 "type": "struct",
             },
             {
@@ -1194,7 +1165,7 @@ typedef struct {
                     "opaque": False,
                     "attrib": {"packed": True, "aligned": [4]},
                     "src": ["/some-path/temp.h", 40],
-                    "tag": "anon_8",
+                    "tag": "anon_3",
                     "variety": "struct",
                 },
                 "name": "pragma_packed_foo_t",
@@ -1379,7 +1350,7 @@ typedef struct {
                         "name": "Int",
                     }
                 ],
-                "name": "anon_9",
+                "name": "anon_4",
                 "type": "struct",
             },
             {
@@ -1402,7 +1373,7 @@ typedef struct {
                     "opaque": False,
                     "attrib": {},
                     "src": ["/some-path/temp.h", 77],
-                    "tag": "anon_9",
+                    "tag": "anon_4",
                     "variety": "struct",
                 },
                 "name": "id_struct_t",
@@ -1432,7 +1403,7 @@ typedef struct {
                         "name": "b",
                     },
                 ],
-                "name": "anon_10",
+                "name": "anon_5",
                 "type": "struct",
             },
             {
@@ -1465,7 +1436,7 @@ typedef struct {
                     ],
                     "opaque": False,
                     "src": ["/some-path/temp.h", 81],
-                    "tag": "anon_10",
+                    "tag": "anon_5",
                     "variety": "struct",
                 },
                 "name": "BAR0",
@@ -1503,7 +1474,7 @@ typedef struct {
                         ],
                         "opaque": False,
                         "src": ["/some-path/temp.h", 81],
-                        "tag": "anon_10",
+                        "tag": "anon_5",
                         "variety": "struct",
                     },
                     "errors": [],
@@ -1850,11 +1821,11 @@ typedef struct {
             },
         ]
 
-        compare_json(self, self.json, json_ans, True)
+        compare_json(self, StructuresTest.json, json_ans, True)
 
     def test_fields(self):
         """Test whether fields are built correctly."""
-        struct_foo = self.module.struct_foo
+        struct_foo = StructuresTest.module.struct_foo
         self.assertEqual(
             struct_foo._fields_,
             [
@@ -1868,13 +1839,14 @@ typedef struct {
 
     def test_pack(self):
         """Test whether gcc __attribute__((packed)) is interpreted correctly."""
+        module = StructuresTest.module
         unpacked_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
         packed_size = compute_packed(1, [ctypes.c_int] * 3 + [ctypes.c_char])
 
-        struct_foo = self.module.struct_foo
-        struct_packed_foo = self.module.struct_packed_foo
-        foo_t = self.module.foo_t
-        packed_foo_t = self.module.packed_foo_t
+        struct_foo = module.struct_foo
+        struct_packed_foo = module.struct_packed_foo
+        foo_t = module.foo_t
+        packed_foo_t = module.packed_foo_t
         self.assertEqual(getattr(struct_foo, "_pack_", 0), 0)
         self.assertEqual(getattr(struct_packed_foo, "_pack_", 0), 1)
         self.assertEqual(getattr(foo_t, "_pack_", 0), 0)
@@ -1886,13 +1858,14 @@ typedef struct {
 
     def test_pragma_pack(self):
         """Test whether #pragma pack(...) is interpreted correctly."""
+        module = StructuresTest.module
         packed4_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
         packed2_size = compute_packed(2, [ctypes.c_int] * 3 + [ctypes.c_char])
         unpacked_size = compute_packed(4, [ctypes.c_int] * 3 + [ctypes.c_char])
 
-        pragma_packed_foo_t = self.module.pragma_packed_foo_t
-        struct_pragma_packed_foo2 = self.module.struct_pragma_packed_foo2
-        struct_foo3 = self.module.struct_foo3
+        pragma_packed_foo_t = module.pragma_packed_foo_t
+        struct_pragma_packed_foo2 = module.struct_pragma_packed_foo2
+        struct_foo3 = module.struct_foo3
 
         self.assertEqual(getattr(pragma_packed_foo_t, "_pack_", 0), 4)
         self.assertEqual(getattr(struct_pragma_packed_foo2, "_pack_", 0), 2)
@@ -1906,8 +1879,9 @@ typedef struct {
         """Test whether local field identifier names can override external
         typedef names.
         """
-        Int = self.module.Int
-        id_struct_t = self.module.id_struct_t
+        module = StructuresTest.module
+        Int = module.Int
+        id_struct_t = module.id_struct_t
         self.assertEqual(Int, ctypes.c_int)
         self.assertEqual(id_struct_t._fields_, [("Int", ctypes.c_int)])
 
@@ -1915,19 +1889,18 @@ typedef struct {
         """Test whether anonymous structs with multiple declarations all resolve
         to the same type.
         """
-        BAR0 = self.module.BAR0
-        PBAR0 = self.module.PBAR0
+        module = StructuresTest.module
+        BAR0 = module.BAR0
+        PBAR0 = module.PBAR0
         self.assertEqual(PBAR0._type_, BAR0)
 
 
+@unittest.skipUnless(sys.platform != "darwin", "not supported on Mac")
 class MathTest(unittest.TestCase):
     """Based on math_functions.py"""
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
 #include <math.h>
 #define sin_plus_y(x,y) (sin(x) + (y))
@@ -1940,21 +1913,22 @@ class MathTest(unittest.TestCase):
             libraries = ["libm.so.6"]
         else:
             libraries = ["libc"]
-        self.module, output = ctypesgentest.test(header_str, libraries=libraries, all_headers=True)
+        cls.module, _ = generate(header_str, libraries=libraries, all_headers=True)
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        cleanup()
 
     def test_sin(self):
         """Based on math_functions.py"""
-        module = self.module
+        module = MathTest.module
 
         self.assertEqual(module.sin(2), math.sin(2))
 
     def test_sqrt(self):
         """Based on math_functions.py"""
-        module = self.module
+        module = MathTest.module
 
         self.assertEqual(module.sqrt(4), 2)
 
@@ -1965,7 +1939,7 @@ class MathTest(unittest.TestCase):
 
     def test_bad_args_string_not_number(self):
         """Based on math_functions.py"""
-        module = self.module
+        module = MathTest.module
 
         def local_test():
             module.sin("foobar")
@@ -1974,35 +1948,31 @@ class MathTest(unittest.TestCase):
 
     def test_subcall_sin(self):
         """Test math with sin(x) in a macro"""
-        module = self.module
+        module = MathTest.module
 
         self.assertEqual(module.sin_plus_y(2, 1), math.sin(2) + 1)
 
 
 class EnumTest(unittest.TestCase):
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
         typedef enum {
             TEST_1 = 0,
             TEST_2
         } test_status_t;
         """
-        libraries = None
-        self.module, output = ctypesgentest.test(header_str)
-        self.json, output = ctypesgentest.test(header_str, output_language="json")
-        cleanup_json_src_paths(self.json)
+        cls.module, _ = generate(header_str)
+        cls.json, _ = generate(header_str, output_language="json")
 
-    def tearDown(self):
-        del self.module, self.json
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module, cls.json
+        cleanup()
 
     def test_enum(self):
-        self.assertEqual(self.module.TEST_1, 0)
-        self.assertEqual(self.module.TEST_2, 1)
+        self.assertEqual(EnumTest.module.TEST_1, 0)
+        self.assertEqual(EnumTest.module.TEST_2, 1)
 
     def test_enum_json(self):
         json_ans = [
@@ -2029,7 +1999,7 @@ class EnumTest(unittest.TestCase):
                         "name": "TEST_2",
                     },
                 ],
-                "name": "anon_2",
+                "name": "anon_1",
                 "type": "enum",
             },
             {"name": "TEST_1", "type": "constant", "value": "0"},
@@ -2064,22 +2034,19 @@ class EnumTest(unittest.TestCase):
                     "errors": [],
                     "opaque": False,
                     "src": ["/some-path/temp.h", 2],
-                    "tag": "anon_2",
+                    "tag": "anon_1",
                 },
                 "name": "test_status_t",
                 "type": "typedef",
             },
         ]
 
-        compare_json(self, self.json, json_ans)
+        compare_json(self, EnumTest.json, json_ans, True)
 
 
 class PrototypeTest(unittest.TestCase):
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
         int bar2(int a);
         int bar(int);
@@ -2089,13 +2056,12 @@ class PrototypeTest(unittest.TestCase):
         void * __attribute__((stdcall)) * foo4(void);
         void foo5(void) __attribute__((__stdcall__));
         """
-        libraries = None
-        self.json, output = ctypesgentest.test(header_str, output_language="json")
-        cleanup_json_src_paths(self.json)
+        cls.json, output = generate(header_str, output_language="json")
 
-    def tearDown(self):
-        del self.json
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.json
+        cleanup()
 
     def test_function_prototypes_json(self):
         json_ans = [
@@ -2228,17 +2194,14 @@ class PrototypeTest(unittest.TestCase):
             },
         ]
 
-        compare_json(self, self.json, json_ans, True)
+        compare_json(self, PrototypeTest.json, json_ans, True)
 
 
 class LongDoubleTest(unittest.TestCase):
     "Test correct parsing and generation of 'long double' type"
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
         struct foo
         {
@@ -2246,15 +2209,16 @@ class LongDoubleTest(unittest.TestCase):
             int a;
         };
         """
-        self.module, _ = ctypesgentest.test(header_str)  # , all_headers=True)
+        cls.module, _ = generate(header_str)  # , all_headers=True)
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        cleanup()
 
     def test_longdouble_type(self):
         """Test is long double is correctly parsed"""
-        module = self.module
+        module = LongDoubleTest.module
         struct_foo = module.struct_foo
         self.assertEqual(
             struct_foo._fields_, [("is_bar", ctypes.c_longdouble), ("a", ctypes.c_int)]
@@ -2284,7 +2248,7 @@ class MainTest(unittest.TestCase):
         """Test version string returned by script interface"""
         o, e, c = self._exec(["--version"])
         self.assertEqual(c, 0)
-        self.assertEqual(o.decode().strip(), ctypesgentest.ctypesgen.VERSION)
+        self.assertEqual(o.decode().strip(), ctypesgen_version())
         self.assertEqual(e.decode(), "")
 
     def test_help(self):
@@ -2311,53 +2275,50 @@ class MainTest(unittest.TestCase):
 class UncheckedTest(unittest.TestCase):
     """Fixing a bug in 1.0.0 - basic type returns of function pointers get treated as pointers"""
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = """
         typedef int (*some_type_of_answer)(void*);
         """
-        self.module, self.output = ctypesgentest.test(header_str, all_headers=False)
+        cls.module, cls.output = generate(header_str, all_headers=False)
 
     def test_unchecked_prototype(self):
-        """Test is function type marked UNCHECKED (function pointer returning int) is handled correctly"""
-        module = self.module
+        """Test is function type marked UNCHECKED (function pointer returning
+        int) is handled correctly"""
+        module = UncheckedTest.module
         A = module.some_type_of_answer()
         self.assertEqual(A.restype, ctypes.c_int)
         self.assertEqual(A.argtypes, (ctypes.c_void_p,))
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        cleanup()
 
 
 class NULLTest(unittest.TestCase):
     "Test correct parsing and generation of NULL"
 
-    def setUp(self):
-        """NOTE this is called once for each test* method
-        (it is not called once per class).
-        FIXME This is slightly inefficient as it is called *way* more times than it needs to be.
-        """
+    @classmethod
+    def setUpClass(cls):
         header_str = "#define A_NULL_MACRO NULL"
-        self.module, _ = ctypesgentest.test(header_str)  # , all_headers=True)
+        cls.module, _ = generate(header_str)  # , all_headers=True)
 
-    def tearDown(self):
-        del self.module
-        ctypesgentest.cleanup()
+    @classmethod
+    def tearDownClass(cls):
+        del NULLTest.module
+        cleanup()
 
     def test_null_type(self):
         """Test if NULL is correctly parsed"""
-        self.assertEqual(self.module.A_NULL_MACRO, None)
+        self.assertEqual(NULLTest.module.A_NULL_MACRO, None)
 
 
 def main(argv=None):
     if argv is None:
         argv = sys.argv
 
-    ctypesgentest.ctypesgen.messages.log.setLevel(logging.CRITICAL)  # do not log anything
+    set_logging_level(logging.CRITICAL)  # do not log anything
     unittest.main()
 
     return 0

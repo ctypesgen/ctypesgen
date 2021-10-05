@@ -39,8 +39,6 @@ per-file-ignores =
     ctypesgen/__init__.py: F401
     ctypesgen/messages.py: F401
     ctypesgen/main.py: E401, E722
-    ctypesgen/test/ctypesgentest.py: E402, E501, F401, F841
-    ctypesgen/test/testsuite.py: E402, E501, E722, F841
     ctypesgen/processor/operations.py: E401, E711, F401, F403, F405, F841
     ctypesgen/processor/pipeline.py: E401, E711, F401, F403, F405
     ctypesgen/processor/dependencies.py: F403, F405
