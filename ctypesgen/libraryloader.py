@@ -122,7 +122,7 @@ class LibraryLoader(object):  # pylint: disable=useless-object-inheritance ## (n
                 this_file = __file__
             except NameError:
                 this_file = None
-            
+
             # then we search the directory where the generated python interface is stored
             if this_file != None:
                 for fmt in self.name_formats:

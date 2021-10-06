@@ -7,6 +7,7 @@ import optparse
 import glob
 import json
 from contextlib import contextmanager
+
 try:
     from StringIO import StringIO
 except ImportError:
@@ -14,9 +15,11 @@ except ImportError:
 
 if sys.version_info.major == 2:
     import imp
+
     module_factory = imp.new_module
 else:
     import types
+
     module_factory = types.ModuleType
 
 # ensure that we can load the ctypesgen library
@@ -33,6 +36,7 @@ containing the resulting module object and the output that ctypesgen produced.""
 # set redirect_stdout to False if using console based debugger like pdb
 redirect_stdout = True
 
+
 @contextmanager
 def redirect(stdout=sys.stdout):
     backup = sys.stdout
@@ -41,6 +45,7 @@ def redirect(stdout=sys.stdout):
         yield stdout
     finally:
         sys.stdout = backup
+
 
 def test(header, **more_options):
 
@@ -66,17 +71,18 @@ def test(header, **more_options):
     # Step 3: Print
     printer = None
     if options.output_language.startswith("py"):
+
         def module_from_code(name, python_code):
             module = module_factory(name)
             exec(python_code, module.__dict__)
             return module
-        
+
         # we have to redirect stdout, as WrapperPrinter is only able to write to files or stdout
         with redirect(stdout=StringIO()) as printer_output:
             # do not discard WrapperPrinter object, as the target file gets closed on printer deletion
             _ = ctypesgen.printer_python.WrapperPrinter(None, options, descriptions)
             generated_python_code = printer_output.getvalue()
-            module = module_from_code('temp', generated_python_code)
+            module = module_from_code("temp", generated_python_code)
             retval = module
 
     elif options.output_language == "json":
