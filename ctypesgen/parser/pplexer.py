@@ -62,13 +62,13 @@ tokens = (
 states = [("DEFINE", "exclusive"), ("PRAGMA", "exclusive")]
 
 subs = {
-    "D": "[0-9]",
-    "L": "[a-zA-Z_]",
-    "H": "[a-fA-F0-9]",
-    "E": "[Ee][+-]?\s*{D}+",
+    "D": r"[0-9]",
+    "L": r"[a-zA-Z_]",
+    "H": r"[a-fA-F0-9]",
+    "E": r"[Ee][+-]?\s*{D}+",
     # new float suffixes supported in gcc 7
-    "FS": "([FflL]|D[FDL]|[fF]\d+x?)",
-    "IS": "[uUlL]*",
+    "FS": r"([FflL]|D[FDL]|[fF]\d+x?)",
+    "IS": r"[uUlL]*",
 }
 # Helper: substitute {foo} with subs[foo] in string (makes regexes more lexy)
 sub_pattern = re.compile("{([^}]*)}")

@@ -23,7 +23,7 @@ def get_preamble(major=None, minor=None):
     """get the available preambles"""
     preambles = dict()
     for fp in glob.glob(PREAMBLE_PATH):
-        m = re.search("(\d)_(\d).py$", fp)
+        m = re.search(r"(\d)_(\d).py$", fp)
         if not m:
             continue
         preambles[(int(m.group(1)), int(m.group(2)))] = fp
