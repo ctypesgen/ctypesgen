@@ -118,10 +118,16 @@ class PreprocessorParser(object):
             "CTYPESGEN=1",
         ]
 
-        # On OSX, explicitly add these defines to keep from getting syntax
-        # errors in the OSX standard headers.
+        # On macOS, explicitly add these defines to keep from getting syntax
+        # errors in the macOS standard headers.
         if sys.platform == "darwin":
-            self.defines += ["__uint16_t=uint16_t", "__uint32_t=uint32_t", "__uint64_t=uint64_t"]
+            self.defines += [
+                "__uint16_t=uint16_t",
+                "__uint32_t=uint32_t",
+                "__uint64_t=uint64_t",
+                "_Nullable=",
+                "_Nonnull=",
+            ]
 
         self.matches = []
         self.output = []
