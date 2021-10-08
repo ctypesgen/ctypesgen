@@ -1,0 +1,72 @@
+[flake8]
+ignore =
+    # whitespace before ':' (Black)
+    E203,
+    # line break before binary operator (Black)
+    W503,
+
+per-file-ignores =
+    # Files and directories which need fixes or specific exceptions.
+    #
+    # Description of codes:
+    # E302    expected 2 blank lines, found 0
+    # E305    expected 2 blank lines after end of function or class
+    # E401    multiple imports on one line
+    # E402    module level import not at top of file
+    # E501    line too long
+    # E711    comparison to None should be ‘if cond is None:’
+    # E722    do not use bare except, specify exception instead
+    # E731    do not assign a lambda expression, use a def
+    # E741    do not use variables named ‘l’, ‘O’, or ‘I’
+    #
+    # F401    module imported but unused
+    # F403    ‘from module import *’ used; unable to detect undefined names
+    # F405    name may be undefined, or defined from star imports: module
+    # F811    redefinition of unused name from line N
+    # F841    local variable name is assigned to but never used
+    #
+    # W391    blank line at end of file
+    # W605    invalid escape sequence ‘x’
+    #
+    run.py: E401, E402
+    setup.py: F401
+    demo/pydemolib.py: E305, E401, E402, E722, F403, F405, F841, W391
+    ctypesgen/options.py: E401
+    ctypesgen/ctypedescs.py: E302, E401, E711, F401
+    ctypesgen/version.py: E401, E722, F401
+    ctypesgen/libraryloader.py: E401, E711, E722, F401
+    ctypesgen/expressions.py: F403, F405, F811
+    ctypesgen/__init__.py: F401
+    ctypesgen/messages.py: F401
+    ctypesgen/main.py: E401, E722
+    ctypesgen/test/ctypesgentest.py: E402, E501, F401, F841
+    ctypesgen/test/testsuite.py: E402, E501, E722, F841
+    ctypesgen/processor/operations.py: E401, E711, F401, F403, F405, F841
+    ctypesgen/processor/pipeline.py: E401, E711, F401, F403, F405
+    ctypesgen/processor/dependencies.py: F403, F405
+    ctypesgen/printer_python/printer.py: E401, E711, F403, F405, W605
+    ctypesgen/printer_python/preamble/3_2.py: E401, F401, F403, F405
+    ctypesgen/printer_python/preamble/2_7.py: E401, F401, F403, F405
+    ctypesgen/printer_python/preamble/2_5.py: E401, F401, F403, F405
+    ctypesgen/printer_json/printer.py: E401, E501, F401, F403, F405
+    ctypesgen/parser/yacc.py: E302, E401, E402, E501, E711, E722, E731, E741, F841
+    ctypesgen/parser/cgrammar.py: E401, E501, F401
+    ctypesgen/parser/lex.py: E302, E401, E501, E741, F841
+    ctypesgen/parser/datacollectingparser.py: E711, F403, F405
+    ctypesgen/parser/preprocessor.py: E401, F401
+    ctypesgen/parser/ctypesparser.py: F403, F405
+    ctypesgen/parser/cparser.py: F401
+    ctypesgen/parser/pplexer.py: E401, F401, F841, W605
+    ctypesgen/parser/cdeclarations.py: E741
+
+max-line-length = 100
+
+exclude =
+    ctypesgen/parser/parsetab.py,
+    ctypesgen/parser/lextab.py,
+    .git,
+    __pycache__,
+    debian
+
+builtins =
+    _,
