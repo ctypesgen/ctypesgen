@@ -22,9 +22,6 @@ stages:
 jobs:
   include:
     - stage: tox
-      env: TOXENV=py27
-
-    - stage: tox
       env: TOXENV=py37
 
     - stage: tox
