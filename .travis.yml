@@ -25,12 +25,6 @@ jobs:
       env: TOXENV=py37
 
     - stage: tox
-      env: TOXENV=py38
-
-    - stage: tox
-      env: TOXENV=py39
-
-    - stage: tox
       env: TOXENV=black
 
     - stage: publish to test.pypi.org
