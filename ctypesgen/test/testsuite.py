@@ -31,7 +31,6 @@ test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
 sys.path.append(os.path.join(test_directory, os.pardir))
 
-import ctypesgentest  # noqa: E402
 from ctypesgentest import generate, cleanup, JsonHelper  # noqa: E402
 from ctypesgentest import set_logging_level, ctypesgen_version  # noqa: E402
 
@@ -2340,13 +2339,13 @@ class MacromanEncodeTest(unittest.TestCase):
 
         """
 
-        cls.module, _ = ctypesgentest.test(header_str)
+        cls.module, _ = generate(header_str)
 
     @classmethod
     def tearDownClass(cls):
         del cls.module
         os.remove(cls.mac_roman_file)
-        ctypesgentest.cleanup()
+        cleanup()
 
     def test_macroman_encoding_source(self):
         module = MacromanEncodeTest.module
