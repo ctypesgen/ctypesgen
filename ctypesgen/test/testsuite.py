@@ -2353,6 +2353,45 @@ class NULLTest(unittest.TestCase):
         self.assertEqual(self.module.A_NULL_MACRO, None)
 
 
+@unittest.skipUnless(sys.platform == "darwin", "requires Mac")
+class MacromanEncodeTest(unittest.TestCase):
+    """Test if source file with mac_roman encoding is correctly parsed.
+
+    This test is skipped on non-mac platforms.
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        cls.mac_roman_file = "temp_mac.h"
+        mac_header_str = b"""
+        #define kICHelper                       "\xa9\\pHelper\xa5"
+
+        """
+
+        with open(cls.mac_roman_file, "wb") as mac_file:
+            mac_file.write(mac_header_str)
+
+        header_str = """
+        #include "temp_mac.h"
+
+        #define MYSTRING kICHelper
+
+        """
+
+        cls.module, _ = ctypesgentest.test(header_str)
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        os.remove(cls.mac_roman_file)
+        ctypesgentest.cleanup()
+
+    def test_macroman_encoding_source(self):
+        module = MacromanEncodeTest.module
+        expected = b"\xef\xbf\xbd\\pHelper\xef\xbf\xbd".decode("utf-8")
+        self.assertEqual(module.MYSTRING, expected)
+
+
 def main(argv=None):
     if argv is None:
         argv = sys.argv

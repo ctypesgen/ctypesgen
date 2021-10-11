@@ -178,9 +178,22 @@ class PreprocessorParser(object):
         self.cparser.handle_status(cmd)
 
         pp = subprocess.Popen(
-            cmd, shell=True, universal_newlines=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            cmd,
+            shell=True,
+            universal_newlines=False,  # binary
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
-        ppout, pperr = pp.communicate()
+        ppout_data, pperr_data = pp.communicate()
+
+        try:
+            ppout = ppout_data.decode("utf8")
+        except UnicodeError:
+            if sys.platform == "darwin":
+                ppout = ppout_data.decode("utf8", errors="replace")
+            else:
+                raise UnicodeError
+        pperr = pperr_data.decode("utf8")
 
         for line in pperr.split("\n"):
             if line:
