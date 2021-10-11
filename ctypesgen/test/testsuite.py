@@ -31,7 +31,7 @@ test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
 sys.path.append(os.path.join(test_directory, os.pardir))
 
-import ctypesgentest
+import ctypesgentest  # noqa: E402
 from ctypesgentest import generate, cleanup, JsonHelper  # noqa: E402
 from ctypesgentest import set_logging_level, ctypesgen_version  # noqa: E402
 
