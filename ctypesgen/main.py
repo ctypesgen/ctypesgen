@@ -131,6 +131,16 @@ def main(givenargs=None):
         default=[],
         help="Add LIBDIR to the run-time library search path.",
     )
+    op.add_option(
+        "",
+        "--no-embed-preamble",
+        action="store_false",
+        dest="embed_preamble",
+        default=True,
+        help="Do not embed preamble and loader in output file. "
+        "Defining --output as a file and --output-language to "
+        "Python is a prerequisite.",
+    )
 
     # Parser options
     op.add_option(
