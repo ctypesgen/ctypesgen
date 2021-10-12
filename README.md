@@ -1,7 +1,7 @@
                               ctypesgen
                               ---------
 
-                  (c) Ctypesgen developers 2007-2019
+                  (c) Ctypesgen developers 2007-2021
                  https://github.com/davidjamesca/ctypesgen
 
 ctypesgen is a pure-python ctypes wrapper generator. It can also
