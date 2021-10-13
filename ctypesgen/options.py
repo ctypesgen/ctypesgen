@@ -41,6 +41,7 @@ default_values = {
     "no_python_types": False,
     "debug_level": 0,
     "strip_prefixes": [],
+    "embed_preamble": True,
 }
 
 

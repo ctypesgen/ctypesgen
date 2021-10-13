@@ -42,10 +42,6 @@ per-file-ignores =
     ctypesgen/processor/operations.py: E401, E711, F401, F403, F405, F841
     ctypesgen/processor/pipeline.py: E401, E711, F401, F403, F405
     ctypesgen/processor/dependencies.py: F403, F405
-    ctypesgen/printer_python/printer.py: E401, E711, F403, F405, W605
-    ctypesgen/printer_python/preamble/3_2.py: E401, F401, F403, F405
-    ctypesgen/printer_python/preamble/2_7.py: E401, F401, F403, F405
-    ctypesgen/printer_python/preamble/2_5.py: E401, F401, F403, F405
     ctypesgen/printer_json/printer.py: E401, E501, F401, F403, F405
     ctypesgen/parser/yacc.py: E302, E401, E402, E501, E711, E722, E731, E741, F841
     ctypesgen/parser/cgrammar.py: E401, E501, F401

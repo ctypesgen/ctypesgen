@@ -1,4 +1,11 @@
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
+"""ctypesgentest is a simple module for testing ctypesgen on various C constructs.
+
+It consists of a single function, test(). test() takes a string that represents
+a C header file, along with some keyword arguments representing options. It
+processes the header using ctypesgen and returns a tuple containing the
+resulting module object and the output that ctypesgen produced.
+"""
+
 import os
 import sys
 from io import StringIO
@@ -6,6 +13,9 @@ import glob
 import json
 from contextlib import contextmanager
 import types
+import subprocess
+from shutil import rmtree
+
 
 # ensure that we can load the ctypesgen library
 PACKAGE_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
@@ -15,11 +25,6 @@ from ctypesgen import options, messages, parser, processor  # noqa: E402
 from ctypesgen import printer_python, printer_json, VERSION  # noqa: E402
 
 module_factory = types.ModuleType
-
-"""ctypesgentest is a simple module for testing ctypesgen on various C constructs. It consists of a
-single function, test(). test() takes a string that represents a C header file, along with some
-keyword arguments representing options. It processes the header using ctypesgen and returns a tuple
-containing the resulting module object and the output that ctypesgen produced."""
 
 # set redirect_stdout to False if using console based debugger like pdb
 redirect_stdout = True
@@ -174,3 +179,103 @@ class JsonHelper:
                         self.anons.append(value)
                 else:
                     self._search_anon_tags(value)
+
+
+#
+# Functions facilitating tests of use of cross inclusion
+#
+
+
+COMMON_DIR = os.path.join(os.path.dirname(__file__), "common")
+
+
+def generate_common():
+    common_lib = "libcommon.so"
+    _create_common_files()
+
+    _compile_common(common_lib)
+
+    for file_name in ["a", "b"]:
+        _generate_common(file_name, common_lib)
+
+    for file_name in ["a", "b"]:
+        _generate_common(file_name, common_lib, False)
+
+
+def cleanup_common():
+    rmtree(COMMON_DIR)
+
+
+def _compile_common(common_lib):
+    subprocess.run(["gcc", "-c", f"{COMMON_DIR}/a.c", "-o", f"{COMMON_DIR}/a.o"])
+    subprocess.run(["gcc", "-c", f"{COMMON_DIR}/b.c", "-o", f"{COMMON_DIR}/b.o"])
+    subprocess.run(
+        [
+            "gcc",
+            "-shared",
+            "-o",
+            f"{COMMON_DIR}/{common_lib}",
+            f"{COMMON_DIR}/a.o",
+            f"{COMMON_DIR}/b.o",
+        ]
+    )
+
+
+def _generate_common(file_name, common_lib, embed_preamble=True):
+    test_options = options.get_default_options()
+    test_options.headers = [f"{COMMON_DIR}/{file_name}.h"]
+    test_options.include_search_paths = [COMMON_DIR]
+    test_options.libraries = [common_lib]
+    test_options.compile_libdirs = [COMMON_DIR]
+    test_options.embed_preamble = embed_preamble
+    if embed_preamble:
+        output = f"{COMMON_DIR}/{file_name}.py"
+    else:
+        output = f"{COMMON_DIR}/{file_name}2.py"
+
+    descriptions = parser.parse(test_options.headers, test_options)
+    processor.process(descriptions, test_options)
+    printer_python.WrapperPrinter(output, test_options, descriptions)
+
+
+def _create_common_files():
+    a_h = """#include "common.h"
+
+void foo(struct mystruct *m);
+
+"""
+    a_c = """#include "a.h"
+
+void foo(struct mystruct *m) {
+
+}
+
+"""
+    b_h = """#include "common.h"
+
+void bar(struct mystruct *m);
+
+"""
+    b_c = """#include "b.h"
+
+void bar(struct mystruct *m) {
+
+}
+
+"""
+    common_h = """struct mystruct {
+    int a;
+};
+
+"""
+
+    try:
+        os.mkdir(COMMON_DIR)
+    except FileExistsError:
+        rmtree(COMMON_DIR)
+        os.mkdir(COMMON_DIR)
+
+    names = {"a.h": a_h, "a.c": a_c, "b.h": b_h, "b.c": b_c, "common.h": common_h}
+    for (name, source) in names.items():
+        with open(f"{COMMON_DIR}/{name}", "w") as f:
+            f.write(source)

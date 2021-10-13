@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
-#
 """Simple test suite using unittest.
 By clach04 (Chris Clark).
 
@@ -31,8 +29,15 @@ test_directory = os.path.abspath(os.path.dirname(__file__))
 sys.path.append(test_directory)
 sys.path.append(os.path.join(test_directory, os.pardir))
 
-from ctypesgentest import generate, cleanup, JsonHelper  # noqa: E402
-from ctypesgentest import set_logging_level, ctypesgen_version  # noqa: E402
+from ctypesgentest import (  # noqa: E402
+    cleanup,
+    cleanup_common,
+    ctypesgen_version,
+    generate,
+    generate_common,
+    JsonHelper,
+    set_logging_level,
+)
 
 
 def compare_json(test_instance, json, json_ans, verbose=False):
@@ -147,6 +152,39 @@ class StdlibTest(unittest.TestCase):
             pass
         result = module.getenv(env_var_name)
         self.assertEqual(expect_result, result)
+
+
+class CommonHeaderTest(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        generate_common()
+
+    @classmethod
+    def tearDownClass(cls):
+        cleanup_common()
+
+    @unittest.expectedFailure
+    def test_two_import_with_embedded_preamble(self):
+        import common.a as a
+        import common.b as b
+
+        m = b.struct_mystruct()
+        b.bar(ctypes.byref(m))
+        a.foo(ctypes.byref(m))
+
+    def test_one_import(self):
+        import common.b as b
+
+        m = b.struct_mystruct()
+        b.bar(ctypes.byref(m))
+
+    def test_two_import(self):
+        import common.a2 as a2
+        import common.b2 as b2
+
+        m = b2.struct_mystruct()
+        b2.bar(ctypes.byref(m))
+        a2.foo(ctypes.byref(m))
 
 
 class StdBoolTest(unittest.TestCase):
@@ -1895,7 +1933,7 @@ typedef struct {
         self.assertEqual(PBAR0._type_, BAR0)
 
 
-@unittest.skipUnless(sys.platform != "darwin", "not supported on Mac")
+@unittest.skipIf(sys.platform == "darwin", "not supported on Mac")
 class MathTest(unittest.TestCase):
     """Based on math_functions.py"""
 
