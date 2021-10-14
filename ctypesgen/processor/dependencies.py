@@ -1,13 +1,10 @@
-#!/usr/bin/env python
-
 """
 The dependencies module determines which descriptions depend on which other
 descriptions.
 """
 
-from ..descriptions import *
-from ..ctypedescs import *
-from ..messages import *
+from ctypesgen.descriptions import MacroDescription, UndefDescription
+from ctypesgen.ctypedescs import visit_type_and_collect_info
 
 
 def find_dependencies(data, opts):

@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
-# -*- coding: us-ascii -*-
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
+
 """Examples:
 
         setup.py sdist
@@ -8,7 +7,7 @@
 
 """
 
-from setuptools import setup, find_packages
+from setuptools import setup
 
 if __name__ == "__main__":
     setup()

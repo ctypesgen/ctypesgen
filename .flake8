@@ -28,14 +28,8 @@ per-file-ignores =
     # W391    blank line at end of file
     # W605    invalid escape sequence ‘x’
     #
-    run.py: E401, E402
-    setup.py: F401
     demo/pydemolib.py: E305, E401, E402, E722, F403, F405, F841, W391
     ctypesgen/__init__.py: F401
-    ctypesgen/processor/operations.py: E401, E711, F401, F403, F405, F841
-    ctypesgen/processor/pipeline.py: E401, E711, F401, F403, F405
-    ctypesgen/processor/dependencies.py: F403, F405
-    ctypesgen/printer_json/printer.py: E401, E501, F401, F403, F405
     ctypesgen/parser/yacc.py: E302, E401, E402, E501, E711, E722, E731, E741, F841
     ctypesgen/parser/cgrammar.py: E401, E501, F401
     ctypesgen/parser/lex.py: E302, E401, E501, E741, F841
