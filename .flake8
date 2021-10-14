@@ -31,14 +31,8 @@ per-file-ignores =
     run.py: E401, E402
     setup.py: F401
     demo/pydemolib.py: E305, E401, E402, E722, F403, F405, F841, W391
-    ctypesgen/options.py: E401
-    ctypesgen/ctypedescs.py: E302, E401, E711, F401
-    ctypesgen/version.py: E401, E722, F401
     ctypesgen/libraryloader.py: E401, E711, E722, F401
-    ctypesgen/expressions.py: F403, F405, F811
     ctypesgen/__init__.py: F401
-    ctypesgen/messages.py: F401
-    ctypesgen/main.py: E401, E722
     ctypesgen/processor/operations.py: E401, E711, F401, F403, F405, F841
     ctypesgen/processor/pipeline.py: E401, E711, F401, F403, F405
     ctypesgen/processor/dependencies.py: F403, F405

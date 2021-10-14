@@ -1,16 +1,19 @@
-# -*- coding: us-ascii -*-
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 """
 Main loop for ctypesgen.
 """
 
-import optparse, sys
+import optparse
+import sys
 
-from . import options as core_options
-from . import parser as core_parser
-from . import printer_python, printer_json, processor
-from . import messages as msgs
-from . import version
+from ctypesgen import (
+    messages as msgs,
+    options as core_options,
+    parser as core_parser,
+    printer_python,
+    printer_json,
+    processor,
+    version,
+)
 
 
 def find_names_in_modules(modules):
@@ -18,7 +21,7 @@ def find_names_in_modules(modules):
     for module in modules:
         try:
             mod = __import__(module)
-        except:
+        except Exception:
             pass
         else:
             names.update(dir(mod))
