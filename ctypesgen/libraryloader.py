@@ -51,7 +51,7 @@ def _environ_path(name):
     return []
 
 
-class LibraryLoader(object):  # pylint: disable=useless-object-inheritance ## (needed for py27)
+class LibraryLoader:
     """
     A base class For loading of libraries ;-)
     Subclasses load libraries for specific platforms.
@@ -60,7 +60,7 @@ class LibraryLoader(object):  # pylint: disable=useless-object-inheritance ## (n
     # library names formatted specifically for platforms
     name_formats = ["%s"]
 
-    class Lookup(object):  # pylint: disable=useless-object-inheritance ## (needed for py27)
+    class Lookup:
         """Looking up calling conventions for a platform"""
 
         mode = ctypes.DEFAULT_MODE
@@ -124,7 +124,7 @@ class LibraryLoader(object):  # pylint: disable=useless-object-inheritance ## (n
                 this_file = None
 
             # then we search the directory where the generated python interface is stored
-            if this_file != None:
+            if this_file is not None:
                 for fmt in self.name_formats:
                     yield os.path.abspath(os.path.join(os.path.dirname(__file__), fmt % libname))
 
@@ -198,7 +198,11 @@ class DarwinLibraryLoader(LibraryLoader):
 
         dyld_fallback_library_path = _environ_path("DYLD_FALLBACK_LIBRARY_PATH")
         if not dyld_fallback_library_path:
-            dyld_fallback_library_path = [os.path.expanduser("~/lib"), "/usr/local/lib", "/usr/lib"]
+            dyld_fallback_library_path = [
+                os.path.expanduser("~/lib"),
+                "/usr/local/lib",
+                "/usr/lib",
+            ]
 
         dirs = []
 
@@ -207,6 +211,7 @@ class DarwinLibraryLoader(LibraryLoader):
         else:
             dirs.extend(_environ_path("LD_LIBRARY_PATH"))
             dirs.extend(_environ_path("DYLD_LIBRARY_PATH"))
+            dirs.extend(_environ_path("LD_RUN_PATH"))
 
         if hasattr(sys, "frozen") and getattr(sys, "frozen") == "macosx_app":
             dirs.append(os.path.join(os.environ["RESOURCEPATH"], "..", "Frameworks"))
@@ -315,7 +320,10 @@ class PosixLibraryLoader(LibraryLoader):
                 unix_lib_dirs_list += ["/lib/i386-linux-gnu", "/usr/lib/i386-linux-gnu"]
             elif bitage.startswith("64"):
                 # Assume Intel/AMD x86 compatible
-                unix_lib_dirs_list += ["/lib/x86_64-linux-gnu", "/usr/lib/x86_64-linux-gnu"]
+                unix_lib_dirs_list += [
+                    "/lib/x86_64-linux-gnu",
+                    "/usr/lib/x86_64-linux-gnu",
+                ]
             else:
                 # guess...
                 unix_lib_dirs_list += glob.glob("/lib/*linux-gnu")
