@@ -10,11 +10,13 @@ Reference is C99:
 
 __docformat__ = "restructuredtext"
 
-import os, re, shlex, sys, tokenize, traceback, subprocess
-import ctypes
-from . import lex, yacc
-from .lex import TOKEN, LexError
-from . import pplexer
+import os
+import re
+import sys
+import subprocess
+
+from ctypesgen.parser import pplexer, lex, yacc
+from ctypesgen.parser.lex import LexError
 
 # --------------------------------------------------------------------------
 # Lexers

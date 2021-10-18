@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 This file contains classes that represent C declarations. cparser produces
 declarations in this format, and ctypesparser reformats them into a format that
@@ -24,8 +22,8 @@ class Declaration(object):
         d = {"declarator": self.declarator, "type": self.type}
         if self.storage:
             d["storage"] = self.storage
-        l = ["%s=%r" % (k, v) for k, v in d.items()]
-        return "Declaration(%s)" % ", ".join(l)
+        li = ["%s=%r" % (k, v) for k, v in d.items()]
+        return "Declaration(%s)" % ", ".join(li)
 
 
 class Declarator(object):
@@ -98,8 +96,8 @@ class Parameter(object):
             d["declarator"] = self.declarator
         if self.storage:
             d["storage"] = self.storage
-        l = ["%s=%r" % (k, v) for k, v in d.items()]
-        return "Parameter(%s)" % ", ".join(l)
+        li = ["%s=%r" % (k, v) for k, v in d.items()]
+        return "Parameter(%s)" % ", ".join(li)
 
 
 class Type(object):

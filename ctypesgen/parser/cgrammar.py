@@ -19,7 +19,8 @@ if __name__ == "__main__":
     #       env PYTHONPATH=. python ctypesgen/parser/cgrammar.py
     # new_parsetab.py is generated in the current directory and needs to be
     # manually copied (after inspection) to ctypesgen/parser/parsetab.py
-    import sys, os
+    import sys
+    import os
 
     sys.path.insert(0, os.path.join(os.path.pardir, os.path.pardir))
     from ctypesgen.parser.cgrammar import main
@@ -27,17 +28,12 @@ if __name__ == "__main__":
     main()
     sys.exit()
 
-import operator
 import os.path
-import re
 import sys
-import time
-import warnings
 
-from . import yacc
-from .. import expressions
-from ..ctypedescs import anonymous_struct_tagnum
-from . import cdeclarations
+from ctypesgen import expressions
+from ctypesgen.ctypedescs import anonymous_struct_tagnum
+from ctypesgen.parser import cdeclarations, yacc
 
 tokens = (
     "PP_DEFINE",
