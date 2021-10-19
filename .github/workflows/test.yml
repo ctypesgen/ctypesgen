@@ -1,0 +1,43 @@
+name: Test
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  setup-and-test:
+    name: Python-${{ matrix.python }} ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+        matrix:
+            include:
+            # Linux
+            - os: ubuntu-latest
+              python: 3.7
+            - os: ubuntu-latest
+              python: 3.8
+            - os: ubuntu-latest
+              python: 3.9
+            - os: ubuntu-latest
+              python: "3.10"
+            # macOS
+            - os: macos-latest
+              python: "3.10"
+        fail-fast: false
+
+    steps:
+      - uses: actions/checkout@v2
+      
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python }}
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
+
+      - name: Run Test
+        run: |
+          pytest -v --showlocals ctypesgen/test/testsuite.py
