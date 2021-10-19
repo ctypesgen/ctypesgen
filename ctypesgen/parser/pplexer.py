@@ -10,9 +10,9 @@ Reference is C99:
 
 __docformat__ = "restructuredtext"
 
-import os, re, shlex, sys, tokenize, traceback
-import ctypes
-from .lex import TOKEN
+import re
+
+from ctypesgen.parser.lex import TOKEN
 
 tokens = (
     "HEADER_NAME",
@@ -234,7 +234,7 @@ def t_ANY_float(t):
 
     p1 = m.group("p1")
     dp = m.group("dp")
-    p2 = m.group("p2")
+    # p2 = m.group("p2")
     exp = m.group("exp")
     suf = m.group("suf")
 

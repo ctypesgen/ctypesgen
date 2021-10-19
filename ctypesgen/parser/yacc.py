@@ -54,6 +54,13 @@
 
 __version__ = "2.2"
 
+import re
+import types
+import sys
+import io
+import os.path
+import hashlib
+
 # -----------------------------------------------------------------------------
 #                     === User configurable parameters ===
 #
@@ -69,21 +76,6 @@ default_lr = "LALR"  # Default LR table generation method
 
 error_count = 3  # Number of symbols that must be shifted to leave recovery mode
 
-import re, types, sys, io, os.path
-
-# <tm> 1 July 2008
-try:
-    import hashlib
-except ImportError:
-    # Preserve backwards compatibility with older versions of Python
-    import md5
-
-    class Dummy:
-        pass
-
-    hashlib = Dummy()
-    hashlib.md5 = md5.new
-    del Dummy, md5
 
 # Exception raised for yacc-related errors
 class YaccError(Exception):
@@ -358,7 +350,7 @@ class Parser:
                     return getattr(n, "value", None)
                     sys.stderr.write(errorlead, "\n")
 
-            if t == None:
+            if t is None:
                 if debug:
                     sys.stderr.write(errorlead + "\n")
                 # We have some kind of parsing error here.  To handle
@@ -497,8 +489,8 @@ def validate_file(filename):
     counthash = {}
     linen = 1
     noerror = 1
-    for l in lines:
-        m = fre.match(l)
+    for line in lines:
+        m = fre.match(line)
         if m:
             name = m.group(1)
             prev = counthash.get(name)
@@ -514,7 +506,8 @@ def validate_file(filename):
     return noerror
 
 
-# This function looks for functions that might be grammar rules, but which don't have the proper p_suffix.
+# This function looks for functions that might be grammar
+# rules, but which don't have the proper p_suffix.
 def validate_dict(d):
     for n, v in d.items():
         if n[0:2] == "p_" and type(v) in (types.FunctionType, types.MethodType):
@@ -656,7 +649,7 @@ class Production:
         # Precompute list of productions immediately following
         try:
             p.lrafter = Prodnames[p.prod[n + 1]]
-        except (IndexError, KeyError) as e:
+        except (IndexError, KeyError):
             p.lrafter = []
         try:
             p.lrbefore = p.prod[n - 1]
@@ -1113,7 +1106,7 @@ def add_precedence(plist):
                     error += 1
                     continue
                 Precedence[t] = (prec, plevel)
-        except:
+        except Exception:
             sys.stderr.write("yacc: Invalid precedence table.\n")
             error += 1
 

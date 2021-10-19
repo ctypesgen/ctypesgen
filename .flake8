@@ -30,15 +30,8 @@ per-file-ignores =
     #
     demo/pydemolib.py: E305, E401, E402, E722, F403, F405, F841, W391
     ctypesgen/__init__.py: F401
-    ctypesgen/parser/yacc.py: E302, E401, E402, E501, E711, E722, E731, E741, F841
-    ctypesgen/parser/cgrammar.py: E401, E501, F401
-    ctypesgen/parser/lex.py: E302, E401, E501, E741, F841
-    ctypesgen/parser/datacollectingparser.py: E711, F403, F405
-    ctypesgen/parser/preprocessor.py: E401, F401
-    ctypesgen/parser/ctypesparser.py: F403, F405
-    ctypesgen/parser/cparser.py: F401
-    ctypesgen/parser/pplexer.py: E401, F401, F841, W605
-    ctypesgen/parser/cdeclarations.py: E741
+    ctypesgen/parser/yacc.py: E302, E501, E731, E741, F841
+    ctypesgen/parser/cgrammar.py: E501
 
 max-line-length = 100
 

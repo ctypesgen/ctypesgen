@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 Parse a C source file.
 
@@ -9,17 +7,10 @@ the class with a string to parse.
 
 __docformat__ = "restructuredtext"
 
-import operator
 import os.path
-import re
 import sys
-import time
-import warnings
 
-from . import preprocessor
-from . import yacc
-from . import cgrammar
-from . import cdeclarations
+from ctypesgen.parser import cgrammar, preprocessor, yacc
 
 # --------------------------------------------------------------------------
 # Lexer

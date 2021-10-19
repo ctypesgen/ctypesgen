@@ -26,12 +26,17 @@
 
 __version__ = "2.2"
 
-import re, sys, types, os.path, importlib
+import importlib
+import os.path
+import re
+import sys
+import types
 
 # Regular expression used to match valid token names
 _is_identifier = re.compile(r"^[a-zA-Z0-9_]+$")
 
 _INSTANCETYPE = object
+
 
 # Exception thrown when invalid token encountered and no default error
 # handler is defined.
@@ -260,7 +265,8 @@ class Lexer:
         lexdata = self.lexdata
 
         while lexpos < lexlen:
-            # This code provides some short-circuit code for whitespace, tabs, and other ignored characters
+            # This code provides some short-circuit code for whitespace, tabs,
+            # and other ignored characters
             if lexdata[lexpos] in lexignore:
                 lexpos += 1
                 continue
@@ -400,10 +406,10 @@ def _validate_file(filename):
     counthash = {}
     linen = 1
     noerror = 1
-    for l in lines:
-        m = fre.match(l)
+    for line in lines:
+        m = fre.match(line)
         if not m:
-            m = sre.match(l)
+            m = sre.match(line)
         if m:
             name = m.group(1)
             prev = counthash.get(name)
@@ -487,7 +493,7 @@ def _form_master_re(relist, reflags, ldict):
                     lexindexfunc[i] = (None, f[2:])
 
         return [(lexre, lexindexfunc)], [regex]
-    except Exception as e:
+    except Exception:
         m = int(len(relist) / 2)
         if m == 0:
             m = 1
@@ -507,7 +513,6 @@ def _form_master_re(relist, reflags, ldict):
 
 
 def _statetoken(s, names):
-    nonstate = 1
     parts = s.split("_")
     for i in range(1, len(parts)):
         if parts[i] not in names and parts[i] != "ANY":
@@ -648,8 +653,8 @@ def lex(
             for s in states:
                 if not isinstance(s, tuple) or len(s) != 2:
                     print(
-                        "lex: invalid state specifier %s. Must be a tuple (statename,'exclusive|inclusive')"
-                        % repr(s)
+                        "lex: invalid state specifier %s. "
+                        "Must be a tuple (statename,'exclusive|inclusive')" % repr(s)
                     )
                     error = 1
                     continue
@@ -763,10 +768,10 @@ def lex(
                             )
                             error = 1
                             continue
-                    except re.error as e:
+                    except re.error as err:
                         print(
-                            "%s:%d: Invalid regular expression for rule '%s'. %s"
-                            % (file, line, f.__name__, e)
+                            f"{file}:{line}: Invalid regular expression "
+                            f"for rule '{f.__name__}'. {err}"
                         )
                         if "#" in f.__doc__:
                             print(
@@ -815,8 +820,8 @@ def lex(
                         print("lex: Regular expression for rule '%s' matches empty string." % name)
                         error = 1
                         continue
-                except re.error as e:
-                    print("lex: Invalid regular expression for rule '%s'. %s" % (name, e))
+                except re.error as err:
+                    print(f"lex: Invalid regular expression for rule '{name}'. {err}")
                     if "#" in r:
                         print("lex: Make sure '#' in rule '%s' is escaped with '\\#'." % name)
 
