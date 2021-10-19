@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 ctypesgen.ctypedescs contains classes to represent a C type. All of them
 classes are subclasses of CtypesType.
@@ -18,8 +16,6 @@ representing an array of four integers could be created using:
 
 str(ctype) would evaluate to "c_int * 4".
 """
-
-import warnings
 
 __docformat__ = "restructuredtext"
 
@@ -64,6 +60,7 @@ ctypes_type_map_python_builtin = {
     ("ssize_t", True, 0): "c_ptrdiff_t",  # Requires definition in preamble
     ("va_list", True, 0): "c_void_p",
 }
+
 
 # This protocol is used for walking type trees.
 class CtypesTypeVisitor(object):
@@ -323,7 +320,7 @@ class CtypesStruct(CtypesType):
         else:
             self.anonymous = False
 
-        if self.members == None:
+        if self.members is None:
             self.opaque = True
         else:
             self.opaque = False
@@ -373,7 +370,7 @@ class CtypesEnum(CtypesType):
         else:
             self.anonymous = False
 
-        if self.enumerators == None:
+        if self.enumerators is None:
             self.opaque = True
         else:
             self.opaque = False
