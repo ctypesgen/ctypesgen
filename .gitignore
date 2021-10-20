@@ -10,7 +10,7 @@ build/
 ctypesgen.egg-info/
 .eggs/
 .python-version
-ctypesgen/test/.python-version
+tests/.python-version
 
 # Swap/backup editor files
 *.swp

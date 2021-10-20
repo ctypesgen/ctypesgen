@@ -40,4 +40,4 @@ jobs:
 
       - name: Run Test
         run: |
-          pytest -v --showlocals ctypesgen/test/testsuite.py
+          pytest -v --showlocals tests/testsuite.py
