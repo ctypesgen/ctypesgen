@@ -38,4 +38,4 @@ jobs:
       install:
         - pip install --index-url https://test.pypi.org/simple/ --no-deps ctypesgen
       script:
-        - python -c 'import ctypesgencore; print(ctypesgencore.VERSION)'
+        - python -c 'import ctypesgen; print(ctypesgen.VERSION)'
