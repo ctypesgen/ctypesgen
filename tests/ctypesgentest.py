@@ -16,13 +16,8 @@ import types
 import subprocess
 from shutil import rmtree
 
-
-# ensure that we can load the ctypesgen library
-PACKAGE_DIR = os.path.join(os.path.dirname(__file__), os.path.pardir, os.path.pardir)
-sys.path.insert(0, PACKAGE_DIR)
-
-from ctypesgen import options, messages, parser, processor  # noqa: E402
-from ctypesgen import printer_python, printer_json, VERSION  # noqa: E402
+from ctypesgen import options, messages, parser, processor
+from ctypesgen import printer_python, printer_json, VERSION
 
 module_factory = types.ModuleType
 

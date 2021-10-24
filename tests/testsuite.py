@@ -4,11 +4,18 @@ By clach04 (Chris Clark).
 
 Calling:
 
-    python test/testsuite.py
+    python3 -m unittest tests.testsuite
+
+    Calling a specific test only:
+
+    python3 -m unittest tests.testsuite.[TestCase class].[test name]
+    e.g.:
+    python3 -m unittest tests.testsuite.StdBoolTest.test_stdbool_type
 
 or
-    cd test
-    ./testsuite.py
+    pytest -v  --showlocals tests/testsuite.py
+
+    pytest -v  --showlocals tests/testsuite.py::StdBoolTest::test_stdbool_type
 
 Could use any unitest compatible test runner (nose, etc.)
 
@@ -25,11 +32,7 @@ import unittest
 import logging
 from subprocess import Popen, PIPE
 
-test_directory = os.path.abspath(os.path.dirname(__file__))
-sys.path.append(test_directory)
-sys.path.append(os.path.join(test_directory, os.pardir))
-
-from ctypesgentest import (  # noqa: E402
+from tests.ctypesgentest import (
     cleanup,
     cleanup_common,
     ctypesgen_version,
@@ -38,6 +41,8 @@ from ctypesgentest import (  # noqa: E402
     JsonHelper,
     set_logging_level,
 )
+
+TEST_DIR = os.path.abspath(os.path.dirname(__file__))
 
 
 def compare_json(test_instance, json, json_ans, verbose=False):
@@ -165,22 +170,22 @@ class CommonHeaderTest(unittest.TestCase):
 
     @unittest.expectedFailure
     def test_two_import_with_embedded_preamble(self):
-        import common.a as a
-        import common.b as b
+        from .common import a
+        from .common import b
 
         m = b.struct_mystruct()
         b.bar(ctypes.byref(m))
         a.foo(ctypes.byref(m))
 
     def test_one_import(self):
-        import common.b as b
+        from .common import b
 
         m = b.struct_mystruct()
         b.bar(ctypes.byref(m))
 
     def test_two_import(self):
-        import common.a2 as a2
-        import common.b2 as b2
+        from .common import a2
+        from .common import b2
 
         m = b2.struct_mystruct()
         b2.bar(ctypes.byref(m))
@@ -2264,7 +2269,7 @@ class LongDoubleTest(unittest.TestCase):
 
 
 class MainTest(unittest.TestCase):
-    script = os.path.join(test_directory, os.pardir, os.pardir, "run.py")
+    script = os.path.join(TEST_DIR, os.pardir, "run.py")
 
     """Test primary entry point used for ctypesgen when called as executable:
     ctypesgen.main.main()
