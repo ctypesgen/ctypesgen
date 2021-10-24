@@ -1,14 +1,12 @@
 #!/usr/bin/env python3
-# -*- coding: us-ascii -*-
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
 """
 Trivial ctypesgen demo library consumer
 from http://code.google.com/p/ctypesgen
 
  NOTE demolib.py needs to be generated via:
 
-    ../ctypesgen.py -o pydemolib.py -l demolib demolib.h
-    ../ctypesgen.py -o pydemolib.py -l demolib.so demolib.h
+    ../run.py -o pydemolib.py -l demolib demolib.h
+    ../run.py -o pydemolib.py -l demolib.so demolib.h
 
 
 """

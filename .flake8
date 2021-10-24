@@ -28,7 +28,6 @@ per-file-ignores =
     # W391    blank line at end of file
     # W605    invalid escape sequence ‘x’
     #
-    demo/pydemolib.py: E305, E401, E402, E722, F403, F405, F841, W391
     ctypesgen/__init__.py: F401
     ctypesgen/parser/yacc.py: E302, E501, E731, E741, F841
     ctypesgen/parser/cgrammar.py: E501
@@ -38,6 +37,7 @@ max-line-length = 100
 exclude =
     ctypesgen/parser/parsetab.py,
     ctypesgen/parser/lextab.py,
+    demo/pydemolib.py,
     .git,
     __pycache__,
     debian
