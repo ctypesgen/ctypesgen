@@ -144,7 +144,8 @@ class WrapperPrinter:
 
     def _copy_preamble_loader_files(self, path):
         if os.path.isfile(path):
-            dst = os.path.dirname(path)
+            abspath = os.path.abspath(path)
+            dst = os.path.dirname(abspath)
         else:
             error_message(
                 "Cannot copy preamble and loader files",
