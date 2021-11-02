@@ -110,6 +110,8 @@ tokens = (
     "RETURN",
     "__ASM__",
     "__ATTRIBUTE__",
+    "RESTRICT",
+    "__RESTRICT",
     # with new code that accepts arbitrary attributes-->must not be keywords
     # "PACKED",
     # "ALIGNED",
@@ -154,6 +156,8 @@ keywords = [
     "while",
     "__asm__",
     "__attribute__",
+    "restrict",
+    "__restrict",
     # with new code that accepts arbitrary attributes-->must not be keywords
     # "packed",
     # "aligned",
@@ -953,6 +957,8 @@ def p_enumerator(p):
 def p_type_qualifier(p):
     """type_qualifier : CONST
     | VOLATILE
+    | RESTRICT
+    | __RESTRICT
     """
     p[0] = cdeclarations.TypeQualifier(p[1])
 
