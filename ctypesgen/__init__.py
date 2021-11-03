@@ -1,7 +1,3 @@
-#!/usr/bin/env python
-# -*- coding: us-ascii -*-
-# vim:ts=4:sw=4:softtabstop=4:smarttab:expandtab
-
 """
 Ctypesgencore is the module that contains the main body of ctypesgen - in fact,
 it contains everything but the command-line interface.

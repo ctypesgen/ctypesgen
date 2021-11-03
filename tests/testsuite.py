@@ -624,6 +624,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -644,6 +645,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -701,6 +703,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -721,6 +724,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -778,6 +782,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -798,6 +803,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -858,6 +864,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -877,6 +884,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -939,6 +947,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -959,6 +968,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -1019,6 +1029,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -1038,6 +1049,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -1100,6 +1112,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -1120,6 +1133,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -1180,6 +1194,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -1199,6 +1214,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -1261,6 +1277,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -1281,6 +1298,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -1338,6 +1356,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 15,
                             },
                             "errors": [],
@@ -1358,6 +1377,7 @@ typedef struct {
                             "bitfield": {
                                 "Klass": "ConstantExpressionNode",
                                 "errors": [],
+                                "is_literal": False,
                                 "value": 17,
                             },
                             "errors": [],
@@ -1576,6 +1596,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -1595,6 +1616,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -1660,6 +1682,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -1679,6 +1702,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -1745,6 +1769,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -1764,6 +1789,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -1829,6 +1855,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 15,
                                 },
                                 "errors": [],
@@ -1848,6 +1875,7 @@ typedef struct {
                                 "bitfield": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 17,
                                 },
                                 "errors": [],
@@ -1938,7 +1966,6 @@ typedef struct {
         self.assertEqual(PBAR0._type_, BAR0)
 
 
-@unittest.skipIf(sys.platform == "darwin", "not supported on Mac")
 class MathTest(unittest.TestCase):
     """Based on math_functions.py"""
 
@@ -2022,7 +2049,12 @@ class EnumTest(unittest.TestCase):
             {
                 "fields": [
                     {
-                        "ctype": {"Klass": "ConstantExpressionNode", "errors": [], "value": 0},
+                        "ctype": {
+                            "Klass": "ConstantExpressionNode",
+                            "errors": [],
+                            "is_literal": False,
+                            "value": 0,
+                        },
                         "name": "TEST_1",
                     },
                     {
@@ -2037,7 +2069,12 @@ class EnumTest(unittest.TestCase):
                                 "name": "TEST_1",
                             },
                             "name": "addition",
-                            "right": {"Klass": "ConstantExpressionNode", "errors": [], "value": 1},
+                            "right": {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "is_literal": False,
+                                "value": 1,
+                            },
                         },
                         "name": "TEST_2",
                     },
@@ -2052,7 +2089,15 @@ class EnumTest(unittest.TestCase):
                     "Klass": "CtypesEnum",
                     "anonymous": True,
                     "enumerators": [
-                        ["TEST_1", {"Klass": "ConstantExpressionNode", "errors": [], "value": 0}],
+                        [
+                            "TEST_1",
+                            {
+                                "Klass": "ConstantExpressionNode",
+                                "errors": [],
+                                "is_literal": False,
+                                "value": 0,
+                            },
+                        ],
                         [
                             "TEST_2",
                             {
@@ -2069,6 +2114,7 @@ class EnumTest(unittest.TestCase):
                                 "right": {
                                     "Klass": "ConstantExpressionNode",
                                     "errors": [],
+                                    "is_literal": False,
                                     "value": 1,
                                 },
                             },
@@ -2337,6 +2383,84 @@ class UncheckedTest(unittest.TestCase):
     def tearDownClass(cls):
         del cls.module
         cleanup()
+
+
+class ConstantsTest(unittest.TestCase):
+    "Test correct parsing and generation of NULL"
+
+    @classmethod
+    def setUpClass(cls):
+        header_str = """
+#define I_CONST_HEX 0xAFAFAFu
+#define I_CONST_DEC 15455u
+#define I_CONST_OCT 0433u
+#define I_CONST_BIN 0b0101L
+#define I_ZERO 0
+#define I_ONE 1
+#define I_ZERO_SUF 0L
+
+#define F_CONST_1 155e+0L
+#define F_CONST_2 35.2e+0f
+#define F_CONST_3 35.e+0f
+#define F_CONST_4 0xAFp012l
+#define F_CONST_5 0x1.FFFFFEp+127f
+#define F_CONST_6 0xAFAF.p35f
+
+struct foo
+{
+        int a;
+        char b;
+        int c: 0b10;
+        int d : 0xf;
+        int : 17;
+};
+
+#define CHAR_CONST u'🍌'
+"""
+        cls.module, _ = generate(header_str)
+
+    @classmethod
+    def tearDownClass(cls):
+        del ConstantsTest.module
+        cleanup()
+
+    def test_integer_constants(self):
+        """Test if integer constants is correctly parsed"""
+        self.assertEqual(ConstantsTest.module.I_CONST_HEX, 0xAFAFAF)
+        self.assertEqual(ConstantsTest.module.I_CONST_DEC, int(15455))
+        self.assertEqual(ConstantsTest.module.I_CONST_OCT, 0o433)
+        self.assertEqual(ConstantsTest.module.I_CONST_BIN, 0b0101)
+        self.assertEqual(ConstantsTest.module.I_CONST_BIN, 5)
+        self.assertEqual(ConstantsTest.module.I_ZERO, int(0))
+        self.assertEqual(ConstantsTest.module.I_ONE, int(1))
+        self.assertEqual(ConstantsTest.module.I_ZERO_SUF, int(0))
+
+    def test_floating_constants(self):
+        """Test if floating constants is correctly parsed"""
+        self.assertEqual(ConstantsTest.module.F_CONST_1, 155e0)
+        self.assertEqual(ConstantsTest.module.F_CONST_2, 35.2e0)
+        self.assertEqual(ConstantsTest.module.F_CONST_3, 35.0e0)
+        self.assertEqual(ConstantsTest.module.F_CONST_4, float.fromhex("0xAFp012"))
+        self.assertEqual(ConstantsTest.module.F_CONST_5, float.fromhex("0x1.fffffep+127"))
+        self.assertEqual(ConstantsTest.module.F_CONST_6, float.fromhex("0xAFAF.p35"))
+
+    def test_struct_fields(self):
+        """Test whether fields are built correctly."""
+        struct_foo = ConstantsTest.module.struct_foo
+        self.assertEqual(
+            struct_foo._fields_,
+            [
+                ("a", ctypes.c_int),
+                ("b", ctypes.c_char),
+                ("c", ctypes.c_int, 2),
+                ("d", ctypes.c_int, 15),
+                ("unnamed_1", ctypes.c_int, 17),
+            ],
+        )
+
+    def test_character_constants(self):
+        """Test if integer constants is correctly parsed"""
+        self.assertEqual(ConstantsTest.module.CHAR_CONST, "🍌")
 
 
 class NULLTest(unittest.TestCase):

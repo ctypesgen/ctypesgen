@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
 DataCollectingParser subclasses ctypesparser.CtypesParser and builds Description
 objects from the CtypesType objects and other information from CtypesParser.

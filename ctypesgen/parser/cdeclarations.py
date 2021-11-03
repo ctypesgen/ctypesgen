@@ -43,7 +43,7 @@ class Declarator(object):
     def __repr__(self):
         s = self.identifier or ""
         if self.bitfield:
-            s += ":%d" % self.bitfield
+            s += f":{self.bitfield.value}"
         if self.array:
             s += repr(self.array)
         if self.initializer:

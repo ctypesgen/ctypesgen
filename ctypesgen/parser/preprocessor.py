@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """Preprocess a C source file using gcc and convert the result into
    a token stream
 
@@ -15,7 +13,7 @@ import re
 import sys
 import subprocess
 
-from ctypesgen.parser import pplexer, lex, yacc
+from ctypesgen.parser import pplexer, lex
 from ctypesgen.parser.lex import LexError
 
 # --------------------------------------------------------------------------
@@ -33,28 +31,11 @@ class PreprocessorLexer(lex.Lexer):
         if filename:
             self.filename = filename
         self.lasttoken = None
-        self.input_stack = []
 
         lex.Lexer.input(self, data)
 
-    def push_input(self, data, filename):
-        self.input_stack.append((self.lexdata, self.lexpos, self.filename, self.lineno))
-        self.lexdata = data
-        self.lexpos = 0
-        self.lineno = 1
-        self.filename = filename
-        self.lexlen = len(self.lexdata)
-
-    def pop_input(self):
-        self.lexdata, self.lexpos, self.filename, self.lineno = self.input_stack.pop()
-        self.lexlen = len(self.lexdata)
-
     def token(self):
         result = lex.Lexer.token(self)
-        while result is None and self.input_stack:
-            self.pop_input()
-            result = lex.Lexer.token(self)
-
         if result:
             self.lasttoken = result.type
             result.filename = self.filename
@@ -62,45 +43,6 @@ class PreprocessorLexer(lex.Lexer):
             self.lasttoken = None
 
         return result
-
-
-class TokenListLexer(object):
-    def __init__(self, tokens):
-        self.tokens = tokens
-        self.pos = 0
-
-    def token(self):
-        if self.pos < len(self.tokens):
-            t = self.tokens[self.pos]
-            self.pos += 1
-            return t
-        else:
-            return None
-
-
-def symbol_to_token(sym):
-    if isinstance(sym, yacc.YaccSymbol):
-        return sym.value
-    elif isinstance(sym, lex.LexToken):
-        return sym
-    else:
-        assert False, "Not a symbol: %r" % sym
-
-
-def create_token(type, value, production=None):
-    """Create a token of type and value, at the position where 'production'
-    was reduced.  Don't specify production if the token is built-in"""
-    t = lex.LexToken()
-    t.type = type
-    t.value = value
-    t.lexpos = -1
-    if production:
-        t.lineno = production.slice[1].lineno
-        t.filename = production.slice[1].filename
-    else:
-        t.lineno = -1
-        t.filename = "<builtin>"
-    return t
 
 
 # --------------------------------------------------------------------------

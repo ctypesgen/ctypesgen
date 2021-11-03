@@ -9,27 +9,10 @@ per-file-ignores =
     # Files and directories which need fixes or specific exceptions.
     #
     # Description of codes:
-    # E302    expected 2 blank lines, found 0
-    # E305    expected 2 blank lines after end of function or class
     # E401    multiple imports on one line
-    # E402    module level import not at top of file
     # E501    line too long
-    # E711    comparison to None should be ‘if cond is None:’
-    # E722    do not use bare except, specify exception instead
-    # E731    do not assign a lambda expression, use a def
-    # E741    do not use variables named ‘l’, ‘O’, or ‘I’
-    #
-    # F401    module imported but unused
-    # F403    ‘from module import *’ used; unable to detect undefined names
-    # F405    name may be undefined, or defined from star imports: module
-    # F811    redefinition of unused name from line N
-    # F841    local variable name is assigned to but never used
-    #
-    # W391    blank line at end of file
-    # W605    invalid escape sequence ‘x’
     #
     ctypesgen/__init__.py: F401
-    ctypesgen/parser/yacc.py: E302, E501, E731, E741, F841
     ctypesgen/parser/cgrammar.py: E501
 
 max-line-length = 100
@@ -37,6 +20,8 @@ max-line-length = 100
 exclude =
     ctypesgen/parser/parsetab.py,
     ctypesgen/parser/lextab.py,
+	ctypesgen/parser/yacc.py,
+	ctypesgen/parser/lex.py,
     demo/pydemolib.py,
     .git,
     __pycache__,

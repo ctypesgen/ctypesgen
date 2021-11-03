@@ -65,14 +65,17 @@ class ExpressionNode(object):
 
 
 class ConstantExpressionNode(ExpressionNode):
-    def __init__(self, value):
+    def __init__(self, value, is_literal=False):
         ExpressionNode.__init__(self)
         self.value = value
+        self.is_literal = is_literal
 
     def evaluate(self, context):
         return self.value
 
     def py_string(self, can_be_ctype):
+        if self.is_literal:
+            return self.value
         if self.value == float("inf"):
             return "float('inf')"
         elif self.value == float("-inf"):
