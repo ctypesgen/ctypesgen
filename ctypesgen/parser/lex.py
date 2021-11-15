@@ -860,7 +860,7 @@ class LexerReflect(object):
 # Build all of the regular expression rules from definitions in the supplied module
 # -----------------------------------------------------------------------------
 def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
-        reflags=int(re.VERBOSE), nowarn=False, outputdir=None, debuglog=None, errorlog=None):
+        reflags=int(re.VERBOSE), nowarn=False, outputdir=None, debuglog=None, errorlog=None, cls=Lexer):  # <mod NL>
 
     if lextab is None:
         lextab = 'lextab'
@@ -869,7 +869,7 @@ def lex(module=None, object=None, debug=False, optimize=False, lextab='lextab',
 
     ldict = None
     stateinfo  = {'INITIAL': 'inclusive'}
-    lexobj = Lexer()
+    lexobj = cls()  # <mod NL>
     lexobj.lexoptimize = optimize
     global token, input
 

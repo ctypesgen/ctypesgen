@@ -484,6 +484,7 @@ class LRParser:
                             t1 = targ[1]
                             sym.lineno = t1.lineno
                             sym.lexpos = t1.lexpos
+                            sym.filename = getattr(t1, 'filename', "")  # <mod NL>
                             t1 = targ[-1]
                             sym.endlineno = getattr(t1, 'endlineno', t1.lineno)
                             sym.endlexpos = getattr(t1, 'endlexpos', t1.lexpos)
@@ -529,6 +530,7 @@ class LRParser:
                         if tracking:
                             sym.lineno = lexer.lineno
                             sym.lexpos = lexer.lexpos
+                            sym.filename = getattr(lexer, 'filename', "")  # <mod NL>
                         #--! TRACKING
 
                         targ = [sym]
@@ -804,6 +806,7 @@ class LRParser:
                             t1 = targ[1]
                             sym.lineno = t1.lineno
                             sym.lexpos = t1.lexpos
+                            sym.filename = getattr(t1, 'filename', "")  # <mod NL>
                             t1 = targ[-1]
                             sym.endlineno = getattr(t1, 'endlineno', t1.lineno)
                             sym.endlexpos = getattr(t1, 'endlexpos', t1.lexpos)
@@ -846,6 +849,7 @@ class LRParser:
                         if tracking:
                             sym.lineno = lexer.lineno
                             sym.lexpos = lexer.lexpos
+                            sym.filename = getattr(lexer, 'filename', "")  # <mod NL>
                         #--! TRACKING
 
                         targ = [sym]
