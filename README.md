@@ -70,11 +70,6 @@ When outputting JSON, you will probably also want to use
 --no-python-types
 ```
 
-## License
-
-_ctypesgen_ is distributed under the New (2-clause) BSD License:
-http://www.opensource.org/licenses/bsd-license.php
-
 ## Related Software of Interest
 
 _libffi_ is a portable Foreign Function Interface library:
@@ -83,4 +78,7 @@ http://sources.redhat.com/libffi/
 _Mork_, the friendly alien, can be found at:
 https://github.com/rrthomas/mork
 
+## License
 
+_ctypesgen_ is distributed under the New (2-clause) BSD License:
+http://www.opensource.org/licenses/bsd-license.php
