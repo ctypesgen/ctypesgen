@@ -23,6 +23,9 @@ jobs:
             # macOS
             - os: macos-latest
               python: "3.10"
+            # Windows
+            - os: windows-latest
+              python: "3.10"
         fail-fast: false
 
     steps:
