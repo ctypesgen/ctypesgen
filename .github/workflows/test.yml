@@ -3,6 +3,8 @@ name: Test
 on:
   - push
   - pull_request
+  - branch
+  - fork
 
 jobs:
   setup-and-test:
