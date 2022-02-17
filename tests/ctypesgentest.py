@@ -38,8 +38,8 @@ def redirect(stdout=sys.stdout):
 def generate(header, **more_options):
 
     assert isinstance(header, str)
-    with open("temp.h", "w") as f:
-        f.write(header)
+    with open("temp.h", "wb") as f:
+        f.write(header.encode('utf-8'))
 
     test_options = options.get_default_options()
     test_options.headers = ["temp.h"]
