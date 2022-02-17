@@ -158,6 +158,7 @@ class StdlibTest(unittest.TestCase):
         result = module.getenv(env_var_name)
         self.assertEqual(expect_result, result)
 
+
 # This test is currently not working on MS Windows. The reason is the call of
 # cleanup_common(), which tries to delete "common.dll" while it is still loaded
 # by ctypes.

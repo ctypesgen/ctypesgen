@@ -197,8 +197,9 @@ def generate_common():
     for file_name in ["a", "b"]:
         _generate_common(file_name, common_lib, False)
 
+
 def cleanup_common():
-    # Attention: currently not working on MS Windows. 
+    # Attention: currently not working on MS Windows.
     # cleanup_common() tries to delete "common.dll" while it is still loaded
     # by ctypes. See unittest for further details.
     rmtree(COMMON_DIR)
