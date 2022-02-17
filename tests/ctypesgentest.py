@@ -38,8 +38,8 @@ def redirect(stdout=sys.stdout):
 def generate(header, **more_options):
 
     assert isinstance(header, str)
-    with open("temp.h", "w") as f:
-        f.write(header)
+    with open("temp.h", "wb") as f:
+        f.write(header.encode('utf-8'))
 
     test_options = options.get_default_options()
     test_options.headers = ["temp.h"]
@@ -185,7 +185,8 @@ COMMON_DIR = os.path.join(os.path.dirname(__file__), "common")
 
 
 def generate_common():
-    common_lib = "libcommon.so"
+    common_lib = "libcommon.dll" if sys.platform == "win32" else "libcommon.so"
+
     _create_common_files()
 
     _compile_common(common_lib)
@@ -198,6 +199,9 @@ def generate_common():
 
 
 def cleanup_common():
+    # Attention: currently not working on MS Windows.
+    # cleanup_common() tries to delete "common.dll" while it is still loaded
+    # by ctypes. See unittest for further details.
     rmtree(COMMON_DIR)
 
 
