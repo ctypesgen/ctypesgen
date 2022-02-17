@@ -185,7 +185,8 @@ COMMON_DIR = os.path.join(os.path.dirname(__file__), "common")
 
 
 def generate_common():
-    common_lib = "libcommon.so"
+    common_lib = "libcommon.dll" if sys.platform == "win32" else "libcommon.so"
+
     _create_common_files()
 
     _compile_common(common_lib)
