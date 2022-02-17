@@ -16,6 +16,10 @@ import subprocess
 from ctypesgen.parser import pplexer, lex
 from ctypesgen.parser.lex import LexError
 
+
+IS_WINDOWS = sys.platform.startswith("win")
+IS_MAC = sys.platform.startswith("darwin")
+
 # --------------------------------------------------------------------------
 # Lexers
 # --------------------------------------------------------------------------
@@ -64,7 +68,7 @@ class PreprocessorParser(object):
 
         # On macOS, explicitly add these defines to keep from getting syntax
         # errors in the macOS standard headers.
-        if sys.platform == "darwin":
+        if IS_MAC:
             self.defines += [
                 "__uint16_t=uint16_t",
                 "__uint32_t=uint32_t",
@@ -110,7 +114,7 @@ class PreprocessorParser(object):
 
         # This fixes Issue #6 where OS X 10.6+ adds a C extension that breaks
         # the parser.  Blocks shouldn't be needed for ctypesgen support anyway.
-        if sys.platform == "darwin":
+        if IS_MAC:
             cmd += " -U __BLOCKS__"
 
         for path in self.options.include_search_paths:
@@ -131,13 +135,17 @@ class PreprocessorParser(object):
         ppout_data, pperr_data = pp.communicate()
 
         try:
-            ppout = ppout_data.decode("utf8")
+            ppout = ppout_data.decode("utf-8")
         except UnicodeError:
-            if sys.platform == "darwin":
-                ppout = ppout_data.decode("utf8", errors="replace")
+            if IS_MAC:
+                ppout = ppout_data.decode("utf-8", errors="replace")
             else:
                 raise UnicodeError
-        pperr = pperr_data.decode("utf8")
+        pperr = pperr_data.decode("utf-8")
+
+        if IS_WINDOWS:
+            ppout = ppout.replace("\r\n", "\n")
+            pperr = pperr.replace("\r\n", "\n")
 
         for line in pperr.split("\n"):
             if line:

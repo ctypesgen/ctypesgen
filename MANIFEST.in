@@ -1,3 +1,4 @@
 graft ctypesgen
 recursive-exclude ctypesgen .gitignore
+global-exclude *.py[cod]
 include ctypesgen/VERSION
