@@ -51,10 +51,10 @@ reserved_keyword_tokens = (
 )
 
 reserved_keyword_tokens_new = (
-    "_BOOL",
+    "_BOOL", "_NORETURN",
     # "_ALIGNAS", "_ALIGNOF", "_ATOMIC", "_COMPLEX",
     # "_DECIMAL128", "_DECIMAL32", "_DECIMAL64",
-    # "_GENERIC", "_IMAGINARY", "_NORETURN", "_STATIC_ASSERT", "_THREAD_LOCAL",
+    # "_GENERIC", "_IMAGINARY", "_STATIC_ASSERT", "_THREAD_LOCAL",
 )
 
 extra_keywords_with_alias = {
@@ -700,6 +700,7 @@ def p_type_specifier(p):
                        | struct_or_union_specifier
                        | enum_specifier
                        | TYPE_NAME
+                       | _NORETURN
     """
     if type(p[1]) in (cdeclarations.StructTypeSpecifier, cdeclarations.EnumSpecifier):
         p[0] = p[1]

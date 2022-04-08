@@ -17,7 +17,7 @@ major work was made towards code modernization and quality.
   on macOS
 - Added full support for floating and integer constants
 - Added support for sized integer types on Windows
-- Added support to handle restrict keyword
+- Added support to handle `restrict` and `_Noreturn` keywords
 - Added name formats to posix library loader
 
 ### v1.0.2
