@@ -41,7 +41,7 @@ from ctypesgen.parser import cdeclarations, yacc
 
 
 reserved_keyword_tokens = (
-    "SIZEOF", "TYPEDEF", "EXTERN", "STATIC", "AUTO", "REGISTER",  # "INLINE",
+    "SIZEOF", "TYPEDEF", "EXTERN", "STATIC", "AUTO", "REGISTER", "INLINE",
     "CONST", "RESTRICT", "VOLATILE",
     "CHAR", "SHORT", "INT", "LONG", "SIGNED", "UNSIGNED", "FLOAT", "DOUBLE",
     "VOID", "STRUCT", "UNION", "ENUM",
@@ -61,6 +61,8 @@ extra_keywords_with_alias = {
     "__asm__": "__ASM__",
     "__attribute__": "__ATTRIBUTE__",
     "__restrict": "RESTRICT",
+    "__inline__": "INLINE",
+    "__inline": "INLINE",
 }
 
 keyword_map = {}
@@ -650,6 +652,7 @@ def p_declaration_specifier(p):
     """ declaration_specifier : storage_class_specifier
                               | type_specifier
                               | type_qualifier
+                              | function_specifier
     """
     p[0] = p[1]
 
@@ -700,7 +703,6 @@ def p_type_specifier(p):
                        | struct_or_union_specifier
                        | enum_specifier
                        | TYPE_NAME
-                       | _NORETURN
     """
     if type(p[1]) in (cdeclarations.StructTypeSpecifier, cdeclarations.EnumSpecifier):
         p[0] = p[1]
@@ -915,6 +917,12 @@ def p_type_qualifier(p):
                        | RESTRICT
     """
     p[0] = cdeclarations.TypeQualifier(p[1])
+
+
+def p_function_specifier(p):
+    """ function_specifier : INLINE
+                           | _NORETURN
+    """
 
 
 def p_declarator(p):
