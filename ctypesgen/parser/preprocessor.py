@@ -68,9 +68,6 @@ class PreprocessorParser(object):
         # errors in the macOS standard headers.
         if IS_MAC:
             self.defines += [
-                "__uint16_t=uint16_t",
-                "__uint32_t=uint32_t",
-                "__uint64_t=uint64_t",
                 "_Nullable=",
                 "_Nonnull=",
             ]
