@@ -1376,6 +1376,7 @@ def p_error(t):
 
 def p_pragma(p):
     """ pragma : pragma_pack
+               | PRAGMA pragma_directive_list PRAGMA_END
     """
 
 
@@ -1427,6 +1428,23 @@ def p_pragma_pack_stack_args(p):
                 n = p[5].value
 
     p[0] = (op, id, n)
+
+
+def p_pragma_directive_list(p):
+    """ pragma_directive_list : pragma_directive
+                              | pragma_directive_list pragma_directive
+    """
+    if len(p) == 3:
+        p[0] = p[1] + (p[2],)
+    else:
+        p[0] = (p[1],)
+
+
+def p_pragma_directive(p):
+    """ pragma_directive : IDENTIFIER
+                         | string_literal
+    """
+    p[0] = p[1]
 
 
 def main():
