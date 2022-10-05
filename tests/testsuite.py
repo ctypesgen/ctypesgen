@@ -234,6 +234,55 @@ struct foo
         self.assertEqual(struct_foo._fields_, [("is_bar", ctypes.c_bool), ("a", ctypes.c_int)])
 
 
+class IntTypesTest(unittest.TestCase):
+    "Test correct parsing and generation of different integer types"
+
+    @classmethod
+    def setUpClass(cls):
+        header_str = """
+struct int_types {
+    short t_short;
+    short int t_short_int;
+    unsigned short t_ushort;
+    unsigned short int t_ushort_int;
+    int t_int;
+    long t_long;
+    long int t_long_int;
+    long long t_long_long;
+    long long int t_long_long_int;
+    unsigned long long int t_u_long_long_int;
+    long int unsigned long t_long_int_u_long;
+};
+"""
+        cls.module, _ = generate(header_str)
+
+    @classmethod
+    def tearDownClass(cls):
+        del cls.module
+        cleanup()
+
+    def test_int_types(self):
+        """Test if different integer types are correctly parsed"""
+        module = IntTypesTest.module
+        struct_int_types = module.struct_int_types
+        self.assertEqual(
+            struct_int_types._fields_,
+            [
+                ("t_short", ctypes.c_short),
+                ("t_short_int", ctypes.c_short),
+                ("t_ushort", ctypes.c_ushort),
+                ("t_ushort_int", ctypes.c_ushort),
+                ("t_int", ctypes.c_int),
+                ("t_long", ctypes.c_long),
+                ("t_long_int", ctypes.c_long),
+                ("t_long_long", ctypes.c_longlong),
+                ("t_long_long_int", ctypes.c_longlong),
+                ("t_u_long_long_int", ctypes.c_ulonglong),
+                ("t_long_int_u_long", ctypes.c_ulonglong),
+            ],
+        )
+
+
 class SimpleMacrosTest(unittest.TestCase):
     """Based on simple_macros.py"""
 

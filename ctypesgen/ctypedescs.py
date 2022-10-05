@@ -61,6 +61,8 @@ ctypes_type_map = {
 }
 
 ctypes_type_map_python_builtin = {
+    ("int", True, -1): "c_short",
+    ("int", False, -1): "c_ushort",
     ("int", True, 2): "c_longlong",
     ("int", False, 2): "c_ulonglong",
     ("size_t", True, 0): "c_size_t",
