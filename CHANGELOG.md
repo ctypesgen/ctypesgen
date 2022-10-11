@@ -20,6 +20,7 @@ major work was made towards code modernization and quality.
 - Added support to handle `restrict` and `_Noreturn` keywords
 - Added name formats to posix library loader
 - Fixed mapping of 'short int' to c_short
+- Git tags are now using `x.y.z` format
 
 ### v1.0.2
 
