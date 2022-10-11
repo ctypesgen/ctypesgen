@@ -19,6 +19,7 @@ major work was made towards code modernization and quality.
 - Added support for sized integer types on Windows
 - Added support to handle `restrict` and `_Noreturn` keywords
 - Added name formats to posix library loader
+- Fixed mapping of 'short int' to c_short
 
 ### v1.0.2
 
