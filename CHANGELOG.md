@@ -1,6 +1,6 @@
 ## Change Log
 
-### Unreleased
+### v1.1.0
 
 This release has a number of bug fixes in addition to a few new features.
 Following a complete transition to Python 3, with dropped Python 2 support,
