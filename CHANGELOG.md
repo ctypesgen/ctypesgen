@@ -1,6 +1,6 @@
 ## Change Log
 
-### Unreleased
+### v1.1.0
 
 This release has a number of bug fixes in addition to a few new features.
 Following a complete transition to Python 3, with dropped Python 2 support,
@@ -20,6 +20,7 @@ major work was made towards code modernization and quality.
 - Added support to handle `restrict` and `_Noreturn` keywords
 - Added name formats to posix library loader
 - Fixed mapping of 'short int' to c_short
+- Git tags are now using `x.y.z` format
 
 ### v1.0.2
 
