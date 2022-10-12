@@ -42,7 +42,7 @@ def version():
     except Exception:
         # failover is to try VERSION_FILE instead
         try:
-            return read_file_version()
+            return f"{DEFAULT_PREFIX}-{read_file_version()}"
         except Exception:
             return f"{DEFAULT_PREFIX}-0.0.0"
 
