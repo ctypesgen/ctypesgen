@@ -1,5 +1,9 @@
 ## Change Log
 
+### Unreleased
+
+- Fixed inconsistency in version output in released packages
+
 ### v1.1.0
 
 This release has a number of bug fixes in addition to a few new features.
