@@ -1,5 +1,7 @@
 ## Change Log
 
+### Unreleased
+
 ### v1.1.1
 
 - Fixed inconsistency in version output in released packages
