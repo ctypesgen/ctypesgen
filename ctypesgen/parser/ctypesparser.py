@@ -17,7 +17,6 @@ from ctypesgen.ctypedescs import (
     CtypesFunction,
     CtypesPointer,
     CtypesSimple,
-    CtypesSpecial,
     CtypesStruct,
     CtypesTypedef,
     ctypes_type_map,
@@ -204,14 +203,6 @@ class CtypesParser(CParser):
             while a:
                 t = CtypesArray(t, a.size)
                 a = a.array
-
-        if (
-            isinstance(t, CtypesPointer)
-            and isinstance(t.destination, CtypesSimple)
-            and t.destination.name == "char"
-            and t.destination.signed
-        ):
-            t = CtypesSpecial("String")
 
         return t
 

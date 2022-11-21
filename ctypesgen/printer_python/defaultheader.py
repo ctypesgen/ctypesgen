@@ -5,5 +5,3 @@ Generated with:
 
 Do not modify this file.
 """
-
-__docformat__ = "restructuredtext"

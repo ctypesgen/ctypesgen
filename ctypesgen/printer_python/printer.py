@@ -3,6 +3,7 @@ import os.path
 import sys
 import time
 import shutil
+from os.path import join
 
 from ctypesgen.ctypedescs import CtypesBitfield, CtypesStruct
 from ctypesgen.expressions import ExpressionNode
@@ -10,10 +11,10 @@ from ctypesgen.messages import error_message, status_message
 
 
 THIS_DIR = os.path.dirname(__file__)
-CTYPESGEN_DIR = os.path.join(THIS_DIR, os.path.pardir)
-PREAMBLE_PATH = os.path.join(THIS_DIR, "preamble.py")
-DEFAULTHEADER_PATH = os.path.join(THIS_DIR, "defaultheader.py")
-LIBRARYLOADER_PATH = os.path.join(CTYPESGEN_DIR, "libraryloader.py")
+CTYPESGEN_DIR = join(THIS_DIR, os.path.pardir)
+PREAMBLE_PATH = join(THIS_DIR, "preamble.py")
+DEFAULTHEADER_PATH = join(THIS_DIR, "defaultheader.py")
+LIBRARYLOADER_PATH = join(CTYPESGEN_DIR, "libraryloader.py")
 
 
 class WrapperPrinter:
@@ -76,27 +77,29 @@ class WrapperPrinter:
             self.file.write("# No %s\n" % name)
         self.file.write("\n")
 
-    def srcinfo(self, src):
-        if src is None:
-            self.file.write("\n")
-        else:
+    def srcinfo(self, src, inline=False):
+        if src is not None:
             filename, lineno = src
+            pad = "  " if inline else ""
             if filename in ("<built-in>", "<command line>"):
-                self.file.write("# %s\n" % filename)
+                self.file.write(pad + "# %s" % filename)
             else:
                 if self.options.strip_build_path and filename.startswith(
                     self.options.strip_build_path
                 ):
                     filename = filename[len(self.options.strip_build_path) :]
-                self.file.write("# %s: %s\n" % (filename, lineno))
+                self.file.write(pad + "# %s: %s" % (filename, lineno))
+        self.file.write("\n")
 
     def template_subs(self):
+        # TODO(geisserml) address BUG(160)
         template_subs = {
             "date": time.ctime(),
             "argv": " ".join([x for x in sys.argv if not x.startswith("--strip-build-path")]),
             "name": os.path.basename(self.options.headers[0]),
         }
 
+        # NOTE not used by default header; % formatting ignores superfluous members
         for opt, value in self.options.__dict__.items():
             if type(value) == str:
                 template_subs[opt] = value
@@ -133,8 +136,8 @@ class WrapperPrinter:
         self.file.write("# Begin preamble for Python\n\n")
         if self.options.embed_preamble:
             with open(PREAMBLE_PATH, "r") as preamble_file:
-                preamble_file_content = preamble_file.read()
-                filecontent = preamble_file_content.replace("# ~POINTER~", "")
+                filecontent = preamble_file.read()
+                filecontent = filecontent.replace("# ~POINTER~", "")
                 self.file.write(filecontent)
         else:
             self.file.write("from .ctypes_preamble import *\n")
@@ -144,8 +147,7 @@ class WrapperPrinter:
 
     def _copy_preamble_loader_files(self, path):
         if os.path.isfile(path):
-            abspath = os.path.abspath(path)
-            dst = os.path.dirname(abspath)
+            dst = os.path.dirname(os.path.abspath(path))
         else:
             error_message(
                 "Cannot copy preamble and loader files",
@@ -153,7 +155,7 @@ class WrapperPrinter:
             )
             return
 
-        c_preamblefile = f"{dst}/ctypes_preamble.py"
+        c_preamblefile = join(dst, "ctypes_preamble.py")
         if os.path.isfile(c_preamblefile):
             return
 
@@ -183,8 +185,7 @@ class WrapperPrinter:
         with open(c_preamblefile, "w") as f:
             f.write(filecontent)
 
-        shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
-        os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")
+        shutil.copyfile(LIBRARYLOADER_PATH, join(dst, "ctypes_loader.py"))
 
     def print_loader(self):
         self.file.write("_libs = {}\n")
@@ -210,7 +211,7 @@ class WrapperPrinter:
 
     def print_constant(self, constant):
         self.file.write("%s = %s" % (constant.name, constant.value.py_string(False)))
-        self.srcinfo(constant.src)
+        self.srcinfo(constant.src, inline=True)
 
     def print_undef(self, undef):
         self.srcinfo(undef.src)
@@ -224,7 +225,7 @@ class WrapperPrinter:
 
     def print_typedef(self, typedef):
         self.file.write("%s = %s" % (typedef.name, typedef.ctype.py_string()))
-        self.srcinfo(typedef.src)
+        self.srcinfo(typedef.src, inline=True)
 
     def print_struct(self, struct):
         self.srcinfo(struct.src)
@@ -288,7 +289,7 @@ class WrapperPrinter:
 
     def print_enum(self, enum):
         self.file.write("enum_%s = c_int" % enum.tag)
-        self.srcinfo(enum.src)
+        self.srcinfo(enum.src, inline=True)
         # Values of enumerator are output as constants.
 
     def print_function(self, function):
@@ -328,24 +329,13 @@ class WrapperPrinter:
         )
 
         # Return value
-        if function.restype.py_string() == "String":
+        self.file.write(
+            "    %s.restype = %s\n" % (function.py_name(), function.restype.py_string())
+        )
+        if function.errcheck:
             self.file.write(
-                "    if sizeof(c_int) == sizeof(c_void_p):\n"
-                "        {PN}.restype = ReturnString\n"
-                "    else:\n"
-                "        {PN}.restype = {RT}\n"
-                "        {PN}.errcheck = ReturnString\n".format(
-                    PN=function.py_name(), RT=function.restype.py_string()
-                )
+                "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
             )
-        else:
-            self.file.write(
-                "    %s.restype = %s\n" % (function.py_name(), function.restype.py_string())
-            )
-            if function.errcheck:
-                self.file.write(
-                    "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
-                )
 
         if not function.source_library:
             self.file.write("    break\n")
@@ -425,6 +415,7 @@ class WrapperPrinter:
         # The macro translator makes heroic efforts but it occasionally fails.
         # We want to contain the failures as much as possible.
         # Hence the try statement.
+        # TODO(geisserml) Avoid try/except wrapper for simple constant definitions
         self.srcinfo(macro.src)
         self.file.write(
             "try:\n"
@@ -447,6 +438,7 @@ class WrapperPrinter:
             self.file.write("# No prefix-stripping\n\n")
             return
 
+        # FIXME(geisserml) strongly displeasing code
         self.file.write(
             "# Begin prefix-stripping\n"
             "\n"

@@ -142,21 +142,20 @@ class StdlibTest(unittest.TestCase):
             os.environ[env_var_name] = "WORLD"  # This doesn't work under win32
             expect_result = "WORLD"
 
-        result = str(module.getenv(env_var_name))
+        result = module.getenv(env_var_name.encode("utf-8")).decode("utf-8")
         self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
         """Related to issue 8. Test getenv of unset variable."""
         module = StdlibTest.module
         env_var_name = "NOT SET"
-        expect_result = None
         try:
             # ensure variable is not set, ignoring not set errors
             del os.environ[env_var_name]
         except KeyError:
             pass
-        result = module.getenv(env_var_name)
-        self.assertEqual(expect_result, result)
+        result = module.getenv(env_var_name.encode("utf-8"))
+        self.assertEqual(result, None)
 
 
 # This test is currently not working on MS Windows. The reason is the call of
