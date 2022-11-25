@@ -1,9 +1,8 @@
 """
-Main loop for ctypesgen.
+Command-line interface for ctypesgen
 """
 
-import optparse
-import sys
+import argparse
 
 from ctypesgen import (
     messages as msgs,
@@ -28,49 +27,36 @@ def find_names_in_modules(modules):
     return names
 
 
-def option_callback_W(option, opt, value, parser):
-    # Options preceded by a "-Wl," are simply treated as though the "-Wl,"
-    # is not there? I don't understand the purpose of this code...
-    if len(value) < 4 or value[0:3] != "l,-":
-        raise optparse.BadOptionError("not in '-Wl,<opt>' form: %s%s" % (opt, value))
-    opt = value[2:]
-    if opt not in ["-L", "-R", "--rpath"]:
-        raise optparse.BadOptionError("-Wl option must be -L, -R" " or --rpath, not " + value[2:])
-    # Push the linker option onto the list for further parsing.
-    parser.rargs.insert(0, value)
-
-
-def option_callback_libdir(option, opt, value, parser):
-    # There are two sets of linker search paths: those for use at compile time
-    # and those for use at runtime. Search paths specified with -L, -R, or
-    # --rpath are added to both sets.
-    parser.values.compile_libdirs.append(value)
-    parser.values.runtime_libdirs.append(value)
-
-
 def main(givenargs=None):
-    usage = "usage: %prog [options] /path/to/header.h ..."
-    op = optparse.OptionParser(usage=usage, version=version.VERSION_NUMBER)
+    # TODO(geisserml) In the future, convert action="append" to nargs="*" - that's nicer to use
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=version.VERSION_NUMBER,
+    )
 
     # Parameters
-    op.add_option(
-        "-o",
-        "--output",
-        dest="output",
+    parser.add_argument(
+        "headers",
+        nargs="+",
+        help="Sequence of header files"
+    )
+    parser.add_argument(
+        "-o", "--output",
         metavar="FILE",
         help="write wrapper to FILE [default stdout]",
     )
-    op.add_option(
-        "-l",
-        "--library",
+    parser.add_argument(
+        "-l", "--library",
         dest="libraries",
         action="append",
         default=[],
         metavar="LIBRARY",
         help="link to LIBRARY",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--include",
         dest="other_headers",
         action="append",
@@ -78,46 +64,31 @@ def main(givenargs=None):
         metavar="HEADER",
         help="include system header HEADER (e.g. stdio.h or stdlib.h)",
     )
-    op.add_option(
-        "-m",
-        "--module",
-        "--link-module",
+    parser.add_argument(
+        "-m", "--module", "--link-module",
         action="append",
         dest="modules",
         metavar="MODULE",
         default=[],
         help="use symbols from Python module MODULE",
     )
-    op.add_option(
-        "-I",
-        "--includedir",
-        dest="include_search_paths",
+    parser.add_argument(
+        "-I", "--includedir",
         action="append",
+        dest="include_search_paths",
         default=[],
         metavar="INCLUDEDIR",
         help="add INCLUDEDIR as a directory to search for headers",
     )
-    op.add_option(
-        "-W",
-        action="callback",
-        callback=option_callback_W,
-        metavar="l,OPTION",
-        type="str",
-        help="where OPTION is -L, -R, or --rpath",
-    )
-    op.add_option(
-        "-L",
-        "-R",
-        "--rpath",
-        "--libdir",
-        action="callback",
-        callback=option_callback_libdir,
+    parser.add_argument(
+        "-L", "-R", "--rpath", "--libdir",
+        action="append",
+        dest="universal_libdirs",
+        default=[],
         metavar="LIBDIR",
-        type="str",
         help="Add LIBDIR to the search path (both compile-time and run-time)",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--compile-libdir",
         action="append",
         dest="compile_libdirs",
@@ -125,8 +96,7 @@ def main(givenargs=None):
         default=[],
         help="Add LIBDIR to the compile-time library search path.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--runtime-libdir",
         action="append",
         dest="runtime_libdirs",
@@ -134,8 +104,7 @@ def main(givenargs=None):
         default=[],
         help="Add LIBDIR to the run-time library search path.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-embed-preamble",
         action="store_false",
         dest="embed_preamble",
@@ -146,16 +115,14 @@ def main(givenargs=None):
     )
 
     # Parser options
-    op.add_option(
-        "",
+    parser.add_argument(
         "--cpp",
         dest="cpp",
         default="gcc -E",
         help="The command to invoke the c preprocessor, including any "
         "necessary options (default: gcc -E)",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--allow-gnu-c",
         action="store_true",
         dest="allow_gnu_c",
@@ -165,34 +132,30 @@ def main(givenargs=None):
         "(default: False. i.e. ctypesgen adds an implicit undefine using '-U __GNUC__'.)\n"
         "Specify this flag to avoid ctypesgen undefining '__GNUC__' as shown above.",
     )
-    op.add_option(
-        "-D",
-        "--define",
+    parser.add_argument(
+        "-D", "--define",
         action="append",
         dest="cpp_defines",
         metavar="MACRO",
         default=[],
         help="Add a definition to the preprocessor via commandline",
     )
-    op.add_option(
-        "-U",
-        "--undefine",
+    parser.add_argument(
+        "-U", "--undefine",
         action="append",
         dest="cpp_undefines",
         metavar="NAME",
         default=[],
         help="Instruct the preprocessor to undefine the specified macro via commandline",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--save-preprocessed-headers",
         metavar="FILENAME",
         dest="save_preprocessed_headers",
         default=None,
         help="Save the preprocessed headers to the specified FILENAME",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--optimize-lexer",
         dest="optimize_lexer",
         action="store_true",
@@ -202,41 +165,36 @@ def main(givenargs=None):
     )
 
     # Processor options
-    op.add_option(
-        "-a",
-        "--all-headers",
+    parser.add_argument(
+        "-a", "--all-headers",
         action="store_true",
         dest="all_headers",
         default=False,
         help="include symbols from all headers, including system headers",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--builtin-symbols",
         action="store_true",
         dest="builtin_symbols",
         default=False,
         help="include symbols automatically generated by the preprocessor",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-macros",
         action="store_false",
         dest="include_macros",
         default=True,
         help="Don't output macros.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-undefs",
         action="store_false",
         dest="include_undefs",
         default=True,
         help="Do not remove macro definitions as per #undef directives",
     )
-    op.add_option(
-        "-i",
-        "--include-symbols",
+    parser.add_argument(
+        "-i", "--include-symbols",
         action="append",
         dest="include_symbols",
         metavar="REGEXPR",
@@ -245,9 +203,8 @@ def main(givenargs=None):
         "instances of this option will be combined into a single expression "
         "doing something like '(expr1|expr2|expr3)'.",
     )
-    op.add_option(
-        "-x",
-        "--exclude-symbols",
+    parser.add_argument(
+        "-x", "--exclude-symbols",
         action="append",
         dest="exclude_symbols",
         metavar="REGEXPR",
@@ -256,24 +213,21 @@ def main(givenargs=None):
         "of this option will be combined into a single expression doing "
         "something like '(expr1|expr2|expr3)'.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-stddef-types",
         action="store_true",
         dest="no_stddef_types",
         default=False,
         help="Do not support extra C types from stddef.h",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-gnu-types",
         action="store_true",
         dest="no_gnu_types",
         default=False,
         help="Do not support extra GNU C types",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-python-types",
         action="store_true",
         dest="no_python_types",
@@ -290,24 +244,21 @@ def main(givenargs=None):
     )
 
     # Printer options
-    op.add_option(
-        "",
+    parser.add_argument(
         "--header-template",
         dest="header_template",
         default=None,
         metavar="TEMPLATE",
         help="Use TEMPLATE as the header template in the output file.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--strip-build-path",
         dest="strip_build_path",
         default=None,
         metavar="BUILD_PATH",
         help="Strip build path from header paths in the wrapper file.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--insert-file",
         dest="inserted_files",
         default=[],
@@ -315,23 +266,16 @@ def main(givenargs=None):
         metavar="FILENAME",
         help="Add the contents of FILENAME to the end of the wrapper file.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--output-language",
         dest="output_language",
         metavar="LANGUAGE",
         default="py",
-        choices=("py", "py32", "py27", "py25", "json"),
-        help="Choose output language (`py'[default], `py32', `py27', `py25', or "
-        "`json').  The implementation for py32 does appear to be "
-        "compatible down to at least Python2.7.15.  py25 and py27 are in "
-        "any case _not_ compatible with >= Python3.  The default choice "
-        "(py) attempts to select `py32', `py27', or `py25' based on the "
-        "version of Python that runs this script.",
+        choices=("py", "json"),
+        help="Choose output language",
     )
-    op.add_option(
-        "-P",
-        "--strip-prefix",
+    parser.add_argument(
+        "-P", "--strip-prefix",
         dest="strip_prefixes",
         default=[],
         action="append",
@@ -342,82 +286,76 @@ def main(givenargs=None):
     )
 
     # Error options
-    op.add_option(
-        "",
+    parser.add_argument(
         "--all-errors",
         action="store_true",
         default=False,
         dest="show_all_errors",
-        help="Display all warnings and errors even " "if they would not affect output.",
+        help="Display all warnings and errors even if they would not affect output.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--show-long-errors",
         action="store_true",
         default=False,
         dest="show_long_errors",
-        help="Display long error messages " "instead of abbreviating error messages.",
+        help="Display long error messages instead of abbreviating error messages.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-macro-warnings",
         action="store_false",
         default=True,
         dest="show_macro_warnings",
         help="Do not print macro warnings.",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--debug-level",
         dest="debug_level",
         default=0,
-        type="int",
+        type=int,
         help="Run ctypesgen with specified debug level (also applies to yacc parser)",
     )
 
-    op.set_defaults(**core_options.default_values)
+    parser.set_defaults(**core_options.default_values)
+    args = parser.parse_args(givenargs)
 
-    (options, args) = op.parse_args(givenargs)
-    options.headers = args
+    args.compile_libdirs += args.universal_libdirs
+    args.runtime_libdirs += args.universal_libdirs
 
     # Figure out what names will be defined by imported Python modules
-    options.other_known_names = find_names_in_modules(options.modules)
+    args.other_known_names = find_names_in_modules(args.modules)
 
-    # Required parameters
-    if len(args) < 1:
-        msgs.error_message("No header files specified", cls="usage")
-        sys.exit(1)
-
-    if len(options.libraries) == 0:
+    if len(args.libraries) == 0:
         msgs.warning_message("No libraries specified", cls="usage")
 
-    # Check output language
-    printer = None
-    if options.output_language.startswith("py"):
+    # Fetch printer for the requested output language
+    if args.output_language == "py":
         printer = printer_python.WrapperPrinter
-    elif options.output_language == "json":
+    elif args.output_language == "json":
         printer = printer_json.WrapperPrinter
     else:
-        msgs.error_message("No such output language `" + options.output_language + "'", cls="usage")
-        sys.exit(1)
+        assert False  # handled by argparse choices
 
     # Step 1: Parse
-    descriptions = core_parser.parse(options.headers, options)
+    descriptions = core_parser.parse(args.headers, args)
 
     # Step 2: Process
-    processor.process(descriptions, options)
+    processor.process(descriptions, args)
 
     # Step 3: Print
-    printer(options.output, options, descriptions)
+    printer(args.output, args, descriptions)
 
     msgs.status_message("Wrapping complete.")
 
     # Correct what may be a common mistake
     if descriptions.all == []:
-        if not options.all_headers:
+        if not args.all_headers:
             msgs.warning_message(
                 "There wasn't anything of use in the "
                 "specified header file(s). Perhaps you meant to run with "
                 "--all-headers to include objects from included sub-headers? ",
                 cls="usage",
             )
+
+
+if __name__ == "__main__":
+    main()
