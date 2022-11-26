@@ -137,7 +137,7 @@ class WrapperPrinter:
         if self.options.embed_preamble:
             with open(PREAMBLE_PATH, "r") as preamble_file:
                 filecontent = preamble_file.read()
-                filecontent = filecontent.replace("# ~POINTER~", "")
+                filecontent = filecontent.replace("# ~POINTER~", "").strip() + "\n"
                 self.file.write(filecontent)
         else:
             self.file.write("from .ctypes_preamble import *\n")
@@ -180,7 +180,7 @@ class WrapperPrinter:
 
         with open(PREAMBLE_PATH) as preamble_file:
             preamble_file_content = preamble_file.read()
-            filecontent = preamble_file_content.replace("# ~POINTER~", pointer)
+            filecontent = preamble_file_content.replace("# ~POINTER~", pointer).strip() + "\n"
 
         with open(c_preamblefile, "w") as f:
             f.write(filecontent)
