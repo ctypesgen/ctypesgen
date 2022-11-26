@@ -119,10 +119,7 @@ class StdlibTest(unittest.TestCase):
         cleanup()
 
     def test_getenv_returns_string(self):
-        """Issue 8 - Regression for crash with 64 bit and bad strings on 32 bit.
-        See http://code.google.com/p/ctypesgen/issues/detail?id=8
-        Test that we get a valid (non-NULL, non-empty) string back
-        """
+        """ Test string return """
         module = StdlibTest.module
 
         if sys.platform == "win32":
@@ -142,7 +139,8 @@ class StdlibTest(unittest.TestCase):
             os.environ[env_var_name] = "WORLD"  # This doesn't work under win32
             expect_result = "WORLD"
 
-        result = module.getenv(env_var_name.encode("utf-8")).decode("utf-8")
+        result_ptr = module.getenv(env_var_name.encode("utf-8"))
+        result = ctypes.cast(result_ptr, ctypes.c_char_p).value.decode("utf-8")
         self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
@@ -154,7 +152,8 @@ class StdlibTest(unittest.TestCase):
             del os.environ[env_var_name]
         except KeyError:
             pass
-        result = module.getenv(env_var_name.encode("utf-8"))
+        result_ptr = module.getenv(env_var_name.encode("utf-8"))
+        result = ctypes.cast(result_ptr, ctypes.c_char_p).value
         self.assertEqual(result, None)
 
 
