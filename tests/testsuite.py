@@ -506,7 +506,7 @@ class SimpleMacrosTest(unittest.TestCase):
             json("subcall_macro_minus"),
             {
                 "args": ["x", "y"],
-                "body": "(minus_macro (x, y))",
+                "body": "minus_macro(x, y)",
                 "name": "subcall_macro_minus",
                 "type": "macro_function",
             },
@@ -526,7 +526,7 @@ class SimpleMacrosTest(unittest.TestCase):
             json("subcall_macro_minus_plus"),
             {
                 "args": ["x", "y", "z"],
-                "body": "((minus_macro (x, y)) + z)",
+                "body": "(minus_macro(x, y) + z)",
                 "name": "subcall_macro_minus_plus",
                 "type": "macro_function",
             },
