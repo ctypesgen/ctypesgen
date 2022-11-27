@@ -243,7 +243,7 @@ class AttributeExpressionNode(ExpressionNode):
         if can_be_ctype:
             return self.format % (self.base.py_string(can_be_ctype), self.attribute)
         else:
-            return "(%s.value)" % (
+            return "%s.value" % (
                 self.format % (self.base.py_string(can_be_ctype), self.attribute)
             )
 
@@ -267,7 +267,7 @@ class CallExpressionNode(ExpressionNode):
     def py_string(self, can_be_ctype):
         function = self.function.py_string(can_be_ctype)
         arguments = [x.py_string(can_be_ctype) for x in self.arguments]
-        return "(%s (%s))" % (function, ", ".join(arguments))
+        return "%s(%s)" % (function, ", ".join(arguments))
 
 
 class TypeCastExpressionNode(ExpressionNode):
@@ -299,29 +299,12 @@ class TypeCastExpressionNode(ExpressionNode):
                 )
             )
         else:
-            # In reality, this conversion should only really work if the types
-            # are scalar types.  We won't work really hard to test if the types
-            # are  indeed scalar.
-            # To be backwards compatible, we always return literals for builtin types.
-            # We use a function to convert to integer for c_char types since
-            # c_char can take integer or byte types, but the others can *only*
-            # take non-char arguments.
-            # ord_if_char must be provided by preambles
-            if isinstance(self.ctype, CtypesSimple) and (self.ctype.name, self.ctype.signed,) == (
-                "char",
-                True,
-            ):
-                ord_if_char = ""
-            elif isinstance(self.ctype, CtypesSimple) and self.ctype.name == "void":
+            if isinstance(self.ctype, CtypesSimple) and self.ctype.name == "void":
                 # This is a very simple type cast:  cast everything to (void)
                 # At least one macro from mingw does this
                 return "None"
-            else:
-                ord_if_char = "ord_if_char"
-
-            return "({to} ({ord_if_char}({frm}))).value".format(
+            return "{to}({frm}).value".format(
                 to=self.ctype.py_string(),
-                ord_if_char=ord_if_char,
                 frm=self.base.py_string(False),
             )
 

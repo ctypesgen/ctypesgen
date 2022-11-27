@@ -60,15 +60,4 @@ class _variadic_function(object):
         return self.func(*fixed_args + list(args[i:]))
 
 
-def ord_if_char(value):
-    """
-    Simple helper used for casts to simple builtin types: if the argument is a
-    string type, it will be converted to its ordinal value.
-
-    This function will raise an exception if the argument is string with more
-    than one characters.
-    """
-    return ord(value) if (isinstance(value, bytes) or isinstance(value, str)) else value
-
-
 # ~POINTER~
