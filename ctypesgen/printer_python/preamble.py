@@ -62,8 +62,8 @@ class _variadic_function(object):
 
 def ord_if_char(value):
     """
-    Simple helper used for casts to simple builtin types:  if the argument is a
-    string type, it will be converted to it's ordinal value.
+    Simple helper used for casts to simple builtin types: if the argument is a
+    string type, it will be converted to its ordinal value.
 
     This function will raise an exception if the argument is string with more
     than one characters.
