@@ -243,9 +243,7 @@ class AttributeExpressionNode(ExpressionNode):
         if can_be_ctype:
             return self.format % (self.base.py_string(can_be_ctype), self.attribute)
         else:
-            return "%s.value" % (
-                self.format % (self.base.py_string(can_be_ctype), self.attribute)
-            )
+            return "%s.value" % (self.format % (self.base.py_string(can_be_ctype), self.attribute))
 
 
 class CallExpressionNode(ExpressionNode):
