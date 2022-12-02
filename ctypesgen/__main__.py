@@ -38,18 +38,16 @@ def main(givenargs=None):
     )
 
     # Parameters
+    parser.add_argument("headers", nargs="+", help="Sequence of header files")
     parser.add_argument(
-        "headers",
-        nargs="+",
-        help="Sequence of header files"
-    )
-    parser.add_argument(
-        "-o", "--output",
+        "-o",
+        "--output",
         metavar="FILE",
         help="write wrapper to FILE [default stdout]",
     )
     parser.add_argument(
-        "-l", "--library",
+        "-l",
+        "--library",
         dest="libraries",
         action="append",
         default=[],
@@ -65,7 +63,9 @@ def main(givenargs=None):
         help="include system header HEADER (e.g. stdio.h or stdlib.h)",
     )
     parser.add_argument(
-        "-m", "--module", "--link-module",
+        "-m",
+        "--module",
+        "--link-module",
         action="append",
         dest="modules",
         metavar="MODULE",
@@ -73,7 +73,8 @@ def main(givenargs=None):
         help="use symbols from Python module MODULE",
     )
     parser.add_argument(
-        "-I", "--includedir",
+        "-I",
+        "--includedir",
         action="append",
         dest="include_search_paths",
         default=[],
@@ -81,7 +82,10 @@ def main(givenargs=None):
         help="add INCLUDEDIR as a directory to search for headers",
     )
     parser.add_argument(
-        "-L", "-R", "--rpath", "--libdir",
+        "-L",
+        "-R",
+        "--rpath",
+        "--libdir",
         action="append",
         dest="universal_libdirs",
         default=[],
@@ -133,7 +137,8 @@ def main(givenargs=None):
         "Specify this flag to avoid ctypesgen undefining '__GNUC__' as shown above.",
     )
     parser.add_argument(
-        "-D", "--define",
+        "-D",
+        "--define",
         action="append",
         dest="cpp_defines",
         metavar="MACRO",
@@ -141,7 +146,8 @@ def main(givenargs=None):
         help="Add a definition to the preprocessor via commandline",
     )
     parser.add_argument(
-        "-U", "--undefine",
+        "-U",
+        "--undefine",
         action="append",
         dest="cpp_undefines",
         metavar="NAME",
@@ -166,7 +172,8 @@ def main(givenargs=None):
 
     # Processor options
     parser.add_argument(
-        "-a", "--all-headers",
+        "-a",
+        "--all-headers",
         action="store_true",
         dest="all_headers",
         default=False,
@@ -194,7 +201,8 @@ def main(givenargs=None):
         help="Do not remove macro definitions as per #undef directives",
     )
     parser.add_argument(
-        "-i", "--include-symbols",
+        "-i",
+        "--include-symbols",
         action="append",
         dest="include_symbols",
         metavar="REGEXPR",
@@ -204,7 +212,8 @@ def main(givenargs=None):
         "doing something like '(expr1|expr2|expr3)'.",
     )
     parser.add_argument(
-        "-x", "--exclude-symbols",
+        "-x",
+        "--exclude-symbols",
         action="append",
         dest="exclude_symbols",
         metavar="REGEXPR",
@@ -275,7 +284,8 @@ def main(givenargs=None):
         help="Choose output language",
     )
     parser.add_argument(
-        "-P", "--strip-prefix",
+        "-P",
+        "--strip-prefix",
         dest="strip_prefixes",
         default=[],
         action="append",
