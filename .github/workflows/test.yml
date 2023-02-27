@@ -1,3 +1,4 @@
+---
 name: Test
 
 on:
@@ -10,30 +11,30 @@ jobs:
     name: Python-${{ matrix.python }} ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
-        matrix:
-            include:
-            # Linux
-            - os: ubuntu-latest
-              python: 3.7
-            - os: ubuntu-latest
-              python: 3.8
-            - os: ubuntu-latest
-              python: 3.9
-            - os: ubuntu-latest
-              python: "3.10"
-            # macOS
-            - os: macos-latest
-              python: "3.10"
-            # Windows
-            - os: windows-latest
-              python: "3.10"
-        fail-fast: false
+      matrix:
+        include:
+          # Linux
+          - os: ubuntu-latest
+            python: 3.7
+          - os: ubuntu-latest
+            python: 3.8
+          - os: ubuntu-latest
+            python: 3.9
+          - os: ubuntu-latest
+            python: '3.10'
+          # macOS
+          - os: macos-latest
+            python: '3.10'
+          # Windows
+          - os: windows-latest
+            python: '3.10'
+      fail-fast: false
 
     steps:
-      - uses: actions/checkout@v2
-      
+      - uses: actions/checkout@v3
+
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python }}
 
