@@ -126,7 +126,7 @@ class CParser(object):
     # ----------------------------------------------------------------------
 
     def handle_error(self, message, filename, lineno):
-        """A parse error occured.
+        """A parse error occurred.
 
         The default implementation prints `lineno` and `message` to stderr.
         The parser will try to recover from errors by synchronising at the
@@ -137,7 +137,7 @@ class CParser(object):
     def handle_pp_error(self, message):
         """The C preprocessor emitted an error.
 
-        The default implementatin prints the error to stderr. If processing
+        The default implementation prints the error to stderr. If processing
         can continue, it will.
         """
         sys.stderr.write("Preprocessor: {}\n".format(message))
