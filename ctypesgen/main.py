@@ -280,6 +280,14 @@ def main(givenargs=None):
         default=False,
         help="Do not support extra C types built in to Python",
     )
+    op.add_option(
+        "",
+        "--no-load-library",
+        action="store_true",
+        dest="no_load_library",
+        default=False,
+        help="Do not try to load library during the processing"
+    )
 
     # Printer options
     op.add_option(

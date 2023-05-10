@@ -14,7 +14,7 @@ from ctypesgen.descriptions import (
     StructDescription,
     TypedefDescription,
 )
-from ctypesgen.messages import warning_message
+from ctypesgen.messages import warning_message, status_message
 
 
 # Processor functions
@@ -264,6 +264,10 @@ def find_source_libraries(data, opts):
     libraryloader.add_library_search_dirs(opts.compile_libdirs)
 
     for library_name in opts.libraries:
+        if opts.no_load_library:
+            status_message("Bypass load_library %s" % library_name)
+            continue
+
         try:
             library = libraryloader.load_library(library_name)
         except ImportError:
