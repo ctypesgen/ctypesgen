@@ -243,8 +243,7 @@ def main(givenargs=None):
         default=False,
         help="Do not support extra C types built in to Python",
     )
-    op.add_option(
-        "",
+    parser.add_argument(
         "--no-load-library",
         action="store_true",
         dest="no_load_library",
