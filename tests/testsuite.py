@@ -2394,6 +2394,7 @@ class MainTest(unittest.TestCase):
     def _exec(args):
         p = Popen([sys.executable, MainTest.script] + args, stdout=PIPE, stderr=PIPE)
         o, e = p.communicate()
+        print(o, e, p.returncode)
         return o, e, p.returncode
 
     def test_version(self):
@@ -2408,20 +2409,20 @@ class MainTest(unittest.TestCase):
         o, e, c = self._exec(["--help"])
         self.assertEqual(c, 0)
         self.assertEqual(
-            o.decode().splitlines()[0], "Usage: run.py [options] /path/to/header.h ..."
+            o.decode().splitlines()[0].startswith("usage: run.py"), True
         )
         self.assertGreater(len(o), 3000)  # its long, so it must be the generated help
         self.assertEqual(e.decode(), "")
 
     def test_invalid_option(self):
         """Test that script at least generates a help"""
-        o, e, c = self._exec(["--oh-what-a-goose-i-am"])
+        o, e, c = self._exec(["random_header.h", "--oh-what-a-goose-i-am"])
         self.assertEqual(c, 2)
         self.assertEqual(o.decode(), "")
         self.assertEqual(
-            e.decode().splitlines()[0], "Usage: run.py [options] /path/to/header.h ..."
+            e.decode().splitlines()[0].startswith("usage: run.py"), True
         )
-        self.assertIn("run.py: error: no such option: --oh-what-a-goose-i-am", e.decode())
+        self.assertIn("error: unrecognized arguments: --oh-what-a-goose-i-am", e.decode())
 
 
 class UncheckedTest(unittest.TestCase):
