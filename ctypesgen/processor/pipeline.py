@@ -114,14 +114,14 @@ def print_errors_encountered(data, opts):
         # printing warnings.
         if desc.included or opts.show_all_errors:
             if opts.show_long_errors or len(desc.errors) + len(desc.warnings) <= 2:
-                for (error, cls) in desc.errors:
+                for error, cls in desc.errors:
                     # Macro errors will always be displayed as warnings.
                     if isinstance(desc, MacroDescription):
                         if opts.show_macro_warnings:
                             warning_message(error, cls)
                     else:
                         error_message(error, cls)
-                for (warning, cls) in desc.warnings:
+                for warning, cls in desc.warnings:
                     warning_message(warning, cls)
 
             else:

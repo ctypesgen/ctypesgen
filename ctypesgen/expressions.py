@@ -307,7 +307,10 @@ class TypeCastExpressionNode(ExpressionNode):
             # c_char can take integer or byte types, but the others can *only*
             # take non-char arguments.
             # ord_if_char must be provided by preambles
-            if isinstance(self.ctype, CtypesSimple) and (self.ctype.name, self.ctype.signed,) == (
+            if isinstance(self.ctype, CtypesSimple) and (
+                self.ctype.name,
+                self.ctype.signed,
+            ) == (
                 "char",
                 True,
             ):

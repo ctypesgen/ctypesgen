@@ -248,7 +248,7 @@ def main(givenargs=None):
         action="store_true",
         dest="no_load_library",
         default=False,
-        help="Do not try to load library during the processing"
+        help="Do not try to load library during the processing",
     )
 
     # Printer options
