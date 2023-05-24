@@ -266,7 +266,6 @@ def t_DEFINE_identifier(t):
             t.lexpos + len(t.value) < t.lexer.lexlen
             and t.lexer.lexdata[t.lexpos + len(t.value)] == "("
         ):
-
             t.type = "PP_DEFINE_MACRO_NAME"
 
             # Look ahead and read macro parameter list

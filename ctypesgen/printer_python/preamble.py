@@ -321,7 +321,6 @@ class MutableString(UserString):
 
 
 class String(MutableString, ctypes.Union):
-
     _fields_ = [("raw", ctypes.POINTER(ctypes.c_char)), ("data", ctypes.c_char_p)]
 
     def __init__(self, obj=b""):

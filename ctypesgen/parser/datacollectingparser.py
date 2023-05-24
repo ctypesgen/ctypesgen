@@ -185,7 +185,7 @@ class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
                 self.output_order.append(("struct", struct))
 
         else:
-            for (membername, ctype) in ctypestruct.members:
+            for membername, ctype in ctypestruct.members:
                 ctype.visit(self)
 
             if name in self.already_seen_opaque_structs:
@@ -263,7 +263,7 @@ class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
 
             self.already_seen_enums.add(tag)
 
-            for (enumname, expr) in ctypeenum.enumerators:
+            for enumname, expr in ctypeenum.enumerators:
                 constant = ConstantDescription(enumname, expr, src=(filename, lineno))
 
                 self.constants.append(constant)
