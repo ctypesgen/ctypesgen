@@ -302,13 +302,15 @@ class WrapperPrinter:
 
         CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
 
-        # If we know what library the function lives in, look there.
+        # If we know what library the function lives in or we have only a single library, look there.
         # Otherwise, check all the libraries.
-        if function.source_library:
+        use_single_lib = function.source_library or len(self.options.libraries) == 1
+        if use_single_lib:
+            lib = function.source_library if function.source_library else self.options.libraries[0]
             self.file.write(
                 'if _libs["{L}"].has("{CN}", "{CC}"):\n'
                 '    {PN} = _libs["{L}"].get("{CN}", "{CC}")\n'.format(
-                    L=function.source_library, CN=function.c_name(), PN=function.py_name(), CC=CC
+                    L=lib, CN=function.c_name(), PN=function.py_name(), CC=CC
                 )
             )
         else:
@@ -347,7 +349,7 @@ class WrapperPrinter:
                     "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
                 )
 
-        if not function.source_library:
+        if not use_single_lib:
             self.file.write("    break\n")
 
     def print_variadic_function(self, function):
