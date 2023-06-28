@@ -278,7 +278,7 @@ class CtypesFunction(CtypesType):
 
         if options.use_autostrings:
             if self.restype.py_string() == "POINTER(c_char)":
-                self.restype = CtypesSpecial("c_char_p")
+                self.restype = CtypesSpecial("String")
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
         self.variadic = variadic

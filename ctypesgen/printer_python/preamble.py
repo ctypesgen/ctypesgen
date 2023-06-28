@@ -17,13 +17,26 @@ del _int_types
 
 # ~POINTER~
 
-class String:
+class _bytes_wrapper (bytes):
+    def __str__(self):
+        return self.decode("utf-8")
+
+class String (c_char_p):
+    
+    @classmethod
+    def _check_retval_(cls, result):
+        value = result.value
+        if value is None:
+            return None
+        else:
+            return _bytes_wrapper(value)
+    
     @classmethod
     def from_param(cls, obj):
         if isinstance(obj, str):
             return obj.encode("utf-8")
         else:
-            return obj
+            return c_char_p.from_param(obj)
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
 # functions on callbacks, nor does it support custom datatypes on
