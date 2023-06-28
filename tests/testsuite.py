@@ -142,7 +142,7 @@ class StdlibTest(unittest.TestCase):
             os.environ[env_var_name] = "WORLD"  # This doesn't work under win32
             expect_result = "WORLD"
 
-        result = str(module.getenv(env_var_name))
+        result = module.getenv(env_var_name).decode("utf-8")
         self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
