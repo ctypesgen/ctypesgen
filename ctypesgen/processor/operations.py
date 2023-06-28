@@ -140,7 +140,6 @@ def fix_conflicting_names(data, opts):
             "Structure",
             "UNCHECKED",
             "Union",
-            "UserString",
             "_variadic_function",
             "addressof",
             "c_buffer",

@@ -117,6 +117,16 @@ def main(givenargs=None):
         "Defining --output as a file and --output-language to "
         "Python is a prerequisite.",
     )
+    parser.add_argument(
+        "--no-autostrings",
+        action="store_false",
+        dest="use_autostrings",
+        default=True,
+        help="Do not use support classes for auto-converting strings "
+        "to/from UTF-8. String auto-conversion is fraught with problems, "
+        "so it is highly recommended to use this option for any new "
+        "projects, or to port existing code if applicable.",
+    )
 
     # Parser options
     parser.add_argument(

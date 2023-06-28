@@ -328,7 +328,7 @@ class WrapperPrinter:
         )
 
         # Return value
-        if function.restype.py_string() == "String":
+        if self.options.use_autostrings and function.restype.py_string() == "String":
             self.file.write(
                 "    if sizeof(c_int) == sizeof(c_void_p):\n"
                 "        {PN}.restype = ReturnString\n"
