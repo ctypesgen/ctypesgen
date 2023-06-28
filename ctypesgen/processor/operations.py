@@ -135,7 +135,6 @@ def fix_conflicting_names(data, opts):
             "ArgumentError",
             "CFUNCTYPE",
             "POINTER",
-            "ReturnString",
             "String",
             "Structure",
             "UNCHECKED",

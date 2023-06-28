@@ -281,7 +281,7 @@ class CtypesFunction(CtypesType):
                 if "const" in self.restype.qualifiers:
                     self.restype = CtypesSpecial("c_char_p")
                 else:
-                    self.restype = CtypesSpecial("String")
+                    self.restype = CtypesSpecial("RString")
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
         self.variadic = variadic

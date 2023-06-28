@@ -17,7 +17,22 @@ del _int_types
 
 # ~POINTER~
 
-# TODO implement String and ReturnString
+class String:
+    @classmethod
+    def from_param(cls, obj):
+        if isinstance(obj, str):
+            return obj.encode("utf-8")
+        else:
+            return obj
+
+class RString (ctypes.c_char_p):
+    @classmethod
+    def _check_retval_(cls, result):
+        value = result.value
+        if value is None:
+            return None
+        else:
+            return value.decode("utf-8")
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
 # functions on callbacks, nor does it support custom datatypes on

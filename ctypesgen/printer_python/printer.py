@@ -328,24 +328,13 @@ class WrapperPrinter:
         )
 
         # Return value
-        if self.options.use_autostrings and function.restype.py_string() == "String":
+        self.file.write(
+            "    %s.restype = %s\n" % (function.py_name(), function.restype.py_string())
+        )
+        if function.errcheck:
             self.file.write(
-                "    if sizeof(c_int) == sizeof(c_void_p):\n"
-                "        {PN}.restype = ReturnString\n"
-                "    else:\n"
-                "        {PN}.restype = {RT}\n"
-                "        {PN}.errcheck = ReturnString\n".format(
-                    PN=function.py_name(), RT=function.restype.py_string()
-                )
+                "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
             )
-        else:
-            self.file.write(
-                "    %s.restype = %s\n" % (function.py_name(), function.restype.py_string())
-            )
-            if function.errcheck:
-                self.file.write(
-                    "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
-                )
 
         if not function.source_library:
             self.file.write("    break\n")
