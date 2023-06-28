@@ -26,10 +26,7 @@ class String (c_char_p):
     @classmethod
     def _check_retval_(cls, result):
         value = result.value
-        if value is None:
-            return None
-        else:
-            return _bytes_wrapper(value)
+        return value if value is None else _bytes_wrapper(value)
     
     @classmethod
     def from_param(cls, obj):
