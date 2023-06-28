@@ -16,17 +16,27 @@ del _int_types
 
 # ~POINTER~
 
+class _wraps_c_char_p:
 
-class _bytes_wrapper(bytes):
+    def __init__(self, raw, value):
+        self.raw = raw
+        self.value = value
+
+    def decode(self, encoding="utf-8", errors="strict"):
+        return self.value.decode(encoding, errors=errors)
+
     def __str__(self):
-        return self.decode("utf-8")
+        return self.decode()
+
+    def __getattr__(self, attr):
+        return getattr(self.value, attr)
 
 
 class String(ctypes.c_char_p):
     @classmethod
     def _check_retval_(cls, result):
         value = result.value
-        return value if value is None else _bytes_wrapper(value)
+        return value if value is None else _wraps_c_char_p(result, value)
 
     @classmethod
     def from_param(cls, obj):
