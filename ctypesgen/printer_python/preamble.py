@@ -1,5 +1,4 @@
 import ctypes
-import sys
 from ctypes import *  # noqa: F401, F403
 
 _int_types = (ctypes.c_int16, ctypes.c_int32)
@@ -17,23 +16,25 @@ del _int_types
 
 # ~POINTER~
 
-class _bytes_wrapper (bytes):
+
+class _bytes_wrapper(bytes):
     def __str__(self):
         return self.decode("utf-8")
 
-class String (c_char_p):
-    
+
+class String(ctypes.c_char_p):
     @classmethod
     def _check_retval_(cls, result):
         value = result.value
         return value if value is None else _bytes_wrapper(value)
-    
+
     @classmethod
     def from_param(cls, obj):
         if isinstance(obj, str):
             return obj.encode("utf-8")
         else:
-            return c_char_p.from_param(obj)
+            return ctypes.c_char_p.from_param(obj)
+
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
 # functions on callbacks, nor does it support custom datatypes on
