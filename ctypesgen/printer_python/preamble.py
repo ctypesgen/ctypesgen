@@ -16,8 +16,8 @@ del _int_types
 
 # ~POINTER~
 
-class _wraps_c_char_p:
 
+class _wraps_c_char_p:
     def __init__(self, raw, value):
         self.raw = raw
         self.value = value
