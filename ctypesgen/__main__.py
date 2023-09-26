@@ -12,6 +12,7 @@ from ctypesgen import (
     printer_json,
     processor,
     version,
+    ctypedescs
 )
 
 
@@ -323,9 +324,18 @@ def main(givenargs=None):
         type=int,
         help="Run ctypesgen with specified debug level (also applies to yacc parser)",
     )
+    parser.add_argument(
+        "--include-stdbool",
+        dest="include_stdbool",
+        action="store_true",
+        help="Adds support for `bool` from stdbool.h",
+    )
 
     parser.set_defaults(**core_options.default_values)
     args = parser.parse_args(givenargs)
+
+    if args.include_stdbool:
+        ctypedescs.ctypes_type_map[("bool", True, 0)] = "c_bool"
 
     args.compile_libdirs += args.universal_libdirs
     args.runtime_libdirs += args.universal_libdirs
