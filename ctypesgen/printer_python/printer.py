@@ -229,7 +229,35 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        self.file.write("class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base))
+        if not struct.opaque:
+            self.file.write("@struct_decorator\n")
+        self.file.write("class %s_%s(%s):\n" % (struct.variety, struct.tag, base))
+        if struct.opaque:
+            self.file.write("    pass\n")
+        else:
+            # handle unnamed fields.
+            unnamed_fields = []
+            names = set([x[0] for x in struct.members])
+            anon_prefix = "unnamed_"
+            n = 1
+            for mi in range(len(struct.members)):
+                mem = list(struct.members[mi])
+                if mem[0] is None:
+                    while True:
+                        name = "%s%i" % (anon_prefix, n)
+                        n += 1
+                        if name not in names:
+                            break
+                    mem[0] = name
+                    names.add(name)
+                    if type(mem[1]) is CtypesStruct:
+                        unnamed_fields.append(name)
+                    struct.members[mi] = mem
+            struct.unnamed_fields = unnamed_fields
+
+            # print annotations
+            for name, ctype in struct.members:
+                self.file.write(f"    {name} : {ctype.py_string()}\n")
 
     def print_struct_members(self, struct):
         if struct.opaque:
@@ -245,36 +273,14 @@ class WrapperPrinter:
                 aligned = aligned.evaluate(None)
             self.file.write("{}_{}._pack_ = {}\n".format(struct.variety, struct.tag, aligned))
 
-        # handle unnamed fields.
-        unnamed_fields = []
-        names = set([x[0] for x in struct.members])
-        anon_prefix = "unnamed_"
-        n = 1
-        for mi in range(len(struct.members)):
-            mem = list(struct.members[mi])
-            if mem[0] is None:
-                while True:
-                    name = "%s%i" % (anon_prefix, n)
-                    n += 1
-                    if name not in names:
-                        break
-                mem[0] = name
-                names.add(name)
-                if type(mem[1]) is CtypesStruct:
-                    unnamed_fields.append(name)
-                struct.members[mi] = mem
-
-        self.file.write("%s_%s.__slots__ = [\n" % (struct.variety, struct.tag))
-        for name, ctype in struct.members:
-            self.file.write("    '%s',\n" % name)
-        self.file.write("]\n")
-
+        unnamed_fields = struct.unnamed_fields
         if len(unnamed_fields) > 0:
             self.file.write("%s_%s._anonymous_ = [\n" % (struct.variety, struct.tag))
             for name in unnamed_fields:
                 self.file.write("    '%s',\n" % name)
             self.file.write("]\n")
 
+        # TODO part of this could be deduplicated
         self.file.write("%s_%s._fields_ = [\n" % (struct.variety, struct.tag))
         for name, ctype in struct.members:
             if isinstance(ctype, CtypesBitfield):
