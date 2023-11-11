@@ -22,7 +22,7 @@ class _wraps_c_char_p:
         self.raw = raw
         self.value = value
 
-    # in principle not necessary because of __getattr__ wrapper below; provided for clarity/explicitness
+    # provided for clarity, not actually necessary due to __getattr__ wrapper below
     def decode(self, encoding="utf-8", errors="strict"):
         return self.value.decode(encoding, errors=errors)
 
