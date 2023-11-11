@@ -41,9 +41,8 @@ class String(ctypes.c_char_p):
     @classmethod
     def from_param(cls, obj):
         if isinstance(obj, str):
-            return obj.encode("utf-8")
-        else:
-            return ctypes.c_char_p.from_param(obj)
+            obj = obj.encode("utf-8")
+        return super().from_param(obj)
 
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
