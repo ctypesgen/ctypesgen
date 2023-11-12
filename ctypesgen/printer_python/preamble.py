@@ -7,6 +7,7 @@ T = TypeVar("T")
 
 def struct_decorator(cls: Type[T]) -> Type[T]:
     class Internal(cls.__base__):
+        __qualname__ = cls.__qualname__
         __annotations__ = cls.__annotations__
         __slots__ = list(cls.__annotations__.keys())
     return Internal
