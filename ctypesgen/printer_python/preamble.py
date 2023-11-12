@@ -2,6 +2,7 @@ from typing import TypeVar, Type, get_type_hints
 import ctypes
 import sys
 from ctypes import *  # noqa: F401, F403
+from inspect import get_annotations
 
 T = TypeVar("T")
 
@@ -10,7 +11,18 @@ def struct_decorator(cls: Type[T]) -> Type[T]:
         __qualname__ = cls.__qualname__
         __annotations__ = cls.__annotations__
         __slots__ = list(cls.__annotations__.keys())
+
+        _tmp_bitfields_ = cls._tmp_bitfields_
     return Internal
+
+def finalize_struct(cls):
+    cls._fields_ = []
+    for name, ctype in get_annotations(cls):
+        entry = [name, ctype]
+        if name in cls._bitfields_:
+            entry.extend(cls._bitfields_[name])
+        cls._fields_.append(tuple(entry))
+    del cls._tmp_bitfields_
 
 _int_types = (ctypes.c_int16, ctypes.c_int32)
 if hasattr(ctypes, "c_int64"):

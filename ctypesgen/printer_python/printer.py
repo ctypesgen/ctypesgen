@@ -259,6 +259,17 @@ class WrapperPrinter:
             for name, ctype in struct.members:
                 self.file.write(f"    {name} : {ctype.py_string()}\n")
 
+            # TODO: maybe not write implement this using a static member to avoid user confusion?
+            self.file.write("\n")
+            bitfields = list(filter(lambda x: isinstance(x[1], CtypesBitfield), struct.members))
+            if len(bitfields) == 0:
+                self.file.write(f"    _tmp_bitfields_ = dict()\n")
+            else:
+                self.file.write(f"    _tmp_bitfields_ = dict(\n")
+                for name, ctype in bitfields:
+                    self.file.write(f"        {name} = {ctype.bitfield},\n")
+                self.file.write("    )\n")
+
     def print_struct_members(self, struct):
         if struct.opaque:
             return
@@ -280,17 +291,7 @@ class WrapperPrinter:
                 self.file.write("    '%s',\n" % name)
             self.file.write("]\n")
 
-        # TODO part of this could be deduplicated
-        self.file.write("%s_%s._fields_ = [\n" % (struct.variety, struct.tag))
-        for name, ctype in struct.members:
-            if isinstance(ctype, CtypesBitfield):
-                self.file.write(
-                    "    ('%s', %s, %s),\n"
-                    % (name, ctype.py_string(), ctype.bitfield.py_string(False))
-                )
-            else:
-                self.file.write("    ('%s', %s),\n" % (name, ctype.py_string()))
-        self.file.write("]\n")
+        self.file.write(f"finalize_struct({struct.variety}_{struct.tag})\n")
 
     def print_enum(self, enum):
         self.file.write("enum_%s = c_int" % enum.tag)
