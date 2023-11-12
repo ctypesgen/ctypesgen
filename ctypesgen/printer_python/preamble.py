@@ -1,16 +1,6 @@
-from typing import TypeVar, Type, get_type_hints
 import ctypes
 import sys
 from ctypes import *  # noqa: F401, F403
-
-T = TypeVar("T")
-
-def struct_decorator(cls: Type[T]) -> Type[T]:
-    class Internal(cls.__base__):
-        __qualname__ = cls.__qualname__
-        __annotations__ = cls.__annotations__
-        __slots__ = list(cls.__annotations__.keys())
-    return Internal
 
 _int_types = (ctypes.c_int16, ctypes.c_int32)
 if hasattr(ctypes, "c_int64"):

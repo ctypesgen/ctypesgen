@@ -229,8 +229,6 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        if not struct.opaque:
-            self.file.write("@struct_decorator\n")
         self.file.write("class %s_%s(%s):\n" % (struct.variety, struct.tag, base))
         if struct.opaque:
             self.file.write("    pass\n")
@@ -258,6 +256,9 @@ class WrapperPrinter:
             # print annotations
             for name, ctype in struct.members:
                 self.file.write(f"    {name} : {ctype.py_string()}\n")
+
+            self.file.write(f"\n")
+            self.file.write(f"    __slots__ = list(__annotations__.keys())\n")
 
     def print_struct_members(self, struct):
         if struct.opaque:
