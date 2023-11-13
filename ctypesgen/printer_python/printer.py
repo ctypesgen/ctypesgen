@@ -303,6 +303,8 @@ class WrapperPrinter:
 
         CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
         L = function.source_library
+        if not L and len(self.options.libraries) == 0:
+            L = self.options.libraries[0]
         CN = function.c_name()
         PN = function.py_name()
         RT = function.restype.py_string()
