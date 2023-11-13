@@ -322,8 +322,8 @@ class WrapperPrinter:
         param_names = ", ".join(param_names)
         param_types = ', '.join(param_types)
 
-        # If we know what library the function lives in, look there.
-        # Otherwise, check all the libraries.
+        # If we know what library the function lives in, or we have only a single library,
+        # look there. Otherwise, check all the libraries.
         if L:
             self.file.write(
                 f'if _libs["{L}"].has("{CN}", "{CC}"):\n'
