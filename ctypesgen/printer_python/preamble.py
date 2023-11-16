@@ -7,7 +7,7 @@ def finalize_struct(cls):
     cls._fields_ = []
     for name, ctype in get_type_hints(cls).items():
         entry = [name, ctype]
-        if name in cls._bitfields_:
+        if name in cls._tmp_bitfields_:
             entry.extend(cls._bitfields_[name])
         cls._fields_.append(tuple(entry))
     del cls._tmp_bitfields_
