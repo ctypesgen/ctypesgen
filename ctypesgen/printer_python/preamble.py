@@ -1,19 +1,7 @@
-from typing import TypeVar, Type, get_type_hints
 import ctypes
 import sys
 from ctypes import *  # noqa: F401, F403
 from inspect import get_annotations
-
-T = TypeVar("T")
-
-def struct_decorator(cls: Type[T]) -> Type[T]:
-    class Internal(cls.__base__):
-        __qualname__ = cls.__qualname__
-        __annotations__ = cls.__annotations__
-        __slots__ = list(cls.__annotations__.keys())
-
-        _tmp_bitfields_ = cls._tmp_bitfields_
-    return Internal
 
 def finalize_struct(cls):
     cls._fields_ = []

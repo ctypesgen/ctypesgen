@@ -229,8 +229,6 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        if not struct.opaque:
-            self.file.write("@struct_decorator\n")
         self.file.write("class %s_%s(%s):\n" % (struct.variety, struct.tag, base))
         if struct.opaque:
             self.file.write("    pass\n")
@@ -259,6 +257,9 @@ class WrapperPrinter:
             for name, ctype in struct.members:
                 self.file.write(f"    {name} : {ctype.py_string()}\n")
 
+            self.file.write(f"\n")
+            self.file.write(f"    __slots__ = list(__annotations__.keys())\n")
+            
             # TODO: maybe not write implement this using a static member to avoid user confusion?
             self.file.write("\n")
             bitfields = list(filter(lambda x: isinstance(x[1], CtypesBitfield), struct.members))
