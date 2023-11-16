@@ -1,11 +1,11 @@
 import ctypes
 import sys
 from ctypes import *  # noqa: F401, F403
-from inspect import get_annotations
+from typing import get_type_hints
 
 def finalize_struct(cls):
     cls._fields_ = []
-    for name, ctype in get_annotations(cls):
+    for name, ctype in get_type_hints(cls).items():
         entry = [name, ctype]
         if name in cls._bitfields_:
             entry.extend(cls._bitfields_[name])
