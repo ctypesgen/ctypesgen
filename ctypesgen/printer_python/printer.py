@@ -418,10 +418,11 @@ class WrapperPrinter:
             )
 
     def print_macro(self, macro):
-        if macro.params:
-            self.print_func_macro(macro)
-        else:
+        # important: must check precisely against None because params may be an empty list for a func macro
+        if macro.params is None:
             self.print_simple_macro(macro)
+        else:
+            self.print_func_macro(macro)
 
     def print_simple_macro(self, macro):
         # The macro translator makes heroic efforts but it occasionally fails.
