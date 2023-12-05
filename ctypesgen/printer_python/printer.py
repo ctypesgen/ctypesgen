@@ -203,7 +203,7 @@ class WrapperPrinter:
         self.file.write("\n")
 
     def print_library(self, library):
-        self.file.write('_libs["%s"] = load_library("%s")\n' % (library, library))
+        self.file.write('_libs[r"%s"] = load_library(r"%s")\n' % (library, library))
 
     def print_module(self, module):
         self.file.write("from %s import *\n" % module)
@@ -229,7 +229,50 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        self.file.write("class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base))
+        #self.file.write("class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base))
+        self.file.write("class %s_%s(%s):\n" "    def __init__(self):\n" % (struct.variety, struct.tag, base))
+        for name, ctype in struct.members:
+            if isinstance(ctype, CtypesBitfield):
+                self.file.write("        self.%s = %s\n" % (name, ctype.bitfield.py_string(False)))
+            elif hasattr(ctype, 'name'):
+                if getattr(ctype, 'name') == 'boolean_T':
+                    self.file.write("        self.%s = %s\n" % (name, 'False'))
+                elif ((getattr(ctype, 'name') == 'uint_T') or
+                      (getattr(ctype, 'name') == 'int_T') or
+                      (getattr(ctype, 'name') == 'real_T') or
+                      (getattr(ctype, 'name') == 'uint8_T') or
+                      (getattr(ctype, 'name') == 'int8_T') or
+                      (getattr(ctype, 'name') == 'uint16_T') or
+                      (getattr(ctype, 'name') == 'int16_T') or
+                      (getattr(ctype, 'name') == 'uint32_T') or
+                      (getattr(ctype, 'name') == 'int32_T') or
+                      (getattr(ctype, 'name') == 'real32_T') or
+                      (getattr(ctype, 'name') == 'uint64_T') or
+                      (getattr(ctype, 'name') == 'int64_T') or
+                      (getattr(ctype, 'name') == 'real64_T')):
+                    self.file.write("        self.%s = %s(%d)\n" % (name, ctype.py_string(), 0))
+                else:
+                    self.file.write("        self.%s = %s()\n" % (name, ctype.py_string()))
+            else:
+                self.file.write("        self.%s = %s()\n" % (name, ctype.py_string()))
+
+        self.file.write("        super().__init__(\n")
+        for name, ctype in struct.members:
+                self.file.write("                         %s=self.%s,\n" % (name, name))
+        self.file.write("         )\n")
+
+        self.file.write("    pass\n")
+
+        # self.file.write("    _fields_ = [\n")
+        # for name, ctype in struct.members:
+        #     if isinstance(ctype, CtypesBitfield):
+        #         self.file.write(
+        #             "        ('%s', %s, %s),\n"
+        #             % (name, ctype.py_string(), ctype.bitfield.py_string(False))
+        #         )
+        #     else:
+        #         self.file.write("        ('%s', %s),\n" % (name, ctype.py_string()))
+        # self.file.write("    ]\n")
 
     def print_struct_members(self, struct):
         if struct.opaque:
@@ -264,16 +307,16 @@ class WrapperPrinter:
                     unnamed_fields.append(name)
                 struct.members[mi] = mem
 
-        self.file.write("%s_%s.__slots__ = [\n" % (struct.variety, struct.tag))
-        for name, ctype in struct.members:
-            self.file.write("    '%s',\n" % name)
-        self.file.write("]\n")
-
-        if len(unnamed_fields) > 0:
-            self.file.write("%s_%s._anonymous_ = [\n" % (struct.variety, struct.tag))
-            for name in unnamed_fields:
-                self.file.write("    '%s',\n" % name)
-            self.file.write("]\n")
+        # self.file.write("%s_%s.__slots__ = [\n" % (struct.variety, struct.tag))
+        # for name, ctype in struct.members:
+        #     self.file.write("    '%s',\n" % name)
+        # self.file.write("]\n")
+        #
+        # if len(unnamed_fields) > 0:
+        #     self.file.write("%s_%s._anonymous_ = [\n" % (struct.variety, struct.tag))
+        #     for name in unnamed_fields:
+        #         self.file.write("    '%s',\n" % name)
+        #     self.file.write("]\n")
 
         self.file.write("%s_%s._fields_ = [\n" % (struct.variety, struct.tag))
         for name, ctype in struct.members:
@@ -302,15 +345,13 @@ class WrapperPrinter:
 
         CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
 
-        # If we know what library the function lives in, or we have only a single library,
-        # look there. Otherwise, check all the libraries.
-        use_single_lib = function.source_library or len(self.options.libraries) == 1
-        if use_single_lib:
-            lib = function.source_library if function.source_library else self.options.libraries[0]
+        # If we know what library the function lives in, look there.
+        # Otherwise, check all the libraries.
+        if function.source_library:
             self.file.write(
-                'if _libs["{L}"].has("{CN}", "{CC}"):\n'
-                '    {PN} = _libs["{L}"].get("{CN}", "{CC}")\n'.format(
-                    L=lib, CN=function.c_name(), PN=function.py_name(), CC=CC
+                'if _libs[r"{L}"].has("{CN}", "{CC}"):\n'
+                '    {PN} = _libs[r"{L}"].get("{CN}", "{CC}")\n'.format(
+                    L=function.source_library, CN=function.c_name(), PN=function.py_name(), CC=CC
                 )
             )
         else:
@@ -349,7 +390,7 @@ class WrapperPrinter:
                     "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
                 )
 
-        if not use_single_lib:
+        if not function.source_library:
             self.file.write("    break\n")
 
     def print_variadic_function(self, function):
@@ -396,7 +437,7 @@ class WrapperPrinter:
         if variable.source_library:
             self.file.write(
                 "try:\n"
-                '    {PN} = ({PS}).in_dll(_libs["{L}"], "{CN}")\n'
+                '    {PN} = ({PS}).in_dll(_libs[r"{L}"], "{CN}")\n'
                 "except:\n"
                 "    pass\n".format(
                     PN=variable.py_name(),
