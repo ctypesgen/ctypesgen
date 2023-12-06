@@ -78,7 +78,7 @@ class WrapperPrinter:
         self.file.write("\n")
 
     def srcinfo(self, src):
-        if src is None:
+        if src is None or not self.options.print_source_comments:
             self.file.write("\n")
         else:
             filename, lineno = src

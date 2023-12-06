@@ -330,6 +330,13 @@ def main(givenargs=None):
         dest="use_macro_try_except",
         help="Do not use try-except for macros.",
     )
+    parser.add_argument(
+        "--no-source-comments",
+        action="store_false",
+        default=True,
+        dest="print_source_comments",
+        help="Do not include source file comments.",
+    )
 
     parser.set_defaults(**core_options.default_values)
     args = parser.parse_args(givenargs)
