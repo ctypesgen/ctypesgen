@@ -432,12 +432,17 @@ class WrapperPrinter:
         # We want to contain the failures as much as possible.
         # Hence the try statement.
         self.srcinfo(macro.src)
-        self.file.write(
-            "try:\n"
-            "    {MN} = {ME}\n"
-            "except:\n"
-            "    pass\n".format(MN=macro.name, ME=macro.expr.py_string(True))
-        )
+        if self.options.use_macro_try_except:
+            self.file.write(
+                "try:\n"
+                "    {MN} = {ME}\n"
+                "except:\n"
+                "    pass\n".format(MN=macro.name, ME=macro.expr.py_string(True))
+            )
+        else:
+            self.file.write(
+                "{MN} = {ME}\n".format(MN=macro.name, ME=macro.expr.py_string(True))
+            )
 
     def print_func_macro(self, macro):
         self.srcinfo(macro.src)
