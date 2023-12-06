@@ -35,8 +35,9 @@ class WrapperPrinter:
         self.print_preamble()
         self.file.write("\n")
 
-        self.print_loader()
-        self.file.write("\n")
+        if self.options.libraries:
+            self.print_loader()
+            self.file.write("\n")
 
         self.print_group(self.options.libraries, "libraries", self.print_library)
         self.print_group(self.options.modules, "modules", self.print_module)
@@ -183,8 +184,9 @@ class WrapperPrinter:
         with open(c_preamblefile, "w") as f:
             f.write(filecontent)
 
-        shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
-        os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")
+        if self.options.libraries:
+            shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
+            os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")
 
     def print_loader(self):
         self.file.write("_libs = {}\n")
