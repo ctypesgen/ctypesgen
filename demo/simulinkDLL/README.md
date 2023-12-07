@@ -8,7 +8,6 @@ Simulink data types are defined in additional header file 'rtwtypes.h'
 For generated source code see 'test_ctrl.c' and 'test_ctrl.h'
 'ert_main.c' is generated as an example integration code
 
-see modification of 'printer.py' too
 
 ## Model root:
 
@@ -23,14 +22,14 @@ Steps:
 1. (Re)Generate the bindings (or you can just try the bindings that were
     already generated and saved in this directory)
 
-    `python.exe ./demo/SimulinkDLL/generate_bindings.py`
+    `python.exe ./demo/SimulinkDLL/callGenerator.py`
 
 2. Run the app that uses these newly generated bindings
 
     `python.exe ./demo/SimulinkDLL/main.py`
+3. 
 
-    The results of this execution should give
-
+    The results of this execution should give:
     ```
     time = 0.00 s; output1 = 0.00; output2 = 0; diag1 = 6.0; diag2 = 0
     time = 0.20 s; output1 = 0.00; output2 = 0; diag1 = 6.0; diag2 = 0
