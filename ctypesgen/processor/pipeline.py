@@ -81,13 +81,15 @@ def calculate_final_inclusion(data, opts):
 
     def can_include_desc(desc):
         if desc.can_include is None:
-            if desc.include_rule == "no":
+            if desc.include_rule == "never":
                 desc.can_include = False
             elif desc.include_rule == "yes" or desc.include_rule == "if_needed":
                 desc.can_include = True
                 for req in desc.requirements:
                     if not can_include_desc(req):
                         desc.can_include = False
+            else:
+                assert False, f"unknown include rule '{desc.include_rule}'"
         return desc.can_include
 
     def do_include_desc(desc):
