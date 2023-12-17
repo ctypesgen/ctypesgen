@@ -418,7 +418,8 @@ class WrapperPrinter:
             )
 
     def print_macro(self, macro):
-        # important: must check precisely against None because params may be an empty list for a func macro
+        # important: must check precisely against None because params may be
+        # an empty list for a func macro
         if macro.params is None:
             self.print_simple_macro(macro)
         else:
