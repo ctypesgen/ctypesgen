@@ -13,5 +13,5 @@ build-backend = "setuptools.build_meta"
 [tool.black]
     line-length = 100
     exclude='.*tab.py|ctypesgen/parser/cgrammar.py|ctypesgen/parser/lex.py|ctypesgen/parser/yacc.py'
-    target-version = [ "py37", "py38", "py39"]
+    target-version = [ "py38", "py39", "py310", "py311"]
 
