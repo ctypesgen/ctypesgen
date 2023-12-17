@@ -60,7 +60,7 @@ def process(data, options):
     filter_by_regexes_exclude(data, options)
     filter_by_regexes_include(data, options)
     remove_macros(data, options)
-    if options.output_language == "python":
+    if options.output_language.startswith("py"):
         # this function is python specific
         fix_conflicting_names(data, options)
     find_source_libraries(data, options)
