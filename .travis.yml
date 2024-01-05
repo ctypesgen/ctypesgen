@@ -29,9 +29,9 @@ jobs:
 
     - stage: publish to test.pypi.org
       install:
-        - pip install --upgrade setuptools wheel twine
+        - pip install --upgrade build twine
       script:
-        - python setup.py sdist bdist_wheel
+        - python -m build
         - python -m twine upload --repository-url https://test.pypi.org/legacy/ dist/*
 
     - stage: verify
