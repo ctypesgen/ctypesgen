@@ -135,8 +135,7 @@ class LibraryLoader:
                     yield path
 
             # then we search all paths identified as platform-specific lib paths
-            for path in self.getplatformpaths(libname):
-                yield path
+            yield from self.getplatformpaths(libname)
 
             # Finally, we'll try the users current working directory
             for fmt in self.name_formats:
@@ -357,11 +356,10 @@ class PosixLibraryLoader(LibraryLoader):
             self._create_ld_so_cache()
 
         result = self._ld_so_cache.get(libname, set())
-        for i in result:
-            # we iterate through all found paths for library, since we may have
-            # actually found multiple architectures or other library types that
-            # may not load
-            yield i
+        # we iterate through all found paths for library, since we may have
+        # actually found multiple architectures or other library types that
+        # may not load
+        yield from result
 
 
 # Windows
