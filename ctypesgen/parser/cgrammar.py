@@ -184,8 +184,9 @@ def p_constant_character(p):
     """ constant : CHARACTER_CONSTANT
     """
     constant_char = p[1]
+    is_literal = constant_char.startswith("b'")
 
-    p[0] = expressions.ConstantExpressionNode(constant_char)
+    p[0] = expressions.ConstantExpressionNode(constant_char, is_literal=is_literal)
 
 
 def p_string_literal(p):

@@ -50,7 +50,7 @@ F_CONST_4 = r"(?P<hex>" + _HP_ + _H_ + r"+" + _P_ + r")" + _FS_ + r"?"
 F_CONST_5 = r"(?P<hex>" + _HP_ + _H_ + r"*\." + _H_ + r"+" + _P_ + r")" + _FS_ + r"?"
 F_CONST_6 = r"(?P<hex>" + _HP_ + _H_ + r"+\." + _P_ + r")" + _FS_ + r"?"
 
-CHARACTER_CONSTANT = _SP_ + r"?'(?P<p1>\\.|[^\\'])+'"
+CHARACTER_CONSTANT = r"(?P<pre>" + _SP_ + r")?'(?P<char>\\.|[^\\'])+'"
 IDENTIFIER = _L_ + _A_ + r"*"
 
 escape_sequence_start_in_string = r"""(\\[0-9a-zA-Z._~!=&\^\-\\?'"])"""
@@ -239,8 +239,18 @@ def t_ANY_i_const_oct(t):
 def t_ANY_character_constant(t):
     t.type = "CHARACTER_CONSTANT"
     m = t.lexer.lexmatch
-    p1 = m.group("p1")
-    t.value = p1
+    prefix = m.group("pre")
+    char = m.group("char")
+    t.value = char
+    if prefix is None:
+        try:
+            char.encode("ascii")
+        except UnicodeEncodeError:
+            t.value = char
+        else:
+            t.value = f"b'{char}'"
+    else:
+        t.value = char
     return t
 
 
