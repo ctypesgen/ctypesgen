@@ -327,8 +327,10 @@ def main(givenargs=None):
     parser.set_defaults(**core_options.default_values)
     args = parser.parse_args(givenargs)
 
-    args.compile_libdirs += args.universal_libdirs
-    args.runtime_libdirs += args.universal_libdirs
+    # Important: don't use +=, it modifies the original list instead of
+    # creating a new one. This can be problematic with repeated API calls.
+    args.compile_libdirs = args.compile_libdirs + args.universal_libdirs
+    args.runtime_libdirs = args.runtime_libdirs + args.universal_libdirs
 
     # Figure out what names will be defined by imported Python modules
     args.other_known_names = find_names_in_modules(args.modules)
