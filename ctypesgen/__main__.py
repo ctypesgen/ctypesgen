@@ -7,6 +7,7 @@ import sys
 import argparse
 import contextlib
 import importlib
+from pathlib import Path
 
 from ctypesgen import (
     messages as msgs,
@@ -31,8 +32,10 @@ def tmp_searchpath(path):
 
 
 def find_symbols_in_modules(modnames, outpath):
+    assert isinstance(modnames, (tuple, list))  # not str
+    assert isinstance(outpath, Path) and outpath.is_absolute()
+    
     symbols = set()
-
     for modname in modnames:
         if modname.startswith("."):
             # NOTE(geisserml) Concerning relative imports, I've been unable to find
@@ -48,7 +51,7 @@ def find_symbols_in_modules(modnames, outpath):
 
         module_syms = [s for s in dir(module) if not re.fullmatch(r"__\w+__", s)]
         assert len(module_syms) > 0, "Linked modules must provide symbols"
-        msgs.status_message(f"Found symbols {module_syms} in module {module}")
+        msgs.status_message(f"Found symbols {module_syms} in {module}")
         symbols.update(module_syms)
 
     return symbols
@@ -360,7 +363,7 @@ def main(givenargs=None):
     args.runtime_libdirs = args.runtime_libdirs + args.universal_libdirs
 
     # Figure out what names will be defined by imported Python modules
-    args.other_known_names = find_symbols_in_modules(args.modules)
+    args.other_known_names = find_symbols_in_modules(args.modules, Path(args.output).resolve())
 
     if len(args.libraries) == 0:
         msgs.warning_message("No libraries specified", cls="usage")
