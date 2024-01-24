@@ -34,7 +34,7 @@ def tmp_searchpath(path):
 def find_symbols_in_modules(modnames, outpath):
     assert isinstance(modnames, (tuple, list))  # not str
     assert isinstance(outpath, Path) and outpath.is_absolute()
-    
+
     symbols = set()
     for modname in modnames:
         if modname.startswith("."):
