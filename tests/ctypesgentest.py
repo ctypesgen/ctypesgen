@@ -203,8 +203,7 @@ def cleanup_common():
     # Attention: currently not working on MS Windows.
     # cleanup_common() tries to delete "common.dll" while it is still loaded
     # by ctypes. See unittest for further details.
-    # rmtree(COMMON_DIR)
-    pass
+    rmtree(COMMON_DIR)
 
 
 def _compile_common(common_lib):
