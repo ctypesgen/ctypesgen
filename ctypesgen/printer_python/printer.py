@@ -133,9 +133,7 @@ class WrapperPrinter:
         self.file.write("# Begin preamble for Python\n\n")
         if self.options.embed_preamble:
             with open(PREAMBLE_PATH, "r") as preamble_file:
-                preamble_file_content = preamble_file.read()
-                filecontent = preamble_file_content.replace("# ~POINTER~", "")
-                self.file.write(filecontent)
+                self.file.write(preamble_file.read())
         else:
             self.file.write("from .ctypes_preamble import *\n")
             self.file.write("from .ctypes_preamble import _variadic_function\n")
@@ -156,33 +154,8 @@ class WrapperPrinter:
         c_preamblefile = f"{dst}/ctypes_preamble.py"
         if os.path.isfile(c_preamblefile):
             return
-
-        pointer = """def POINTER(obj):
-    p = ctypes.POINTER(obj)
-
-    # Convert None to a real NULL pointer to work around bugs
-    # in how ctypes handles None on 64-bit platforms
-    if not isinstance(p.from_param, classmethod):
-
-        def from_param(cls, x):
-            if x is None:
-                return cls()
-            else:
-                return x
-
-        p.from_param = classmethod(from_param)
-
-    return p
-
-"""
-
-        with open(PREAMBLE_PATH) as preamble_file:
-            preamble_file_content = preamble_file.read()
-            filecontent = preamble_file_content.replace("# ~POINTER~", pointer)
-
-        with open(c_preamblefile, "w") as f:
-            f.write(filecontent)
-
+        
+        shutil.copy(PREAMBLE_PATH, c_preamblefile)
         shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
         os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")
 

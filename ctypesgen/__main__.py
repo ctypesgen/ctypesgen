@@ -2,7 +2,11 @@
 Command-line interface for ctypesgen
 """
 
+import re
+import sys
 import argparse
+import contextlib
+import importlib
 
 from ctypesgen import (
     messages as msgs,
@@ -15,16 +19,42 @@ from ctypesgen import (
 )
 
 
-def find_names_in_modules(modules):
-    names = set()
-    for module in modules:
-        try:
-            mod = __import__(module)
-        except Exception:
-            pass
+@contextlib.contextmanager
+def tmp_searchpath(path):
+    path = str(path)
+    sys.path.insert(0, path)
+    try:
+        yield
+    finally:
+        popped = sys.path.pop(0)
+        assert popped is path
+
+
+def find_symbols_in_modules(modnames, outpath):
+    
+    symbols = set()
+    
+    for modname in modnames:
+        
+        if modname.startswith("."):
+            # NOTE(geisserml) Concerning relative imports, I've been unable to find
+            # another way than adding the output dir's parent to sys.path, given that
+            # the module itself may contain relative imports.
+            # It seems like this may be a limitation of python's import system, though
+            # technically one would imagine the output dir's path itself should be sufficient.
+            anchor_dir = outpath.parent
+            with tmp_searchpath(anchor_dir.parent):
+                module = importlib.import_module(modname, anchor_dir.name)
         else:
-            names.update(dir(mod))
-    return names
+            module = importlib.import_module(modname)
+        
+        module_syms = [s for s in dir(module) if not re.fullmatch(r"__\w+__", s)]
+        assert len(module_syms) > 0, "Linked modules must provide symbols"
+        msgs.status_message(f"Found symbols {module_syms} in module {module}")
+        symbols.update(module_syms)
+    
+    return symbols
+
 
 
 def main(givenargs=None):
@@ -333,7 +363,7 @@ def main(givenargs=None):
     args.runtime_libdirs = args.runtime_libdirs + args.universal_libdirs
 
     # Figure out what names will be defined by imported Python modules
-    args.other_known_names = find_names_in_modules(args.modules)
+    args.other_known_names = find_symbols_in_modules(args.modules)
 
     if len(args.libraries) == 0:
         msgs.warning_message("No libraries specified", cls="usage")

@@ -14,9 +14,11 @@ import json
 from contextlib import contextmanager
 import types
 import subprocess
+from pathlib import Path
 from shutil import rmtree
 
 from ctypesgen import options, messages, parser, processor
+from ctypesgen.__main__ import find_symbols_in_modules
 from ctypesgen import printer_python, printer_json, VERSION
 
 module_factory = types.ModuleType
@@ -188,21 +190,21 @@ def generate_common():
     common_lib = "libcommon.dll" if sys.platform == "win32" else "libcommon.so"
 
     _create_common_files()
-
     _compile_common(common_lib)
+    _generate_common("common", common_lib, embed_preamble=False, link=False)
 
     for file_name in ["a", "b"]:
-        _generate_common(file_name, common_lib)
-
+        _generate_common(file_name, common_lib, embed_preamble=True, link=False)
     for file_name in ["a", "b"]:
-        _generate_common(file_name, common_lib, False)
+        _generate_common(file_name, common_lib, embed_preamble=False, link=True)
 
 
 def cleanup_common():
     # Attention: currently not working on MS Windows.
     # cleanup_common() tries to delete "common.dll" while it is still loaded
     # by ctypes. See unittest for further details.
-    rmtree(COMMON_DIR)
+    # rmtree(COMMON_DIR)
+    pass
 
 
 def _compile_common(common_lib):
@@ -220,17 +222,19 @@ def _compile_common(common_lib):
     )
 
 
-def _generate_common(file_name, common_lib, embed_preamble=True):
+def _generate_common(file_name, common_lib, embed_preamble=True, link=False):
     test_options = options.get_default_options()
     test_options.headers = [f"{COMMON_DIR}/{file_name}.h"]
     test_options.include_search_paths = [COMMON_DIR]
     test_options.libraries = [common_lib]
     test_options.compile_libdirs = [COMMON_DIR]
     test_options.embed_preamble = embed_preamble
-    if embed_preamble:
-        output = f"{COMMON_DIR}/{file_name}.py"
-    else:
+    if link:
         output = f"{COMMON_DIR}/{file_name}2.py"
+        test_options.modules = [".common"]
+        test_options.other_known_names = find_symbols_in_modules(test_options.modules, Path(output))
+    else:
+        output = f"{COMMON_DIR}/{file_name}.py"
 
     descriptions = parser.parse(test_options.headers, test_options)
     processor.process(descriptions, test_options)
