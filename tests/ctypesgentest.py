@@ -231,7 +231,8 @@ def _generate_common(file_name, common_lib, embed_preamble=True, link=False):
     if link:
         output = f"{COMMON_DIR}/{file_name}2.py"
         test_options.modules = [".common"]
-        test_options.other_known_names = find_symbols_in_modules(test_options.modules, Path(output))
+        test_options.other_known_names = \
+            find_symbols_in_modules(test_options.modules, Path(output).resolve())
     else:
         output = f"{COMMON_DIR}/{file_name}.py"
 
