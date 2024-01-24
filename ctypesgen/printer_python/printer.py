@@ -154,7 +154,7 @@ class WrapperPrinter:
         c_preamblefile = f"{dst}/ctypes_preamble.py"
         if os.path.isfile(c_preamblefile):
             return
-        
+
         shutil.copy(PREAMBLE_PATH, c_preamblefile)
         shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
         os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")

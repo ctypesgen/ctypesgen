@@ -31,11 +31,9 @@ def tmp_searchpath(path):
 
 
 def find_symbols_in_modules(modnames, outpath):
-    
     symbols = set()
-    
+
     for modname in modnames:
-        
         if modname.startswith("."):
             # NOTE(geisserml) Concerning relative imports, I've been unable to find
             # another way than adding the output dir's parent to sys.path, given that
@@ -47,14 +45,13 @@ def find_symbols_in_modules(modnames, outpath):
                 module = importlib.import_module(modname, anchor_dir.name)
         else:
             module = importlib.import_module(modname)
-        
+
         module_syms = [s for s in dir(module) if not re.fullmatch(r"__\w+__", s)]
         assert len(module_syms) > 0, "Linked modules must provide symbols"
         msgs.status_message(f"Found symbols {module_syms} in module {module}")
         symbols.update(module_syms)
-    
-    return symbols
 
+    return symbols
 
 
 def main(givenargs=None):
