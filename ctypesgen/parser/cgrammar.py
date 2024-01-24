@@ -1277,6 +1277,7 @@ def p_define(p):
     """ define : PP_DEFINE PP_DEFINE_NAME PP_END_DEFINE
                | PP_DEFINE PP_DEFINE_NAME type_name PP_END_DEFINE
                | PP_DEFINE PP_DEFINE_NAME constant_expression PP_END_DEFINE
+               | PP_DEFINE PP_DEFINE_NAME gcc_attribute PP_END_DEFINE
                | PP_DEFINE PP_DEFINE_MACRO_NAME LPAREN RPAREN PP_END_DEFINE
                | PP_DEFINE PP_DEFINE_MACRO_NAME LPAREN RPAREN constant_expression PP_END_DEFINE
                | PP_DEFINE PP_DEFINE_MACRO_NAME LPAREN macro_parameter_list RPAREN PP_END_DEFINE
@@ -1303,9 +1304,6 @@ def p_define(p):
                 expr = None
             elif len(p) == 8:
                 expr = p[6]
-
-        filename = p.slice[1].filename
-        lineno = p.slice[1].lineno
 
         p.parser.cparser.handle_define_macro(p[2], params, expr, filename, lineno)
 
