@@ -15,7 +15,6 @@ del t
 del _int_types
 
 
-# ~POINTER~
 class UserString:
     def __init__(self, seq):
         if isinstance(seq, bytes):

@@ -188,22 +188,22 @@ class CommonHeaderTest(unittest.TestCase):
         from .common import b
 
         m = b.struct_mystruct()
-        b.bar(ctypes.byref(m))
-        a.foo(ctypes.byref(m))
+        b.bar(m)
+        a.foo(m)
 
     def test_one_import(self):
         from .common import b
 
         m = b.struct_mystruct()
-        b.bar(ctypes.byref(m))
+        b.bar(m)
 
     def test_two_import(self):
         from .common import a2
         from .common import b2
 
         m = b2.struct_mystruct()
-        b2.bar(ctypes.byref(m))
-        a2.foo(ctypes.byref(m))
+        b2.bar(m)
+        a2.foo(m)
 
 
 class StdBoolTest(unittest.TestCase):
