@@ -259,7 +259,7 @@ class WrapperPrinter:
 
             self.file.write(f"\n")
             self.file.write(f"    __slots__ = list(__annotations__.keys())\n")
-            
+
             # TODO: maybe not implement this using a static member to avoid user confusion?
             self.file.write("\n")
             bitfields = list(filter(lambda x: isinstance(x[1], CtypesBitfield), struct.members))
