@@ -1,6 +1,19 @@
 import ctypes
 import sys
 from ctypes import *  # noqa: F401, F403
+from typing import get_type_hints
+
+
+def finalize_struct(cls):
+    fields = []
+    for name, ctype in get_type_hints(cls).items():
+        entry = [name, ctype]
+        if name in cls._tmp_bitfields_:
+            entry.append(cls._tmp_bitfields_[name])
+        fields.append(tuple(entry))
+    cls._fields_ = fields
+    del cls._tmp_bitfields_
+
 
 _int_types = (ctypes.c_int16, ctypes.c_int32)
 if hasattr(ctypes, "c_int64"):

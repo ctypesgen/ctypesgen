@@ -229,7 +229,47 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        self.file.write("class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base))
+        self.file.write("class %s_%s(%s):\n" % (struct.variety, struct.tag, base))
+        if struct.opaque:
+            self.file.write("    pass\n")
+        else:
+            # handle unnamed fields.
+            unnamed_fields = []
+            names = set([x[0] for x in struct.members])
+            anon_prefix = "unnamed_"
+            n = 1
+            for mi in range(len(struct.members)):
+                mem = list(struct.members[mi])
+                if mem[0] is None:
+                    while True:
+                        name = "%s%i" % (anon_prefix, n)
+                        n += 1
+                        if name not in names:
+                            break
+                    mem[0] = name
+                    names.add(name)
+                    if type(mem[1]) is CtypesStruct:
+                        unnamed_fields.append(name)
+                    struct.members[mi] = mem
+            struct.unnamed_fields = unnamed_fields
+
+            # print annotations
+            for name, ctype in struct.members:
+                self.file.write(f"    {name} : {ctype.py_string()}\n")
+
+            self.file.write(f"\n")
+            self.file.write(f"    __slots__ = list(__annotations__.keys())\n")
+
+            # TODO: maybe not implement this using a static member to avoid user confusion?
+            self.file.write("\n")
+            bitfields = list(filter(lambda x: isinstance(x[1], CtypesBitfield), struct.members))
+            if len(bitfields) == 0:
+                self.file.write(f"    _tmp_bitfields_ = dict()\n")
+            else:
+                self.file.write(f"    _tmp_bitfields_ = dict(\n")
+                for name, ctype in bitfields:
+                    self.file.write(f"        {name} = {ctype.bitfield.py_string(False)},\n")
+                self.file.write("    )\n")
 
     def print_struct_members(self, struct):
         if struct.opaque:
@@ -245,46 +285,14 @@ class WrapperPrinter:
                 aligned = aligned.evaluate(None)
             self.file.write("{}_{}._pack_ = {}\n".format(struct.variety, struct.tag, aligned))
 
-        # handle unnamed fields.
-        unnamed_fields = []
-        names = set([x[0] for x in struct.members])
-        anon_prefix = "unnamed_"
-        n = 1
-        for mi in range(len(struct.members)):
-            mem = list(struct.members[mi])
-            if mem[0] is None:
-                while True:
-                    name = "%s%i" % (anon_prefix, n)
-                    n += 1
-                    if name not in names:
-                        break
-                mem[0] = name
-                names.add(name)
-                if type(mem[1]) is CtypesStruct:
-                    unnamed_fields.append(name)
-                struct.members[mi] = mem
-
-        self.file.write("%s_%s.__slots__ = [\n" % (struct.variety, struct.tag))
-        for name, ctype in struct.members:
-            self.file.write("    '%s',\n" % name)
-        self.file.write("]\n")
-
+        unnamed_fields = struct.unnamed_fields
         if len(unnamed_fields) > 0:
             self.file.write("%s_%s._anonymous_ = [\n" % (struct.variety, struct.tag))
             for name in unnamed_fields:
                 self.file.write("    '%s',\n" % name)
             self.file.write("]\n")
 
-        self.file.write("%s_%s._fields_ = [\n" % (struct.variety, struct.tag))
-        for name, ctype in struct.members:
-            if isinstance(ctype, CtypesBitfield):
-                self.file.write(
-                    "    ('%s', %s, %s),\n"
-                    % (name, ctype.py_string(), ctype.bitfield.py_string(False))
-                )
-            else:
-                self.file.write("    ('%s', %s),\n" % (name, ctype.py_string()))
-        self.file.write("]\n")
+        self.file.write(f"finalize_struct({struct.variety}_{struct.tag})\n")
 
     def print_enum(self, enum):
         self.file.write("enum_%s = c_int" % enum.tag)
