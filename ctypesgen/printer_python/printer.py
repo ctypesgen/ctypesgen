@@ -260,7 +260,7 @@ class WrapperPrinter:
             self.file.write(f"\n")
             self.file.write(f"    __slots__ = list(__annotations__.keys())\n")
             
-            # TODO: maybe not write implement this using a static member to avoid user confusion?
+            # TODO: maybe not implement this using a static member to avoid user confusion?
             self.file.write("\n")
             bitfields = list(filter(lambda x: isinstance(x[1], CtypesBitfield), struct.members))
             if len(bitfields) == 0:
@@ -268,7 +268,7 @@ class WrapperPrinter:
             else:
                 self.file.write(f"    _tmp_bitfields_ = dict(\n")
                 for name, ctype in bitfields:
-                    self.file.write(f"        {name} = {ctype.bitfield},\n")
+                    self.file.write(f"        {name} = {ctype.bitfield.py_string(False)},\n")
                 self.file.write("    )\n")
 
     def print_struct_members(self, struct):
