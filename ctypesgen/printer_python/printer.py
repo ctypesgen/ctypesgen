@@ -209,7 +209,7 @@ class WrapperPrinter:
         self.file.write("from %s import *\n" % module)
 
     def print_constant(self, constant):
-        self.file.write("%s = %s" % (constant.name, constant.value.py_string(False)))
+        self.file.write("%s = %s " % (constant.name, constant.value.py_string(False)))
         self.srcinfo(constant.src)
 
     def print_undef(self, undef):
@@ -223,7 +223,7 @@ class WrapperPrinter:
         )
 
     def print_typedef(self, typedef):
-        self.file.write("%s = %s" % (typedef.name, typedef.ctype.py_string()))
+        self.file.write("%s = %s " % (typedef.name, typedef.ctype.py_string()))
         self.srcinfo(typedef.src)
 
     def print_struct(self, struct):
@@ -287,7 +287,7 @@ class WrapperPrinter:
         self.file.write("]\n")
 
     def print_enum(self, enum):
-        self.file.write("enum_%s = c_int" % enum.tag)
+        self.file.write("enum_%s = c_int " % enum.tag)
         self.srcinfo(enum.src)
         # Values of enumerator are output as constants.
 
