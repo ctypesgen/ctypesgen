@@ -66,9 +66,7 @@ ctypes_type_map_python_builtin = {
     ("int", True, 2): "c_longlong",
     ("int", False, 2): "c_ulonglong",
     ("size_t", True, 0): "c_size_t",
-    ("apr_int64_t", True, 0): "c_int64",
     ("off64_t", True, 0): "c_int64",
-    ("apr_uint64_t", False, 0): "c_uint64",
     ("wchar_t", True, 0): "c_wchar",
     ("ptrdiff_t", True, 0): "c_ptrdiff_t",  # Requires definition in preamble
     ("ssize_t", True, 0): "c_ptrdiff_t",  # Requires definition in preamble
