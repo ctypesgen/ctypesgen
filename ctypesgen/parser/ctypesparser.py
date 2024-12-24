@@ -83,8 +83,9 @@ class CtypesParser(CParser):
 
     def __init__(self, options):
         super(CtypesParser, self).__init__(options)
+        self.options = options
         self.type_map = ctypes_type_map
-        if not options.no_python_types:
+        if not self.options.no_python_types:
             self.type_map.update(ctypes_type_map_python_builtin)
 
     def make_struct_from_specifier(self, specifier):
@@ -173,7 +174,7 @@ class CtypesParser(CParser):
                     ct = self.get_ctypes_type(param.type, param.declarator)
                     ct.identifier = param_name
                     params.append(ct)
-                t = CtypesFunction(t, params, variadic)
+                t = CtypesFunction(t, params, variadic, self.options)
 
             a = declarator.array
             while a:
@@ -197,7 +198,7 @@ class CtypesParser(CParser):
                 ct = self.get_ctypes_type(param.type, param.declarator)
                 ct.identifier = param_name
                 params.append(ct)
-            t = CtypesFunction(t, params, variadic, declarator.attrib)
+            t = CtypesFunction(t, params, variadic, self.options, declarator.attrib)
 
         if declarator:
             a = declarator.array
@@ -205,13 +206,14 @@ class CtypesParser(CParser):
                 t = CtypesArray(t, a.size)
                 a = a.array
 
-        if (
-            isinstance(t, CtypesPointer)
-            and isinstance(t.destination, CtypesSimple)
-            and t.destination.name == "char"
-            and t.destination.signed
-        ):
-            t = CtypesSpecial("String")
+        if self.options.use_autostrings:
+            if (
+                isinstance(t, CtypesPointer)
+                and isinstance(t.destination, CtypesSimple)
+                and t.destination.name == "char"
+                and t.destination.signed
+            ):
+                t = CtypesSpecial("String")
 
         return t
 

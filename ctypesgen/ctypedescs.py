@@ -256,7 +256,7 @@ class CtypesPointerCast(object):
 
 
 class CtypesFunction(CtypesType):
-    def __init__(self, restype, parameters, variadic, attrib=dict()):
+    def __init__(self, restype, parameters, variadic, options, attrib=dict()):
         super(CtypesFunction, self).__init__()
         self.restype = restype
         self.errcheck = CtypesNoErrorCheck()
@@ -274,11 +274,8 @@ class CtypesFunction(CtypesType):
             self.restype = CtypesPointer(CtypesSpecial("c_ubyte"), ())
             self.errcheck = CtypesPointerCast(CtypesSpecial("c_void_p"))
 
-        # Return "String" instead of "POINTER(c_char)"
-        if self.restype.py_string() == "POINTER(c_char)":
-            if "const" in self.restype.qualifiers:
-                self.restype = CtypesSpecial("c_char_p")
-            else:
+        if options.use_autostrings:
+            if self.restype.py_string() == "POINTER(c_char)":
                 self.restype = CtypesSpecial("String")
 
         self.argtypes = [remove_function_pointer(p) for p in parameters]
