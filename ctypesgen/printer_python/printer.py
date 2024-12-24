@@ -229,10 +229,11 @@ class WrapperPrinter:
     def print_struct(self, struct):
         self.srcinfo(struct.src)
         base = {"union": "Union", "struct": "Structure"}[struct.variety]
-        self.file.write("class %s_%s(%s):\n" "    pass\n" % (struct.variety, struct.tag, base))
+        self.file.write("class %s_%s(%s):\n" % (struct.variety, struct.tag, base))
+        pad = " " * 4
 
-    def print_struct_members(self, struct):
         if struct.opaque:
+            self.file.write(pad + "pass")
             return
 
         # is this supposed to be packed?
@@ -243,7 +244,7 @@ class WrapperPrinter:
             if isinstance(aligned, ExpressionNode):
                 # TODO: for non-constant expression nodes, this will fail:
                 aligned = aligned.evaluate(None)
-            self.file.write("{}_{}._pack_ = {}\n".format(struct.variety, struct.tag, aligned))
+            self.file.write(pad + f"_pack_ = {aligned}\n")
 
         # handle unnamed fields.
         unnamed_fields = []
@@ -264,16 +265,24 @@ class WrapperPrinter:
                     unnamed_fields.append(name)
                 struct.members[mi] = mem
 
-        self.file.write("%s_%s.__slots__ = [\n" % (struct.variety, struct.tag))
+        self.file.write(pad + "__slots__ = [\n")
         for name, ctype in struct.members:
-            self.file.write("    '%s',\n" % name)
-        self.file.write("]\n")
+            self.file.write(pad * 2 + f"'{name}',\n")
+        self.file.write(pad + "]\n")
 
         if len(unnamed_fields) > 0:
-            self.file.write("%s_%s._anonymous_ = [\n" % (struct.variety, struct.tag))
+            self.file.write(pad + "_anonymous_ = [\n")
             for name in unnamed_fields:
-                self.file.write("    '%s',\n" % name)
-            self.file.write("]\n")
+                self.file.write(pad * 2 + f"'{name}',\n")
+            self.file.write(pad + "]\n")
+
+    def print_struct_members(self, struct):
+        # Fields are defined indepedent of the actual class to handle forward
+        # declarations, including self-references and cyclic structs
+        # https://docs.python.org/3/library/ctypes.html#incomplete-types
+
+        if struct.opaque:
+            return
 
         self.file.write("%s_%s._fields_ = [\n" % (struct.variety, struct.tag))
         for name, ctype in struct.members:
