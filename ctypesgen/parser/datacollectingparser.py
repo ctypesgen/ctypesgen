@@ -23,6 +23,7 @@ from ctypesgen.descriptions import (
 from ctypesgen.expressions import ConstantExpressionNode
 from ctypesgen.messages import error_message, status_message
 from ctypesgen.parser import ctypesparser
+from ctypesgen.parser.cdeclarations import Attrib
 
 
 class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
@@ -279,6 +280,9 @@ class DataCollectingParser(ctypesparser.CtypesParser, CtypesTypeVisitor):
             constant = ConstantDescription(name, expr, src)
             self.constants.append(constant)
             self.all.append(constant)
+            return
+
+        if type(expr) is Attrib:
             return
 
         expr.visit(self)
