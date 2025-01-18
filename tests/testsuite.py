@@ -2479,7 +2479,10 @@ struct foo
         int : 17;
 };
 
-#define CHAR_CONST u'🍌'
+#define CHAR_CONST_1 u'🍌'
+#define CHAR_CONST_2 'd'
+#define CHAR_CONST_3 '🍌'
+
 """
         cls.module, _ = generate(header_str)
 
@@ -2524,7 +2527,9 @@ struct foo
 
     def test_character_constants(self):
         """Test if integer constants is correctly parsed"""
-        self.assertEqual(ConstantsTest.module.CHAR_CONST, "🍌")
+        self.assertEqual(ConstantsTest.module.CHAR_CONST_1, "🍌")
+        self.assertEqual(ConstantsTest.module.CHAR_CONST_2, b"d")
+        self.assertEqual(ConstantsTest.module.CHAR_CONST_3, "🍌")
 
 
 class NULLTest(unittest.TestCase):
