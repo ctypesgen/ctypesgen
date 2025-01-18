@@ -6,4 +6,6 @@ Generated with:
 Do not modify this file.
 """
 
+from __future__ import annotations
+
 __docformat__ = "restructuredtext"
