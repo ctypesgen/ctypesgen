@@ -323,6 +323,20 @@ def main(givenargs=None):
         type=int,
         help="Run ctypesgen with specified debug level (also applies to yacc parser)",
     )
+    parser.add_argument(
+        "--no-macro-try-except",
+        action="store_false",
+        default=True,
+        dest="use_macro_try_except",
+        help="Do not use try-except for macros.",
+    )
+    parser.add_argument(
+        "--no-source-comments",
+        action="store_false",
+        default=True,
+        dest="print_source_comments",
+        help="Do not include source file comments.",
+    )
 
     parser.set_defaults(**core_options.default_values)
     args = parser.parse_args(givenargs)

@@ -35,8 +35,9 @@ class WrapperPrinter:
         self.print_preamble()
         self.file.write("\n")
 
-        self.print_loader()
-        self.file.write("\n")
+        if self.options.libraries:
+            self.print_loader()
+            self.file.write("\n")
 
         self.print_group(self.options.libraries, "libraries", self.print_library)
         self.print_group(self.options.modules, "modules", self.print_module)
@@ -77,7 +78,7 @@ class WrapperPrinter:
         self.file.write("\n")
 
     def srcinfo(self, src):
-        if src is None:
+        if src is None or not self.options.print_source_comments:
             self.file.write("\n")
         else:
             filename, lineno = src
@@ -183,8 +184,9 @@ class WrapperPrinter:
         with open(c_preamblefile, "w") as f:
             f.write(filecontent)
 
-        shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
-        os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")
+        if self.options.libraries:
+            shutil.copy(LIBRARYLOADER_PATH, f"{dst}")
+            os.rename(f"{dst}/libraryloader.py", f"{dst}/ctypes_loader.py")
 
     def print_loader(self):
         self.file.write("_libs = {}\n")
@@ -430,12 +432,17 @@ class WrapperPrinter:
         # We want to contain the failures as much as possible.
         # Hence the try statement.
         self.srcinfo(macro.src)
-        self.file.write(
-            "try:\n"
-            "    {MN} = {ME}\n"
-            "except:\n"
-            "    pass\n".format(MN=macro.name, ME=macro.expr.py_string(True))
-        )
+        if self.options.use_macro_try_except:
+            self.file.write(
+                "try:\n"
+                "    {MN} = {ME}\n"
+                "except:\n"
+                "    pass\n".format(MN=macro.name, ME=macro.expr.py_string(True))
+            )
+        else:
+            self.file.write(
+                "{MN} = {ME}\n".format(MN=macro.name, ME=macro.expr.py_string(True))
+            )
 
     def print_func_macro(self, macro):
         self.srcinfo(macro.src)
