@@ -30,7 +30,7 @@ def find_names_in_modules(modules):
 def main(givenargs=None):
     # TODO(geisserml) In the future, convert action="append" to nargs="*" - that's nicer to use
 
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(formatter_class=argparse.RawTextHelpFormatter)
     parser.add_argument(
         "--version",
         action="version",
@@ -257,7 +257,11 @@ def main(givenargs=None):
         dest="header_template",
         default=None,
         metavar="TEMPLATE",
-        help="Use TEMPLATE as the header template in the output file.",
+        help="Use TEMPLATE (file) as the header template in the output file.\n"
+             "The following strings will be replaced when generating the output file:\n"
+             "    '%%(date)s', replaced by generation date and time.\n"
+             "    '%%(argv)s', replaced by ctypesgen full command line with arguments.\n"
+             "    '%%(name)s', replaced by C header file name.",
     )
     parser.add_argument(
         "--strip-build-path",
