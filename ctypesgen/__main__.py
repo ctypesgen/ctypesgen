@@ -259,9 +259,9 @@ def main(givenargs=None):
         metavar="TEMPLATE",
         help="Use TEMPLATE (file) as the header template in the output file.\n"
              "The following strings will be replaced when generating the output file:\n"
-             "    '%%(date)', replaced by generation date and time.\n"
-             "    '%%(argv)', replaced by ctypesgen full command line with arguments.\n"
-             "    '%%(name)', replaced by C header file name.",
+             "    '%%(date)s', replaced by generation date and time.\n"
+             "    '%%(argv)s', replaced by ctypesgen full command line with arguments.\n"
+             "    '%%(name)s', replaced by C header file name.",
     )
     parser.add_argument(
         "--strip-build-path",
