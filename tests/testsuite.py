@@ -156,7 +156,7 @@ class StdlibTest(unittest.TestCase):
         except KeyError:
             pass
         result = module.getenv(env_var_name)
-        self.assertEqual(expect_result, result)
+        self.assertEqual(expect_result, result.raw)
 
 
 # This test is currently not working on MS Windows. The reason is the call of

@@ -1,3 +1,5 @@
+import sys
+import functools
 import ctypes
 from ctypes import *  # noqa: F401, F403
 
@@ -17,33 +19,50 @@ del _int_types
 # ~POINTER~
 
 
+if sys.version_info < (3, 8):
+    # NOTE alternatively, we could write our own cached property backport with python's descriptor protocol
+    def cached_property(func):
+        return property( functools.lru_cache(maxsize=1)(func) )
+else:
+    cached_property = functools.cached_property
+
+
+DEFAULT_ENCODING = "utf-8"
+
 class _wraps_c_char_p:
-    def __init__(self, raw, value):
-        self.raw = raw
-        self.value = value
-
-    # provided for clarity, not actually necessary due to __getattr__ wrapper below
-    def decode(self, encoding="utf-8", errors="strict"):
-        return self.value.decode(encoding, errors=errors)
-
+    
+    def __init__(self, ptr):
+        self.ptr = ptr
+    
+    @cached_property
+    def raw(self):
+        return self.ptr.value
+    
+    @cached_property
+    def decoded(self):
+        if self.raw is None:
+            raise RuntimeError("Null pointer cannot be decoded")
+        return self.raw.decode(DEFAULT_ENCODING)
+    
     def __str__(self):
-        return self.decode()
-
+        return self.decoded
+    
     def __getattr__(self, attr):
-        return getattr(self.value, attr)
+        return getattr(self.decoded, attr)
 
 
-class String(ctypes.c_char_p):
+class String (ctypes.c_char_p):
+    
     @classmethod
     def _check_retval_(cls, result):
-        value = result.value
-        return value if value is None else _wraps_c_char_p(result, value)
-
+        return _wraps_c_char_p(result)
+    
     @classmethod
     def from_param(cls, obj):
         if isinstance(obj, str):
-            obj = obj.encode("utf-8")
+            obj = obj.encode(DEFAULT_ENCODING)
         return super().from_param(obj)
+
 
 
 # As of ctypes 1.0, ctypes does not support custom error-checking
