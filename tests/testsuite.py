@@ -142,7 +142,7 @@ class StdlibTest(unittest.TestCase):
             os.environ[env_var_name] = "WORLD"  # This doesn't work under win32
             expect_result = "WORLD"
 
-        result = str(module.getenv(env_var_name))
+        result = module.getenv(env_var_name)
         self.assertEqual(expect_result, result)
 
     def test_getenv_returns_null(self):
@@ -156,7 +156,7 @@ class StdlibTest(unittest.TestCase):
         except KeyError:
             pass
         result = module.getenv(env_var_name)
-        self.assertEqual(expect_result, result.raw)
+        self.assertEqual(expect_result, result)
 
 
 # This test is currently not working on MS Windows. The reason is the call of

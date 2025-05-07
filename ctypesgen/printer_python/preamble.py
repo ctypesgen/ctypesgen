@@ -49,6 +49,9 @@ class _wraps_c_char_p:
     
     def __getattr__(self, attr):
         return getattr(self.decoded, attr)
+    
+    def __eq__(self, other):
+        return self.raw == other or self.decoded == other
 
 
 class String (ctypes.c_char_p):
