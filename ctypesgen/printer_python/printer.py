@@ -4,7 +4,8 @@ import sys
 import time
 import shutil
 
-from ctypesgen.ctypedescs import CtypesBitfield, CtypesStruct
+from ctypesgen.ctypedescs import CtypesBitfield, CtypesStruct, CtypesFunction
+from ctypesgen.descriptions import FunctionDescription
 from ctypesgen.expressions import ExpressionNode
 from ctypesgen.messages import error_message, status_message
 
@@ -297,61 +298,75 @@ class WrapperPrinter:
         else:
             self.print_fixed_function(function)
 
-    def print_fixed_function(self, function):
+    def print_fixed_function(self, function : FunctionDescription):
         self.srcinfo(function.src)
 
         CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
+        L = function.source_library
+        if not L and len(self.options.libraries) == 1:
+            L = self.options.libraries[0]
+        CN = function.c_name()
+        PN = function.py_name()
+        RT = function.restype.py_string()
+
+        fun_idx = 0
+        def function_name_hack():
+            nonlocal fun_idx
+            fun_idx += 1
+            return f"fun_{fun_idx}"
+
+
+        param_names = [function_name_hack() if isinstance(a, CtypesFunction) else a.identifier for a in function.argtypes]
+        param_types = [a.py_string() for a in function.argtypes]
+        params = ", ".join(f"{n} : {t}" for n, t in zip(param_names, param_types))
+        param_names = ", ".join(param_names)
+        param_types = ', '.join(param_types)
 
         # If we know what library the function lives in, or we have only a single library,
         # look there. Otherwise, check all the libraries.
-        use_single_lib = function.source_library or len(self.options.libraries) == 1
-        if use_single_lib:
-            lib = function.source_library if function.source_library else self.options.libraries[0]
+        if L:
             self.file.write(
-                'if _libs["{L}"].has("{CN}", "{CC}"):\n'
-                '    {PN} = _libs["{L}"].get("{CN}", "{CC}")\n'.format(
-                    L=lib, CN=function.c_name(), PN=function.py_name(), CC=CC
-                )
+                f'if _libs["{L}"].has("{CN}", "{CC}"):\n'
+                f'    {PN} = _libs["{L}"].get("{CN}", "{CC}")\n'
             )
         else:
             self.file.write(
-                "for _lib in _libs.values():\n"
-                '    if not _lib.has("{CN}", "{CC}"):\n'
-                "        continue\n"
-                '    {PN} = _lib.get("{CN}", "{CC}")\n'.format(
-                    CN=function.c_name(), PN=function.py_name(), CC=CC
-                )
+                f"for _lib in _libs.values():\n"
+                f'    if not _lib.has("{CN}", "{CC}"):\n'
+                f"        continue\n"
+                f'    {PN} = _lib.get("{CN}", "{CC}")\n'
             )
 
         # Argument types
-        self.file.write(
-            "    %s.argtypes = [%s]\n"
-            % (function.py_name(), ", ".join([a.py_string() for a in function.argtypes]))
-        )
+        self.file.write(f"    {PN}.argtypes = [{param_types}]\n")
 
         # Return value
         if function.restype.py_string() == "String":
             self.file.write(
-                "    if sizeof(c_int) == sizeof(c_void_p):\n"
-                "        {PN}.restype = ReturnString\n"
-                "    else:\n"
-                "        {PN}.restype = {RT}\n"
-                "        {PN}.errcheck = ReturnString\n".format(
-                    PN=function.py_name(), RT=function.restype.py_string()
-                )
+                f"    if sizeof(c_int) == sizeof(c_void_p):\n"
+                f"        {PN}.restype = ReturnString\n"
+                f"    else:\n"
+                f"        {PN}.restype = {RT}\n"
+                f"        {PN}.errcheck = ReturnString\n"
             )
         else:
-            self.file.write(
-                "    %s.restype = %s\n" % (function.py_name(), function.restype.py_string())
-            )
+            self.file.write(f"    {PN}.restype = {RT}\n")
             if function.errcheck:
-                self.file.write(
-                    "    %s.errcheck = %s\n" % (function.py_name(), function.errcheck.py_string())
-                )
+                self.file.write(f"    {PN}.errcheck = {function.errcheck.py_string()}\n")
 
-        if not use_single_lib:
+        self.file.write(
+            f"\n"
+            f"    ctypes_{PN} = {PN}\n"
+            f"    def {PN}({params}) -> {RT} : \n"
+            f"        return ctypes_{PN}({param_names})\n"
+        )
+
+        if not L:
             self.file.write("    break\n")
 
+        self.file.write("\n")
+
+    # TODO annotations for variadic functions
     def print_variadic_function(self, function):
         CC = "stdcall" if function.attrib.get("stdcall", False) else "cdecl"
 
